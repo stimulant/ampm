@@ -1,3 +1,6 @@
+content/
+node_modules/
+
 # Compiled Object files
 *.slo
 *.lo
