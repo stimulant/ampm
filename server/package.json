@@ -4,6 +4,7 @@
     "version": "0.0.1",
     "private": true,
     "dependencies": {
+        "supervisor": "*",
         "express": "3.4.4",
         "moment": "2.4.0",
         "request": "2.27.0",
