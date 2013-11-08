@@ -1,0 +1,14 @@
+{
+    "name": "stimulant-app-manager",
+    "description": "watcher/updater",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "express": "3.4.4",
+        "moment": "2.4.0",
+        "request": "2.27.0",
+        "socket.io": "0.9.16",
+        "underscore": "1.5.2",
+        "xregexp": "2.0.0"
+    }
+}
