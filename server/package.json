@@ -9,7 +9,7 @@
         "moment": "2.4.0",
         "request": "2.27.0",
         "socket.io": "0.9.16",
-        "underscore": "1.5.2",
+        "backbone": "1.1.0",
         "xregexp": "2.0.0"
     }
 }

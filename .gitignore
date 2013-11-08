@@ -1,5 +1,7 @@
 content/
 node_modules/
+bin/
+obj/
 
 # Compiled Object files
 *.slo
