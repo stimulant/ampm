@@ -10,11 +10,7 @@ exports.Updater = Backbone.Model.extend({
 
     defaults: {
         lastUpdate: null,
-        config: null,
-        filesToLoad: 0,
-        filesLoaded: 0,
-        fileLoading: null,
-        fileProgress: 0
+        config: null
     },
 
     initialize: function() {},
@@ -25,9 +21,10 @@ exports.Updater = Backbone.Model.extend({
         // Create the target directory if needed.
         fs.exists(config.outputBase, _.bind(function(exists) {
             if (!exists) {
-                fs.mkdir(config.outputBase, 0777, _.bind(function(error) {
-                    console.log(this);
-                    request(config.rootXml, _.bind(this._processRootXml, this));
+                fs.mkdir(config.tempBase, 0777, _.bind(function(error) {
+                    fs.mkdir(config.outputBase, 0777, _.bind(function(error) {
+                        request(config.rootXml, _.bind(this._processRootXml, this));
+                    }, this));
                 }, this));
             } else {
                 request(config.rootXml, _.bind(this._processRootXml, this));
@@ -37,7 +34,7 @@ exports.Updater = Backbone.Model.extend({
 
     _processRootXml: function(error, response, body) {
         var config = this.get('config');
-        fs.writeFile(config.outputBase + 'content.xml', body);
+        fs.writeFile(config.tempBase + 'content.xml', body);
 
         // Collect any URLs in root file.
         var pattern = new XRegExp(/>(http.*?)</gi);
@@ -55,15 +52,17 @@ exports.Updater = Backbone.Model.extend({
         pattern = new XRegExp(config.cmsRoot + '/(.*)');
         _.each(matches, function(element, index, list) {
             var url = element[1];
-            var filepath = config.outputBase + XRegExp.exec(url, pattern)[1];
+            var relativePath = XRegExp.exec(url, pattern)[1];
+            var filePath = config.outputBase + relativePath;
+            var tempPath = config.tempBase + relativePath;
 
-            fs.exists(filepath, _.bind(function(exists) {
+            fs.exists(filePath, _.bind(function(exists) {
                 if (!exists) {
                     // The file doesn't exist locally, so download it.
-                    this._downloadLinkedFile(url, filepath);
+                    this._downloadLinkedFile(url, tempPath);
                 } else {
                     // The file does exist locally, check if the remote one is newer.
-                    fs.stat(filepath, _.bind(function(error, stats) {
+                    fs.stat(filePath, _.bind(function(error, stats) {
                         var localFileModified = moment(stats.mtime);
                         request({
                             url: url,
@@ -71,7 +70,7 @@ exports.Updater = Backbone.Model.extend({
                         }, _.bind(function(error, response, body) {
                             var remoteFileModified = moment(response.headers['last-modified']);
                             if (remoteFileModified.isAfter(localFileModified)) {
-                                this._downloadLinkedFile(url, filepath);
+                                this._downloadLinkedFile(url, tempPath);
                             } else {
                                 console.log('Skipping ' + url);
                             }
@@ -83,19 +82,21 @@ exports.Updater = Backbone.Model.extend({
     },
 
     // Download a file to a given path on disk.
-    _downloadLinkedFile: function(url, filepath) {
+    _downloadLinkedFile: function(url, filePath) {
         console.log('Downloading ' + url);
 
-        var dir = path.dirname(filepath);
+        var dir = path.dirname(filePath);
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir);
         }
 
-        request(url, function(error, response, body) {
+        request(url, _.bind(function(error, response, body) {
             if (error) {
                 console.log('Error loading ' + url);
                 console.log(error);
+            } else {
+                fs.writeFile(filePath, body);
             }
-        }).pipe(fs.createWriteStream(filepath));
+        }, this));
     }
 });

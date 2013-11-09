@@ -11,6 +11,7 @@ server.listen(3000);
 
 ///// Updater
 // save to temp folder and then copy over
+// if there are any errors, bail
 // update currently loading file(s?), progress of each, total progress, complete event
 // Add app to content, unzip
 // Support to update from non-web location
@@ -44,6 +45,10 @@ server.listen(3000);
 // Forward all messages to another instance of server?
 // UI displays all inputs at once?
 // Send commands (shutdown etc) back to clients?
+
+///// Plugin for custom app logic
+// Short term -- some generic class with spots for custom code?
+// Long term -- define a set of properties/types/intervals to keep in sync across clients.
 
 // Load config file.
 var config = require('./config.js').config;
