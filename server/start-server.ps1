@@ -1,2 +1,2 @@
 npm install
-supervisor server.js
+supervisor -n error server.js
