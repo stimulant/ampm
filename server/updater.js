@@ -10,19 +10,29 @@ exports.Updater = Backbone.Model.extend({
 
     defaults: {
         lastUpdate: null,
-        config: null
+        config: null,
+        filesToLoad: 0,
+        filesLoaded: 0,
+        fileLoading: null,
+        fileProgress: 0
     },
 
     initialize: function() {},
 
     update: function() {
         var config = this.get('config');
-        if (!fs.existsSync(config.outputBase)) {
-            fs.mkdirSync(config.outputBase);
-        }
 
-        // Load the root content XML file.
-        request(config.rootXml, _.bind(this._processRootXml, this));
+        // Create the target directory if needed.
+        fs.exists(config.outputBase, _.bind(function(exists) {
+            if (!exists) {
+                fs.mkdir(config.outputBase, 0777, _.bind(function(error) {
+                    console.log(this);
+                    request(config.rootXml, _.bind(this._processRootXml, this));
+                }, this));
+            } else {
+                request(config.rootXml, _.bind(this._processRootXml, this));
+            }
+        }, this));
     },
 
     _processRootXml: function(error, response, body) {
@@ -47,24 +57,28 @@ exports.Updater = Backbone.Model.extend({
             var url = element[1];
             var filepath = config.outputBase + XRegExp.exec(url, pattern)[1];
 
-            if (!fs.existsSync(filepath)) {
-                // The file doesn't exist locally, so download it.
-                this._downloadLinkedFile(url, filepath);
-            } else {
-                // The file does exist locally, check if the remote one is newer.
-                var localFileModified = moment(fs.statSync(filepath).mtime);
-                request({
-                    url: url,
-                    method: 'HEAD'
-                }, _.bind(function(error, response, body) {
-                    var remoteFileModified = moment(response.headers['last-modified']);
-                    if (remoteFileModified.isAfter(localFileModified)) {
-                        this._downloadLinkedFile(url, filepath);
-                    } else {
-                        console.log('Skipping ' + url);
-                    }
-                }, this));
-            }
+            fs.exists(filepath, _.bind(function(exists) {
+                if (!exists) {
+                    // The file doesn't exist locally, so download it.
+                    this._downloadLinkedFile(url, filepath);
+                } else {
+                    // The file does exist locally, check if the remote one is newer.
+                    fs.stat(filepath, _.bind(function(error, stats) {
+                        var localFileModified = moment(stats.mtime);
+                        request({
+                            url: url,
+                            method: 'HEAD'
+                        }, _.bind(function(error, response, body) {
+                            var remoteFileModified = moment(response.headers['last-modified']);
+                            if (remoteFileModified.isAfter(localFileModified)) {
+                                this._downloadLinkedFile(url, filepath);
+                            } else {
+                                console.log('Skipping ' + url);
+                            }
+                        }, this));
+                    }));
+                }
+            }, this));
         }, this);
     },
 
