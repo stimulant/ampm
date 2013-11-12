@@ -32,26 +32,26 @@ exports.ContentUpdater = Backbone.Model.extend({
         var config = this.get('config');
 
         // Delete the temp directory.
-        rimraf(config.tempBase, _.bind(function(error) {
+        rimraf(config.temp, _.bind(function(error) {
             this._handleError('Error clearing temp directory.', error);
 
             // Make the temp directory.
-            fs.mkdir(config.tempBase, 0777, true, _.bind(function(error) {
+            fs.mkdir(config.temp, 0777, true, _.bind(function(error) {
                 this._handleError('Error creating temp directory.', error);
 
-                fs.exists(config.outputBase, _.bind(function(exists) {
+                fs.exists(config.local, _.bind(function(exists) {
                     if (exists) {
                         // Download the root XML.
-                        request(config.rootXml, _.bind(this._processRootXml, this));
+                        request(config.remote, _.bind(this._processContentRoot, this));
                         return;
                     }
 
                     // Make the ouput directory.
-                    fs.mkdir(config.outputBase, 0777, true, _.bind(function(error) {
+                    fs.mkdir(config.local, 0777, true, _.bind(function(error) {
                         this._handleError('Error creating ouput directory.', error);
 
                         // Download the root XML.
-                        request(config.rootXml, _.bind(this._processRootXml, this));
+                        request(config.remote, _.bind(this._processContentRoot, this));
                     }, this));
                 }, this));
             }, this));
@@ -59,12 +59,12 @@ exports.ContentUpdater = Backbone.Model.extend({
     },
 
     // Process the XML file to extract files to load.
-    _processRootXml: function(error, response, body) {
+    _processContentRoot: function(error, response, body) {
         this._handleError('Error loading root XML.', error);
         var config = this.get('config');
 
         // Write the root XML file.
-        fs.writeFile(config.tempBase + 'content.xml', body, _.bind(function(error) {
+        fs.writeFile(config.temp + 'content.xml', body, _.bind(function(error) {
             this._handleError('Error writing root XML.', error);
             this.set('files', new exports.ContentFiles());
 
@@ -102,8 +102,8 @@ exports.ContentUpdater = Backbone.Model.extend({
                 var relativePath = url.substr(prefix.length);
                 var file = new exports.ContentFile({
                     url: url,
-                    filePath: config.outputBase + relativePath,
-                    tempPath: config.tempBase + relativePath
+                    filePath: config.local + relativePath,
+                    tempPath: config.temp + relativePath
                 });
 
                 file.on('loaded', this._onFileLoaded, this);
@@ -201,11 +201,11 @@ exports.ContentUpdater = Backbone.Model.extend({
     // TODO: If a file is removed from the CMS, it will never get removed from the output directory.
     _processFiles: function() {
         // Recursive copy from temp to target.
-        ncp(this.get('config').tempBase, this.get('config').outputBase, _.bind(function(error) {
+        ncp(this.get('config').temp, this.get('config').local, _.bind(function(error) {
             this._handleError('Error copying from temp folder.', error);
 
             // Delete the temp folder.
-            rimraf(this.get('config').tempBase, _.bind(function(error) {
+            rimraf(this.get('config').temp, _.bind(function(error) {
                 this._handleError('Error clearing temp directory.', error);
 
                 // Notify on completion.

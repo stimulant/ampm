@@ -2,6 +2,9 @@ var express = require('express'); // Routing framework. http://expressjs.com/
 var http = require('http'); // HTTP support. http://nodejs.org/api/http.html
 var io = require('socket.io'); // Socket support for UI. http://socket.io/
 var app = express();
+var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
+
+var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
 
 var server = http.createServer(app);
 io.listen(server);
@@ -49,11 +52,15 @@ server.listen(3000);
 // Long term -- define a set of properties/types/intervals to keep in sync across clients.
 
 // Load config file.
-var config = require('./config.js').config;
-var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
+try {
+    var config = JSON.parse(fs.readFileSync('./config.json'));
+} catch (error) {
+    console.log("Couldn't load config file.");
+    console.log(error);
+}
 
 var contentUpdater = new ContentUpdater({
-    config: config
+    config: config.contentUpdater
 });
 
 contentUpdater.update(function(error) {
