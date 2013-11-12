@@ -5,6 +5,7 @@ var app = express();
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 
 var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
+var ClientUpdater = require('./clientUpdater.js').ClientUpdater;
 
 var server = http.createServer(app);
 io.listen(server);
@@ -14,7 +15,6 @@ server.listen(3000);
 // Each client connects with a config, including its network path for updating content
 
 ///// Updater
-// Add app to content, unzip
 // Support to update from non-web location
 
 ///// App controller
@@ -59,6 +59,7 @@ try {
     console.log(error);
 }
 
+// Update the content.
 var contentUpdater = new ContentUpdater({
     config: config.contentUpdater
 });
@@ -69,7 +70,21 @@ contentUpdater.update(function(error) {
         throw error;
     }
 
-    console.log('Update complete! ' + contentUpdater.get('updated').toString());
+    console.log('Content update complete! ' + contentUpdater.get('updated').toString());
+
+    // Updat the application.
+    var clientUpdater = new ClientUpdater({
+        config: config.clientUpdater
+    });
+
+    clientUpdater.update(function(error) {
+        if (error) {
+            console.log(error);
+            throw error;
+        }
+
+        console.log('Client update complete! ' + clientUpdater.get('updated').toString());
+    });
 });
 
 app.get('/', function(req, res) {
