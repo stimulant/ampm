@@ -8,13 +8,20 @@ var ContentUpdater = require('./contentUpdater.js');
 // Like ContentUpdater except for a single file, which gets unzipped when it's done loading.
 exports.ClientUpdater = ContentUpdater.ContentUpdater.extend({
 
+	defaults: _.defaults(ContentUpdater.ContentUpdater.prototype.defaults, {
+		// The final local path for the client.
+		local: '../client/',
+
+		// The temp path for the client.
+		temp: '../client.tmp/',
+	}),
+
 	initialize: function() {
-		var config = this.get('config');
-		var filename = path.basename(config.remote);
+		var filename = path.basename(this.get('remote'));
 		var file = new ContentUpdater.ContentFile({
-			url: config.remote,
-			filePath: config.local + filename,
-			tempPath: config.temp + filename
+			url: this.get('remote'),
+			filePath: this.get('local') + filename,
+			tempPath: this.get('temp') + filename
 		});
 
 		file.on('loaded', this._onFileLoaded, this);
@@ -26,8 +33,6 @@ exports.ClientUpdater = ContentUpdater.ContentUpdater.extend({
 	update: function(callback) {
 		this._callback = callback;
 		var file = this.get('files').at(0);
-		var config = this.get('config');
-
 		this._initDirectories(_.bind(function() {
 			this._processFile(file);
 		}, this));

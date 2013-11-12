@@ -1,13 +1,9 @@
 {
     "contentUpdater": {
-        "remote": "http://content.stimulant.io/mvi_video/category/6",
-        "local": "..\\content\\",
-        "temp": "..\\content.tmp\\"
+        "remote": "http://content.stimulant.io/mvi_video/category/6"
     },
 
     "clientUpdater": {
-        "remote": "http://content.stimulant.io/uploads/mvi_video/mvi_video.zip",
-        "local": "..\\client\\",
-        "temp": "..\\client.tmp\\"
+        "remote": "http://content.stimulant.io/uploads/mvi_video/mvi_video.zip"
     }
 }

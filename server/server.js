@@ -60,9 +60,7 @@ try {
 }
 
 // Update the content.
-var contentUpdater = new ContentUpdater({
-    config: config.contentUpdater
-});
+var contentUpdater = new ContentUpdater(config.contentUpdater);
 
 contentUpdater.update(function(error) {
     if (error) {
@@ -73,9 +71,7 @@ contentUpdater.update(function(error) {
     console.log('Content update complete! ' + contentUpdater.get('updated').toString());
 
     // Updat the application.
-    var clientUpdater = new ClientUpdater({
-        config: config.clientUpdater
-    });
+    var clientUpdater = new ClientUpdater(config.clientUpdater);
 
     clientUpdater.update(function(error) {
         if (error) {

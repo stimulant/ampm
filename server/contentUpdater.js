@@ -16,8 +16,14 @@ exports.ContentUpdater = Backbone.Model.extend({
         // When the content was last updated.
         updated: null,
 
-        // The global config object.
-        config: null,
+        // The remote URL to the root XML.
+        remote: null,
+
+        // The final local path for content.
+        local: '../content/',
+
+        // The temp path for content.
+        temp: '../content.tmp/',
 
         // A collection of file objects that are being processed.
         files: null
@@ -29,31 +35,29 @@ exports.ContentUpdater = Backbone.Model.extend({
     // Manually update content.
     update: function(callback) {
         this._callback = callback;
-        var config = this.get('config');
         this._initDirectories(_.bind(function() {
-            request(config.remote, _.bind(this._processContentRoot, this));
+            request(this.get('remote'), _.bind(this._processContentRoot, this));
         }, this));
     },
 
     // Set up the temp and output directories.
     _initDirectories: function(callback) {
-        var config = this.get('config');
         // Delete the temp directory.
-        rimraf(config.temp, _.bind(function(error) {
+        rimraf(this.get('temp'), _.bind(function(error) {
             this._handleError('Error clearing temp directory.', error);
 
             // Make the temp directory.
-            fs.mkdir(config.temp, 0777, true, _.bind(function(error) {
+            fs.mkdir(this.get('temp'), 0777, true, _.bind(function(error) {
                 this._handleError('Error creating temp directory.', error);
 
-                fs.exists(config.local, _.bind(function(exists) {
+                fs.exists(this.get('local'), _.bind(function(exists) {
                     if (exists) {
                         callback();
                         return;
                     }
 
                     // Make the ouput directory.
-                    fs.mkdir(config.local, 0777, true, _.bind(function(error) {
+                    fs.mkdir(this.get('local'), 0777, true, _.bind(function(error) {
                         this._handleError('Error creating ouput directory.', error);
                         callback();
                     }, this));
@@ -65,10 +69,9 @@ exports.ContentUpdater = Backbone.Model.extend({
     // Process the XML file to extract files to load.
     _processContentRoot: function(error, response, body) {
         this._handleError('Error loading root XML.', error);
-        var config = this.get('config');
 
         // Write the root XML file.
-        fs.writeFile(config.temp + 'content.xml', body, _.bind(function(error) {
+        fs.writeFile(this.get('temp') + 'content.xml', body, _.bind(function(error) {
             this._handleError('Error writing root XML.', error);
             this.set('files', new exports.ContentFiles());
 
@@ -106,8 +109,8 @@ exports.ContentUpdater = Backbone.Model.extend({
                 var relativePath = url.substr(prefix.length);
                 var file = new exports.ContentFile({
                     url: url,
-                    filePath: config.local + relativePath,
-                    tempPath: config.temp + relativePath
+                    filePath: this.get('local') + relativePath,
+                    tempPath: this.get('temp') + relativePath
                 });
 
                 file.on('loaded', this._onFileLoaded, this);
@@ -209,11 +212,11 @@ exports.ContentUpdater = Backbone.Model.extend({
     // TODO: If a file is removed from the CMS, it will never get removed from the output directory.
     _processFiles: function() {
         // Recursive copy from temp to target.
-        ncp(this.get('config').temp, this.get('config').local, _.bind(function(error) {
+        ncp(this.get('temp'), this.get('local'), _.bind(function(error) {
             this._handleError('Error copying from temp folder.', error);
 
             // Delete the temp folder.
-            rimraf(this.get('config').temp, _.bind(function(error) {
+            rimraf(this.get('temp'), _.bind(function(error) {
                 this._handleError('Error clearing temp directory.', error);
                 this._completed();
             }, this));
