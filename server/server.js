@@ -1,18 +1,16 @@
-var express = require('express');
-var http = require('http');
+var express = require('express'); // Routing framework. http://expressjs.com/
+var http = require('http'); // HTTP support. http://nodejs.org/api/http.html
+var io = require('socket.io'); // Socket support for UI. http://socket.io/
 var app = express();
-var server = http.createServer(app);
-var io = require('socket.io').listen(server);
 
+var server = http.createServer(app);
+io.listen(server);
 server.listen(3000);
 
 ///// Support multiple clients
 // Each client connects with a config, including its network path for updating content
 
 ///// Updater
-// save to temp folder and then copy over
-// if there are any errors, bail
-// update currently loading file(s?), progress of each, total progress, complete event
 // Add app to content, unzip
 // Support to update from non-web location
 
@@ -58,7 +56,14 @@ var updater = new Updater({
     config: config
 });
 
-updater.update();
+updater.update(function(error) {
+    if (error) {
+        console.log(error);
+        throw error;
+    }
+
+    console.log('Update complete! ' + updater.get('updated').toString());
+});
 
 app.get('/', function(req, res) {
     res.sendfile(__dirname + '/view/index.html');

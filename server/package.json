@@ -5,11 +5,16 @@
     "private": true,
     "dependencies": {
         "supervisor": "*",
-        "express": "3.4.4",
+        "underscore": "1.5.2",
+        "backbone": "1.1.0",
         "moment": "2.4.0",
         "request": "2.27.0",
+        "request-progress": "0.3.1",
+        "xregexp": "2.0.0",
+        "rimraf": "2.2.2",
+        "node-fs": "0.1.7",
+        "ncp": "0.4.2"
+        "express": "3.4.4",
         "socket.io": "0.9.16",
-        "backbone": "1.1.0",
-        "xregexp": "2.0.0"
     }
 }
