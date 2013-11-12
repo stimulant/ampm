@@ -11,10 +11,21 @@ var server = http.createServer(app);
 io.listen(server);
 server.listen(3000);
 
+var osc = require('node-osc');
+
+var oscServer = new osc.Server(3001, '0.0.0.0');
+oscServer.on("message", function(msg, rinfo) {
+    console.log(msg);
+});
+
 ///// Support multiple clients
 // Each client connects with a config, including its network path for updating content
 
 ///// Updater
+// Heartbeat
+// Kill/start button
+// Update button: kill process, update content, update client, restart client
+// Update server
 // Support to update from non-web location
 
 ///// App controller
@@ -50,6 +61,9 @@ server.listen(3000);
 ///// Plugin for custom app logic
 // Short term -- some generic class with spots for custom code?
 // Long term -- define a set of properties/types/intervals to keep in sync across clients.
+
+///// Analytics
+// Hook into analytics service? Or log analysis tool?
 
 // Load config file.
 try {

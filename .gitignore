@@ -3,10 +3,12 @@ content.tmp/
 client/
 client.tmp/
 node_modules/
+packages/
 bin/
 obj/
 
 # Compiled Object files
+*.suo
 *.slo
 *.lo
 *.o
