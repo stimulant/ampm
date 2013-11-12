@@ -34,10 +34,8 @@ namespace Client
 
         void Timer_Tick(object sender, EventArgs e)
         {
-            OscBundle bundle = new OscBundle(Source);
-            OscMessage message = new OscMessage(Source, "/heartbeat/alive");
-            bundle.Append(message);
-            bundle.Send(Destination);
+            OscMessage message = new OscMessage(Source, "/heart/" + DateTime.Now.Millisecond);
+            message.Send(Destination);
         }
     }
 }
