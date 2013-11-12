@@ -81,13 +81,25 @@ exports.Updater = Backbone.Model.extend({
                 matches.push(match);
             }
 
-            // Build file objects for each.
-            pattern = new XRegExp(config.cmsRoot + '/(.*)');
+            // Figure out what each URL begins with -- this is removed to create the relative path.
+            var prefix = '';
+
+            function iterator(element, index, list) {
+                return element[1].indexOf(prefix) === 0;
+            }
+
+            while (true) {
+                prefix += matches[0][1][prefix.length];
+                if (!_.every(matches, iterator)) {
+                    prefix = prefix.substr(0, prefix.length - 1);
+                    break;
+                }
+            }
 
             // Build file objects.
             _.each(matches, function(element, index, list) {
                 var url = element[1];
-                var relativePath = XRegExp.exec(url, pattern)[1];
+                var relativePath = url.substr(prefix.length);
                 var file = new exports.ContentFile({
                     url: url,
                     filePath: config.outputBase + relativePath,
