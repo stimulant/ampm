@@ -1,5 +1,7 @@
 content/
 content.tmp/
+client/
+client.tmp/
 node_modules/
 bin/
 obj/

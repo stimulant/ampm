@@ -30,7 +30,14 @@ exports.ContentUpdater = Backbone.Model.extend({
     update: function(callback) {
         this._callback = callback;
         var config = this.get('config');
+        this._initDirectories(_.bind(function() {
+            request(config.remote, _.bind(this._processContentRoot, this));
+        }, this));
+    },
 
+    // Set up the temp and output directories.
+    _initDirectories: function(callback) {
+        var config = this.get('config');
         // Delete the temp directory.
         rimraf(config.temp, _.bind(function(error) {
             this._handleError('Error clearing temp directory.', error);
@@ -41,17 +48,14 @@ exports.ContentUpdater = Backbone.Model.extend({
 
                 fs.exists(config.local, _.bind(function(exists) {
                     if (exists) {
-                        // Download the root XML.
-                        request(config.remote, _.bind(this._processContentRoot, this));
+                        callback();
                         return;
                     }
 
                     // Make the ouput directory.
                     fs.mkdir(config.local, 0777, true, _.bind(function(error) {
                         this._handleError('Error creating ouput directory.', error);
-
-                        // Download the root XML.
-                        request(config.remote, _.bind(this._processContentRoot, this));
+                        callback();
                     }, this));
                 }, this));
             }, this));
@@ -149,7 +153,10 @@ exports.ContentUpdater = Backbone.Model.extend({
         console.log('Downloading ' + contentFile.get('url'));
 
         // Request the file from the network.
-        progress(request(contentFile.get('url'), _.bind(function(error, response, body) {
+        progress(request({
+            url: contentFile.get('url'),
+            encoding: null // Required for binary files.
+        }, _.bind(function(error, response, body) {
             this._handleError('Error loading ' + contentFile.get('url'), error);
 
             // Create the file's output directory if needed.
@@ -190,7 +197,8 @@ exports.ContentUpdater = Backbone.Model.extend({
         var filesToGo = _.filter(this.get('files').models, function(file) {
             return file.get('progress') < 1;
         }).length;
-        console.log(contentFile.get('url') + ' loaded, ' + filesToGo + ' to go');
+        var style = contentFile.get('totalBytes') ? 'loaded' : 'cached';
+        console.log(contentFile.get('url') + ' ' + style + ', ' + filesToGo + ' to go');
 
         if (!filesToGo) {
             this._processFiles();
@@ -207,15 +215,18 @@ exports.ContentUpdater = Backbone.Model.extend({
             // Delete the temp folder.
             rimraf(this.get('config').temp, _.bind(function(error) {
                 this._handleError('Error clearing temp directory.', error);
-
-                // Notify on completion.
-                this.set('updated', moment());
-                this.trigger('complete');
-                if (this._callback) {
-                    this._callback();
-                }
+                this._completed();
             }, this));
         }, this));
+    },
+
+    // Notify on completion.
+    _completed: function() {
+        this.set('updated', moment());
+        this.trigger('complete');
+        if (this._callback) {
+            this._callback();
+        }
     },
 
     // Generic error handling function.
