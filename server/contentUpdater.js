@@ -10,7 +10,7 @@ var fs = require('node-fs'); // Recursive directory creation. https://github.com
 var ncp = require('ncp').ncp; // Recursive directory copy. https://npmjs.org/package/ncp
 
 // Update content for the application, as well as the application itself.
-exports.Updater = Backbone.Model.extend({
+exports.ContentUpdater = Backbone.Model.extend({
 
     defaults: {
         // When the content was last updated.

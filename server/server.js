@@ -50,19 +50,19 @@ server.listen(3000);
 
 // Load config file.
 var config = require('./config.js').config;
-var Updater = require('./updater.js').Updater;
+var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
 
-var updater = new Updater({
+var contentUpdater = new ContentUpdater({
     config: config
 });
 
-updater.update(function(error) {
+contentUpdater.update(function(error) {
     if (error) {
         console.log(error);
         throw error;
     }
 
-    console.log('Update complete! ' + updater.get('updated').toString());
+    console.log('Update complete! ' + contentUpdater.get('updated').toString());
 });
 
 app.get('/', function(req, res) {
