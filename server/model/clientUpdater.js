@@ -8,7 +8,7 @@ var ContentUpdater = require('./contentUpdater.js');
 // Like ContentUpdater except for a single file, which gets unzipped when it's done loading.
 exports.ClientUpdater = ContentUpdater.ContentUpdater.extend({
 
-	defaults: _.defaults(ContentUpdater.ContentUpdater.prototype.defaults, {
+	defaults: _.extend(_.clone(ContentUpdater.ContentUpdater.prototype.defaults), {
 		// The final local path for the client.
 		local: '../client/',
 
@@ -17,6 +17,7 @@ exports.ClientUpdater = ContentUpdater.ContentUpdater.extend({
 	}),
 
 	initialize: function() {
+		console.log(this.get('local'));
 		var filename = path.basename(this.get('remote'));
 		var file = new ContentUpdater.ContentFile({
 			url: this.get('remote'),

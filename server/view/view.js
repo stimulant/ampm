@@ -21,7 +21,6 @@ var View = Backbone.View.extend({
 	},
 
 	_onServerState: function(message) {
-		console.log('foo');
 		this._socket.emit('getServerState');
 	},
 
