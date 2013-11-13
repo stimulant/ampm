@@ -1,7 +1,7 @@
 var express = require('express'); // Routing framework. http://expressjs.com/
 var http = require('http'); // HTTP support. http://nodejs.org/api/http.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
-var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
+var OSC = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 
@@ -20,20 +20,9 @@ global.io = require('socket.io').listen(server);
 io.set('log level', 2);
 server.listen(3000);
 
-// Set up models.
-var ServerState = require('./model/serverState.js').ServerState;
-var serverState = new ServerState();
-
-// Set up view routing.
-app.use('/static', express.static(__dirname + '/view'));
-app.get('/', function(req, res) {
-    res.sendfile(__dirname + '/view/index.html');
-});
-
-// Set up OSC routing.
-var oscServer = new osc.Server(3001);
-oscServer.on('message', function(msg, rinfo) {
-    // Forward messages to the UI.
+// Convert OSC messages to objects and emit them similar to sockets.
+global.osc = new OSC.Server(3001);
+osc.on('message', function(msg, rinfo) {
     var parts = msg[0].split('/');
     parts.shift();
     var action = parts[0];
@@ -46,19 +35,30 @@ oscServer.on('message', function(msg, rinfo) {
         message[key] = isNaN(f) ? val : f;
     }
 
-    serverState.onOSC(action, message);
+    osc.emit(action, message);
 });
 
-// Update clients by sending the whole state every frame.
-// TODO: This sort of sucks. It would be nice to do some fancier syncing.
+// Set up models.
+var ServerState = require('./model/serverState.js').ServerState;
+var serverState = new ServerState();
+
+// Set up view routing.
+app.use('/static', express.static(__dirname + '/view'));
+app.get('/', function(req, res) {
+    res.sendfile(__dirname + '/view/index.html');
+});
+
+// Update clients with server state when they ask for it.
 io.sockets.on('connection', function(socket) {
     socket.on('getServerState', function(message) {
         socket.emit('serverState', serverState.xport());
     });
 });
 
+// paths broken?
+
 ///// Comm
-// Pull model -- client requests frame, requests again after it gets it
+// serverstate for server, appstate for app
 // Server-to-app: send state, also pull model?
 
 ///// Support multiple clients
