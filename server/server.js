@@ -23,8 +23,7 @@ server.listen(3000);
 // Convert OSC messages to objects and emit them similar to sockets.
 global.osc = new OSC.Server(3001);
 osc.on('message', function(msg, rinfo) {
-    var parts = msg[0].split('/');
-    parts.shift();
+    var parts = msg[0].substr(1).split('/');
     var action = parts[0];
 
     var message = {};
@@ -48,14 +47,17 @@ app.get('/', function(req, res) {
     res.sendfile(__dirname + '/view/index.html');
 });
 
-// Update clients with server state when they ask for it.
+// Update clients with server state when they ask for it, throttled to 60 FPS.
 io.sockets.on('connection', function(socket) {
+    var throttle = 1000 / 60;
     socket.on('getServerState', function(message) {
-        socket.emit('serverState', serverState.xport());
+        clearInterval(socket.serverInterval);
+        socket.serverInterval = setInterval(function() {
+            socket.emit('serverState', serverState.xport());
+        }, throttle);
     });
 });
 
-// paths broken?
 
 ///// Comm
 // serverstate for server, appstate for app

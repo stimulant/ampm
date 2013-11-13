@@ -13,11 +13,7 @@ var View = Backbone.View.extend({
 
 	_onConnect: function(socket) {
 		this._socket.on('serverState', _.bind(this._onServerState, this));
-
-		// The timeout seems to prevent a stack overflow on the server when it restarts -- weird.
-		setTimeout(_.bind(function() {
-			this._socket.emit('getServerState');
-		}, this), 0);
+		this._socket.emit('getServerState');
 	},
 
 	_onServerState: function(message) {
