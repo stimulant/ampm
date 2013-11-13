@@ -55,6 +55,14 @@ setInterval(function() {
     io.sockets.emit('appState', appState.xport());
 }, 1000 / 60);
 
+///// Name: ampm?
+
+///// Comm
+// Cache OSC handlers
+// Try to reduce export payload
+// Pull model -- client requests frame, requests again after it gets it
+// Server-to-app: send state, also pull model?
+
 ///// Support multiple clients
 // Each client connects with a config, including its network path for updating content
 
