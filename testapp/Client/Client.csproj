@@ -36,12 +36,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Bespoke.Common, Version=5.0.0.0, Culture=neutral, PublicKeyToken=843a094264521388, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Bespoke.Common">
       <HintPath>..\packages\Bespoke-OSC-Library.1.0.0\lib\Bespoke.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Bespoke.Common.Osc, Version=0.0.0.0, Culture=neutral, PublicKeyToken=843a094264521388, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Bespoke.Common.Osc">
       <HintPath>..\packages\Bespoke-OSC-Library.1.0.0\lib\Bespoke.Common.Osc.dll</HintPath>
     </Reference>
     <Reference Include="System" />

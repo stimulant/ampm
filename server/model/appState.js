@@ -24,12 +24,23 @@ exports.AppState = BaseModel.extend({
     },
 
     onOSC: function(action, message) {
-        var handler = this['_on' + action[0].toUpperCase() + action.substr(1)];
+        if (!this.onOSC.handlerCache) {
+            this.onOSC.handlerCache = {};
+        }
+
+        var handler = this.onOSC.handlerCache[action];
+        if (handler) {
+            handler(message);
+        }
+
+        handler = this['_on' + action[0].toUpperCase() + action.substr(1)];
         if (!handler) {
             return;
         }
 
         handler = _.bind(handler, this);
+        this.onOSC.handlerCache[action] = handler;
+
         handler(message);
     },
 
