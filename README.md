@@ -1,4 +1,4 @@
-![alt tag](https://raw.github.com/stimulant/ampm/master/README.png)
+![alt tag](README.png?raw=true)
 
 application
 management
