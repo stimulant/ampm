@@ -2,29 +2,30 @@ var express = require('express'); // Routing framework. http://expressjs.com/
 var http = require('http'); // HTTP support. http://nodejs.org/api/http.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
+var _ = require('underscore'); // Utilities. http://underscorejs.org/
+var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 
 // Load config file.
 try {
-    var config = JSON.parse(fs.readFileSync('./config.json'));
+    global.config = JSON.parse(fs.readFileSync('./config.json'));
 } catch (error) {
     console.log("Couldn't load config file.");
     console.log(error);
 }
 
-// Load our server code.
-var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
-var ClientUpdater = require('./clientUpdater.js').ClientUpdater;
-var contentUpdater = new ContentUpdater(config.contentUpdater);
-var clientUpdater = new ClientUpdater(config.clientUpdater);
-
 // Set up server.
 var app = express();
 var server = http.createServer(app);
-var io = require('socket.io').listen(server);
+global.io = require('socket.io').listen(server);
+io.set('log level', 2);
 server.listen(3000);
 
+// Set up models.
+var AppState = require('./model/appState.js').AppState;
+var appState = new AppState();
+
 // Set up view routing.
-app.use("/static", express.static(__dirname + "/view"));
+app.use('/static', express.static(__dirname + '/view'));
 app.get('/', function(req, res) {
     res.sendfile(__dirname + '/view/index.html');
 });
@@ -45,14 +46,19 @@ oscServer.on('message', function(msg, rinfo) {
         message[key] = isNaN(f) ? val : f;
     }
 
-    io.sockets.emit(action, message);
+    appState.onOSC(action, message);
 });
+
+// Update clients by sending the whole state every frame.
+// TODO: This sort of sucks. It would be nice to do some fancier syncing.
+setInterval(function() {
+    io.sockets.emit('appState', appState.xport());
+}, 1000 / 60);
 
 ///// Support multiple clients
 // Each client connects with a config, including its network path for updating content
 
 ///// Updater
-// Heartbeat
 // Kill/start button
 // Update button: kill process, update content, update client, restart client
 // Update server
@@ -89,40 +95,8 @@ oscServer.on('message', function(msg, rinfo) {
 // Send commands (shutdown etc) back to clients?
 
 ///// Plugin for custom app logic
-// Short term -- some generic class with spots for custom code?
+// Short term -- extend AppState class
 // Long term -- define a set of properties/types/intervals to keep in sync across clients.
 
 ///// Analytics
 // Hook into analytics service? Or log analysis tool?
-
-
-function updateContent() {
-    contentUpdater.update(function(error) {
-        if (error) {
-            console.log(error);
-            throw error;
-        }
-
-        console.log('Content update complete! ' + contentUpdater.get('updated').toString());
-
-        clientUpdater.update(function(error) {
-            if (error) {
-                console.log(error);
-                throw error;
-            }
-
-            console.log('Client update complete! ' + clientUpdater.get('updated').toString());
-        });
-    });
-}
-
-/*
-io.sockets.on('connection', function(socket) {
-    socket.emit('news', {
-        hello: 'woddrld'
-    });
-    socket.on('my other event', function(data) {
-        console.log(data);
-    });
-});
-*/

@@ -23,7 +23,7 @@ namespace Client
     {
         private static readonly IPEndPoint Destination = new IPEndPoint(IPAddress.Loopback, 3001);
         private static readonly IPEndPoint Source = new IPEndPoint(IPAddress.Loopback, 2999);
-        private static readonly DispatcherTimer Timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        private static readonly DispatcherTimer Timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.0 / 60.0) };
         
         public MainWindow()
         {
