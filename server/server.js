@@ -21,8 +21,8 @@ io.set('log level', 2);
 server.listen(3000);
 
 // Set up models.
-var AppState = require('./model/appState.js').AppState;
-var appState = new AppState();
+var ServerState = require('./model/serverState.js').ServerState;
+var serverState = new ServerState();
 
 // Set up view routing.
 app.use('/static', express.static(__dirname + '/view'));
@@ -46,14 +46,14 @@ oscServer.on('message', function(msg, rinfo) {
         message[key] = isNaN(f) ? val : f;
     }
 
-    appState.onOSC(action, message);
+    serverState.onOSC(action, message);
 });
 
 // Update clients by sending the whole state every frame.
 // TODO: This sort of sucks. It would be nice to do some fancier syncing.
 io.sockets.on('connection', function(socket) {
     socket.on('getServerState', function(message) {
-        socket.emit('serverState', appState.xport());
+        socket.emit('serverState', serverState.xport());
     });
 });
 
@@ -101,7 +101,7 @@ io.sockets.on('connection', function(socket) {
 // Send commands (shutdown etc) back to clients?
 
 ///// Plugin for custom app logic
-// Short term -- extend AppState class
+// Short term -- extend serverState class
 // Long term -- define a set of properties/types/intervals to keep in sync across clients.
 
 ///// Analytics
