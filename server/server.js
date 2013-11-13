@@ -55,8 +55,6 @@ setInterval(function() {
     io.sockets.emit('appState', appState.xport());
 }, 1000 / 60);
 
-///// Name: ampm?
-
 ///// Comm
 // Cache OSC handlers
 // Try to reduce export payload
