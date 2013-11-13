@@ -41,6 +41,9 @@ osc.on('message', function(msg, rinfo) {
 var ServerState = require('./model/serverState.js').ServerState;
 var serverState = new ServerState();
 
+var AppState = require('./model/appState.js').AppState;
+var appState = new AppState();
+
 // Set up view routing.
 app.use('/static', express.static(__dirname + '/view'));
 app.get('/', function(req, res) {
@@ -54,6 +57,13 @@ io.sockets.on('connection', function(socket) {
         clearInterval(socket.serverInterval);
         socket.serverInterval = setInterval(function() {
             socket.emit('serverState', serverState.xport());
+        }, throttle);
+    });
+
+    socket.on('getAppState', function(message) {
+        clearInterval(socket.appInterval);
+        socket.appInterval = setInterval(function() {
+            socket.emit('appState', appState.xport());
         }, throttle);
     });
 });

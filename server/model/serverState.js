@@ -5,6 +5,7 @@ var BaseModel = require('./baseModel.js').BaseModel;
 var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
 var ClientUpdater = require('./clientUpdater.js').ClientUpdater;
 
+// Model for app logic specific to the server.
 exports.ServerState = BaseModel.extend({
     defaults: {
         lastHeart: null,
