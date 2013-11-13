@@ -1,2 +1,5 @@
+// Install any node modules
 npm install
-supervisor -n error server.js
+
+// https://github.com/isaacs/node-supervisor
+supervisor -n error -i view -q server.js

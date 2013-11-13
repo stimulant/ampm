@@ -9,8 +9,7 @@ exports.AppState = BaseModel.extend({
     defaults: {
         lastHeart: null,
         contentUpdater: null,
-        clientUpdater: null,
-        isAwesome: true
+        clientUpdater: null
     },
 
     initialize: function() {
@@ -46,10 +45,6 @@ exports.AppState = BaseModel.extend({
 
     _onHeart: function(message) {
         this.set('lastHeart', moment());
-    },
-
-    _onAwesome: function(msg) {
-        this.set('isAwesome', !this.get('isAwesome'));
     },
 
     updateContent: function() {

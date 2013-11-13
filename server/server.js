@@ -51,13 +51,13 @@ oscServer.on('message', function(msg, rinfo) {
 
 // Update clients by sending the whole state every frame.
 // TODO: This sort of sucks. It would be nice to do some fancier syncing.
-setInterval(function() {
-    io.sockets.emit('appState', appState.xport());
-}, 1000 / 60);
+io.sockets.on('connection', function(socket) {
+    socket.on('getServerState', function(message) {
+        socket.emit('serverState', appState.xport());
+    });
+});
 
 ///// Comm
-// Cache OSC handlers
-// Try to reduce export payload
 // Pull model -- client requests frame, requests again after it gets it
 // Server-to-app: send state, also pull model?
 
@@ -106,3 +106,6 @@ setInterval(function() {
 
 ///// Analytics
 // Hook into analytics service? Or log analysis tool?
+
+///// V.next
+// Try to reduce export payload
