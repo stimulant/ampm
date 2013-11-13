@@ -17,7 +17,6 @@ exports.ClientUpdater = ContentUpdater.ContentUpdater.extend({
 	}),
 
 	initialize: function() {
-		console.log(this.get('local'));
 		var filename = path.basename(this.get('remote'));
 		var file = new ContentUpdater.ContentFile({
 			url: this.get('remote'),
