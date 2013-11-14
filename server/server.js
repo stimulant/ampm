@@ -1,7 +1,7 @@
 var express = require('express'); // Routing framework. http://expressjs.com/
 var http = require('http'); // HTTP support. http://nodejs.org/api/http.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
-var OSC = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
+var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 
@@ -20,11 +20,13 @@ global.io = require('socket.io').listen(server);
 io.set('log level', 2);
 server.listen(3000);
 
-// Convert OSC messages to objects and emit them similar to sockets.
-global.osc = new OSC.Server(3001);
-osc.on('message', function(msg, rinfo) {
+// Set up OSC server to receive messages from app.
+global.oscServer = new osc.Server(3001);
+global.oscClient = new osc.Client('127.0.0.1', 3002);
+oscServer.on('message', function(msg, rinfo) {
+    // Convert OSC messages to objects and emit them similar to sockets.
     var parts = msg[0].substr(1).split('/');
-    var action = parts[0];
+    var action = parts.shift();
 
     var message = {};
     while (parts.length) {
@@ -34,7 +36,13 @@ osc.on('message', function(msg, rinfo) {
         message[key] = isNaN(f) ? val : f;
     }
 
-    osc.emit(action, message);
+    oscServer.emit(action, message);
+});
+
+// Set up view routing.
+app.use('/static', express.static(__dirname + '/view'));
+app.get('/', function(req, res) {
+    res.sendfile(__dirname + '/view/index.html');
 });
 
 // Set up models.
@@ -44,15 +52,9 @@ var serverState = new ServerState();
 var AppState = require('./model/appState.js').AppState;
 var appState = new AppState();
 
-// Set up view routing.
-app.use('/static', express.static(__dirname + '/view'));
-app.get('/', function(req, res) {
-    res.sendfile(__dirname + '/view/index.html');
-});
-
 // Update clients with server state when they ask for it, throttled to 60 FPS.
+var throttle = 1000 / 60;
 io.sockets.on('connection', function(socket) {
-    var throttle = 1000 / 60;
     socket.on('getServerState', function(message) {
         clearInterval(socket.serverInterval);
         socket.serverInterval = setInterval(function() {
@@ -68,6 +70,19 @@ io.sockets.on('connection', function(socket) {
     });
 });
 
+oscServer.on('getAppState', function(message) {
+    clearInterval(oscClient.appInterval);
+    oscClient.appInterval = setInterval(function() {
+        oscClient.send('/appState/' + JSON.stringify(appState.xport()));
+    }, throttle);
+});
+
+oscServer.on('getServerState', function(message) {
+    clearInterval(oscClient.serverInterval);
+    oscClient.serverInterval = setInterval(function() {
+        oscClient.send('/serverState/' + JSON.stringify(serverState.xport()));
+    }, throttle);
+});
 
 ///// Comm
 // serverstate for server, appstate for app

@@ -3,6 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="MainWindow" Height="350" Width="525">
     <Grid>
-        
+        <Ellipse x:Name="_Cursor" Fill="Red" Width="20" Height="20" HorizontalAlignment="Left" VerticalAlignment="Top" />
     </Grid>
 </Window>

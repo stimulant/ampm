@@ -5,11 +5,17 @@ var BaseModel = require('./baseModel.js').BaseModel;
 
 // Class for sync logic specific to the application.
 exports.AppState = BaseModel.extend({
-    defaults: {},
-
-    initialize: function() {
-        io.sockets.on('connection', _.bind(this._onConnection, this));
+    defaults: {
+        x: 0,
+        y: 0
     },
 
-    _onConnection: function(socket) {}
+    initialize: function() {
+        oscServer.on('mouse', _.bind(this._onMouse, this));
+    },
+
+    _onMouse: function(message) {
+        this.set('x', message.x);
+        this.set('y', message.y);
+    }
 });
