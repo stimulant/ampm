@@ -84,10 +84,6 @@ oscServer.on('getServerState', function(message) {
     }, throttle);
 });
 
-///// Comm
-// serverstate for server, appstate for app
-// Server-to-app: send state, also pull model?
-
 ///// Support multiple clients
 // Each client connects with a config, including its network path for updating content
 

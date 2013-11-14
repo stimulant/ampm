@@ -1,4 +1,6 @@
 {
+    "master": "1.2.3.4",
+
     "contentUpdater": {
         "remote": "http://content.stimulant.io/mvi_video/category/6"
     },
