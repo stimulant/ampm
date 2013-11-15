@@ -79,7 +79,8 @@ namespace Client
         private void HandleMessage(dynamic token)
         {
             _Cursor.RenderTransform = new TranslateTransform { X = token.attrs.x - _Cursor.Width / 2, Y = token.attrs.y - _Cursor.Height / 2 };
-
+            ConnectTimer.Stop();
+            ConnectTimer.Start();
             SendMessage("/getAppState/");
         }
 
