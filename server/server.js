@@ -119,7 +119,8 @@ Client
     Generic RemoteAppState class
     Fall back to local updates when master disappears, go back to master when it comes back
     Change messaging /machinename/action/{json}
-    Better sample -- each client has its own state, but reflects state of others
+    Better sample -- colored dot moves with mouse, black dot for each other client shown
+    Demonstrate remote configuration -- color is defined in remote server config
 
 Server
     Comm
