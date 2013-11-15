@@ -17,7 +17,7 @@ exports.ServerState = BaseModel.extend({
         this.set('contentUpdater', new ContentUpdater(config.contentUpdater));
         this.set('clientUpdater', new ClientUpdater(config.clientUpdater));
 
-        oscServer.on('heart', _.bind(this._onHeart, this));
+        oscReceive.on('heart', _.bind(this._onHeart, this));
 
         io.sockets.on('connection', _.bind(this._onConnection, this));
     },

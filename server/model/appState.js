@@ -11,7 +11,7 @@ exports.AppState = BaseModel.extend({
     },
 
     initialize: function() {
-        oscServer.on('mouse', _.bind(this._onMouse, this));
+        oscReceive.on('mouse', _.bind(this._onMouse, this));
     },
 
     _onMouse: function(message) {

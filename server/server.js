@@ -21,11 +21,12 @@ global.io = require('socket.io').listen(server);
 io.set('log level', 2);
 server.listen(3000);
 
+// A cache of OSC clients for each app instance.
+var oscSenders = {};
+
 // Set up OSC server to receive messages from app.
-global.oscClient = new osc.Client('127.0.0.1', 3002);
-global.oscServer = new osc.Server(3001);
-oscServer.on('message', function(msg, rinfo) {
-    console.log(msg);
+global.oscReceive = new osc.Server(3001);
+oscReceive.on('message', function(msg, info) {
     // Convert OSC messages to objects and emit them similar to sockets.
     var parts = msg[0].substr(1).split('/');
     var action = parts.shift();
@@ -38,7 +39,13 @@ oscServer.on('message', function(msg, rinfo) {
         message[key] = isNaN(f) ? val : f;
     }
 
-    oscServer.emit(action, message);
+    // Build a client if needed.
+    var sender = oscSenders[info.address];
+    if (!sender) {
+        sender = oscSenders[info.address] = new osc.Client(info.address, 3002);
+    }
+
+    oscReceive.emit(action, message, sender);
 });
 
 // Set up view routing.
@@ -72,24 +79,19 @@ io.sockets.on('connection', function(socket) {
     });
 });
 
-oscServer.on('getAppState', function(message) {
-    clearInterval(oscClient.appTimeout);
-    oscClient.appTimeout = setTimeout(function() {
-        oscClient.send('/appState/' + JSON.stringify(appState.xport()));
+oscReceive.on('getAppState', function(message, sender) {
+    clearInterval(sender.appTimeout);
+    sender.appTimeout = setTimeout(function() {
+        sender.send('/appState/' + JSON.stringify(appState.xport()));
     }, throttle);
 });
 
-oscServer.on('getServerState', function(message) {
-    clearInterval(oscClient.serverTimeout);
-    oscClient.serverTimeout = setTimeout(function() {
-        oscClient.send('/serverState/' + JSON.stringify(serverState.xport()));
+oscReceive.on('getServerState', function(message, sender) {
+    clearInterval(sender.serverTimeout);
+    sender.serverTimeout = setTimeout(function() {
+        sender.send('/serverState/' + JSON.stringify(serverState.xport()));
     }, throttle);
 });
-
-///// Client
-// Send to local and remote
-// Only listen to remote
-// Handle connection failures (looping scheme might prevent...)
 
 ///// Support multiple clients
 // Each client connects with a config, including its network path for updating content
