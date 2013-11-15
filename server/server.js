@@ -63,120 +63,57 @@ var appState = new AppState();
 
 // Update clients with server state when they ask for it, throttled to 60 FPS.
 var throttle = 1000 / 60;
+
 io.sockets.on('connection', function(socket) {
     socket.on('getServerState', function(message) {
-        clearInterval(socket.serverTimeout);
-        socket.serverTimeout = setTimeout(function() {
-            socket.emit('serverState', serverState.xport());
-        }, throttle);
+        if (socket.throttled) {
+            return;
+        }
+
+        socket.emit('serverState', serverState.xport());
+        socket.throttled = true;
+        setTimeout(function() {
+            socket.throttled = false;
+        });
     });
 
     socket.on('getAppState', function(message) {
-        clearInterval(socket.appTimeout);
-        socket.appTimeout = setTimeout(function() {
-            socket.emit('appState', appState.xport());
+        if (socket.throttled) {
+            return;
+        }
+
+        socket.emit('appState', appState.xport());
+        socket.throttled = true;
+        setTimeout(function() {
+            socket.throttled = false;
         }, throttle);
     });
 });
 
 oscReceive.on('getAppState', function(message, sender) {
-    clearInterval(sender.appTimeout);
-    sender.appTimeout = setTimeout(function() {
-        sender.send('/appState/' + JSON.stringify(appState.xport()));
+    if (sender.throttled) {
+        return;
+    }
+
+    sender.send('/appState/' + JSON.stringify(appState.xport()));
+    sender.throttled = true;
+    setTimeout(function() {
+        sender.throttled = false;
     }, throttle);
 });
 
 oscReceive.on('getServerState', function(message, sender) {
-    clearInterval(sender.serverTimeout);
-    sender.serverTimeout = setTimeout(function() {
-        sender.send('/serverState/' + JSON.stringify(serverState.xport()));
-    }, throttle);
-});
-var express = require('express'); // Routing framework. http://expressjs.com/
-var http = require('http'); // HTTP support. http://nodejs.org/api/http.html
-var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
-var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
-var _ = require('underscore'); // Utilities. http://underscorejs.org/
-var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
-
-// Load config file.
-try {
-    global.config = JSON.parse(fs.readFileSync('./config.json'));
-} catch (error) {
-    console.log("Couldn't load config file.");
-    console.log(error);
-}
-
-// Set up server.
-var app = express();
-var server = http.createServer(app);
-global.io = require('socket.io').listen(server);
-io.set('log level', 2);
-server.listen(3000);
-
-// Set up OSC server to receive messages from app.
-global.oscServer = new osc.Server(3001);
-global.oscClient = new osc.Client('127.0.0.1', 3002);
-oscServer.on('message', function(msg, rinfo) {
-    // Convert OSC messages to objects and emit them similar to sockets.
-    var parts = msg[0].substr(1).split('/');
-    var action = parts.shift();
-
-    var message = {};
-    while (parts.length) {
-        var key = parts.shift();
-        var val = parts.shift();
-        var f = parseFloat(val);
-        message[key] = isNaN(f) ? val : f;
+    if (sender.throttled) {
+        return;
     }
 
-    oscServer.emit(action, message);
-});
-
-// Set up view routing.
-app.use('/static', express.static(__dirname + '/view'));
-app.get('/', function(req, res) {
-    res.sendfile(__dirname + '/view/index.html');
-});
-
-// Set up models.
-var ServerState = require('./model/serverState.js').ServerState;
-var serverState = new ServerState();
-
-var AppState = require('./model/appState.js').AppState;
-var appState = new AppState();
-
-// Update clients with server state when they ask for it, throttled to 60 FPS.
-var throttle = 1000 / 60;
-io.sockets.on('connection', function(socket) {
-    socket.on('getServerState', function(message) {
-        clearInterval(socket.serverInterval);
-        socket.serverInterval = setInterval(function() {
-            socket.emit('serverState', serverState.xport());
-        }, throttle);
-    });
-
-    socket.on('getAppState', function(message) {
-        clearInterval(socket.appInterval);
-        socket.appInterval = setInterval(function() {
-            socket.emit('appState', appState.xport());
-        }, throttle);
-    });
-});
-
-oscServer.on('getAppState', function(message) {
-    clearInterval(oscClient.appInterval);
-    oscClient.appInterval = setInterval(function() {
-        oscClient.send('/appState/' + JSON.stringify(appState.xport()));
+    sender.send('/serverState/' + JSON.stringify(serverState.xport()));
+    sender.throttled = true;
+    setTimeout(function() {
+        sender.throttled = false;
     }, throttle);
 });
 
-oscServer.on('getServerState', function(message) {
-    clearInterval(oscClient.serverInterval);
-    oscClient.serverInterval = setInterval(function() {
-        oscClient.send('/serverState/' + JSON.stringify(serverState.xport()));
-    }, throttle);
-});
 /*
 Client
     Stop ignoring local updates when master disappears
@@ -195,7 +132,7 @@ Server
         Monitor uptime
         Restart on hang/crash
         Give up restart after n times
-    Try to reduce message payload size
+    Reduce message payload size
     Run as service? https://npmjs.org/package/node-windows
 
 Console
