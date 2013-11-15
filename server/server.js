@@ -116,10 +116,17 @@ oscReceive.on('getServerState', function(message, sender) {
 
 /*
 Client
-    Stop ignoring local updates when master disappears
+    Generic RemoteAppState class
+    Fall back to local updates when master disappears, go back to master when it comes back
+    Change messaging /machinename/action/{json}
     Better sample -- each client has its own state, but reflects state of others
 
 Server
+    Comm
+        ClusterState class maintains an AppState for each node
+        Client gets back its own AppState
+        Remove sender/appstate for a node if it goes away for a while
+        Reduce message payload size
     Logging
         Log content updates
         Log on request from client
@@ -132,7 +139,6 @@ Server
         Monitor uptime
         Restart on hang/crash
         Give up restart after n times
-    Reduce message payload size
     Run as service? https://npmjs.org/package/node-windows
 
 Console
@@ -153,4 +159,7 @@ Console
         Update content on all clients: kill process, update content, update client, restart client
         Update master server
         Update client servers
+
+Installer
+    One-click of node and all dependencies
 */
