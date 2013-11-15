@@ -136,6 +136,7 @@ Server
         Schedule content update
         Schedule shutdown, startup, restart
     Persistence
+        Monitor even if there is no shared app state?
         Monitor uptime
         Restart on hang/crash
         Give up restart after n times
