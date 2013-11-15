@@ -4,19 +4,19 @@
     "version": "0.0.1",
     "private": true,
     "dependencies": {
-        "supervisor": "*",
-        "underscore": "1.5.2",
         "backbone": "1.1.0",
+        "express": "3.4.4",
         "moment": "2.4.0",
+        "ncp": "0.4.2",
+        "node-fs": "0.1.7",
+        "node-osc": "0.2.1",
         "request": "2.27.0",
         "request-progress": "0.3.1",
-        "xregexp": "2.0.0",
         "rimraf": "2.2.2",
-        "node-fs": "0.1.7",
-        "ncp": "0.4.2",
-        "express": "3.4.4",
         "socket.io": "0.9.16",
+        "supervisor": "0.5.6",
+        "underscore": "1.5.2",
         "unzip": "0.1.9",
-        "node-osc": "0.2.1"
+        "xregexp": "2.0.0"
     }
 }

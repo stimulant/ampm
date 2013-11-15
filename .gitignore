@@ -2,7 +2,6 @@ content/
 content.tmp/
 client/
 client.tmp/
-node_modules/
 packages/
 bin/
 obj/
