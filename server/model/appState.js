@@ -4,18 +4,43 @@ var moment = require('moment'); // Date processing. http://momentjs.com/
 var BaseModel = require('./baseModel.js').BaseModel;
 
 // Class for sync logic specific to the application.
-exports.AppState = BaseModel.extend({
+AppState = exports.AppState = BaseModel.extend({
     defaults: {
-        x: 0,
-        y: 0
+        clientStates: null
     },
 
     initialize: function() {
-        oscReceive.on('mouse', _.bind(this._onMouse, this));
+        this.set('clientStates', {});
+        oscReceive.on('setClientState', _.bind(this._onSetClientState, this));
     },
 
-    _onMouse: function(message) {
-        this.set('x', message.x);
-        this.set('y', message.y);
+    _onSetClientState: function(message) {
+        var client = message.client;
+        message = JSON.parse(message.state);
+        var states = this.get('clientStates');
+        var state = states[client];
+        if (!state) {
+            state = states[client] = new ClientState();
+        }
+
+        state.get('point').set('x', message.Point.X);
+        state.get('point').set('y', message.Point.Y);
+    }
+});
+
+Point = exports.Point = BaseModel.extend({
+    defaults: {
+        x: 0,
+        y: 0
+    }
+});
+
+ClientState = exports.ClientState = BaseModel.extend({
+    defaults: {
+        point: null
+    },
+
+    initialize: function() {
+        this.set('point', new Point());
     }
 });

@@ -95,6 +95,7 @@ oscReceive.on('getAppState', function(message, sender) {
         return;
     }
 
+    console.log(appState.get('clientStates'));
     sender.send('/appState/' + JSON.stringify(appState.xport()));
     sender.throttled = true;
     setTimeout(function() {
@@ -116,10 +117,7 @@ oscReceive.on('getServerState', function(message, sender) {
 
 /*
 Client
-    Generic RemoteAppState class
     Fall back to local updates when master disappears, go back to master when it comes back
-    Change messaging /machinename/action/{json}
-    Better sample -- colored dot moves with mouse, black dot for each other client shown
     Demonstrate remote configuration -- color is defined in remote server config
 
 Server
