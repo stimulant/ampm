@@ -11,6 +11,7 @@ try {
 } catch (error) {
     console.log("Couldn't load config file.");
     console.log(error);
+    process.exit(1);
 }
 
 // Set up server.
@@ -21,9 +22,10 @@ io.set('log level', 2);
 server.listen(3000);
 
 // Set up OSC server to receive messages from app.
-global.oscServer = new osc.Server(3001);
 global.oscClient = new osc.Client('127.0.0.1', 3002);
+global.oscServer = new osc.Server(3001);
 oscServer.on('message', function(msg, rinfo) {
+    console.log(msg);
     // Convert OSC messages to objects and emit them similar to sockets.
     var parts = msg[0].substr(1).split('/');
     var action = parts.shift();
@@ -56,33 +58,38 @@ var appState = new AppState();
 var throttle = 1000 / 60;
 io.sockets.on('connection', function(socket) {
     socket.on('getServerState', function(message) {
-        clearInterval(socket.serverInterval);
-        socket.serverInterval = setInterval(function() {
+        clearInterval(socket.serverTimeout);
+        socket.serverTimeout = setTimeout(function() {
             socket.emit('serverState', serverState.xport());
         }, throttle);
     });
 
     socket.on('getAppState', function(message) {
-        clearInterval(socket.appInterval);
-        socket.appInterval = setInterval(function() {
+        clearInterval(socket.appTimeout);
+        socket.appTimeout = setTimeout(function() {
             socket.emit('appState', appState.xport());
         }, throttle);
     });
 });
 
 oscServer.on('getAppState', function(message) {
-    clearInterval(oscClient.appInterval);
-    oscClient.appInterval = setInterval(function() {
+    clearInterval(oscClient.appTimeout);
+    oscClient.appTimeout = setTimeout(function() {
         oscClient.send('/appState/' + JSON.stringify(appState.xport()));
     }, throttle);
 });
 
 oscServer.on('getServerState', function(message) {
-    clearInterval(oscClient.serverInterval);
-    oscClient.serverInterval = setInterval(function() {
+    clearInterval(oscClient.serverTimeout);
+    oscClient.serverTimeout = setTimeout(function() {
         oscClient.send('/serverState/' + JSON.stringify(serverState.xport()));
     }, throttle);
 });
+
+///// Client
+// Send to local and remote
+// Only listen to remote
+// Handle connection failures (looping scheme might prevent...)
 
 ///// Support multiple clients
 // Each client connects with a config, including its network path for updating content
