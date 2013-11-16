@@ -20,7 +20,7 @@ AppState = exports.AppState = BaseModel.extend({
         var states = this.get('clientStates');
         var state = states[client];
         if (!state) {
-            state = states[client] = new ClientState();
+            state = states[client] = new ClientState(config.clients[client]);
         }
 
         state.get('point').set('x', message.Point.X);
@@ -37,7 +37,8 @@ Point = exports.Point = BaseModel.extend({
 
 ClientState = exports.ClientState = BaseModel.extend({
     defaults: {
-        point: null
+        point: null,
+        color: 'Black'
     },
 
     initialize: function() {

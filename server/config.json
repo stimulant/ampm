@@ -1,4 +1,16 @@
 {
+    "clients": {
+        "I14": {
+            "color": "red"
+        },
+        "I14VM-B": {
+            "color": "green"
+        },
+        "I14VM-C": {
+            "color": "blue"
+        }
+    },
+
     "contentUpdater": {
         "remote": "http://content.stimulant.io/mvi_video/category/6"
     },

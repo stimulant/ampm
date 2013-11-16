@@ -42,7 +42,6 @@ namespace Client
                     {
                         Width = 20,
                         Height = 20,
-                        Fill = Brushes.Black,
                         HorizontalAlignment = HorizontalAlignment.Left,
                         VerticalAlignment = VerticalAlignment.Top,
                         RenderTransform = new TranslateTransform(),
@@ -55,6 +54,8 @@ namespace Client
                 TranslateTransform translate = (TranslateTransform)dot.RenderTransform;
                 translate.X = pair.Value.Point.X - dot.Width / 2;
                 translate.Y = pair.Value.Point.Y - dot.Height / 2;
+
+                dot.Fill = pair.Value.Color;
             }
         }
     }

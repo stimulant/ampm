@@ -48,6 +48,8 @@ namespace Client
         // Just don't use a server at all -- for dev only.
         private static bool Serverless = false;
 
+        private static readonly JavaScriptSerializer _Serializer = new JavaScriptSerializer();
+
         public App()
         {
             // Handle incoming OSC messages.
@@ -84,7 +86,7 @@ namespace Client
                 return;
             }
 
-            string state = new JavaScriptSerializer().Serialize(AppState.Instance.ClientStates[Environment.MachineName]);
+            string state = _Serializer.Serialize(AppState.Instance.ClientStates[Environment.MachineName]);
             string message = string.Format("/setClientState/client/{0}/state/{1}", Environment.MachineName, state);
             OscMessage osc = new OscMessage(MessageSource, message);
             osc.Send(OscSendMaster);
@@ -168,6 +170,20 @@ namespace Client
                         }
 
                         state.Point = new Point((double)pair.Value.point.x, (double)pair.Value.point.y);
+
+                        if (state.Color == Brushes.Black)
+                        {
+                            // Only do this once because it probably takes a while -- but could update it every frame if you wanted.
+                            try
+                            {
+                                string colorName = pair.Value.color;
+                                colorName = colorName[0].ToString().ToUpperInvariant() + colorName.Substring(1);
+                                state.Color = (Brush)typeof(Brushes).GetProperty(colorName).GetGetMethod().Invoke(null, null);
+                            }
+                            catch
+                            {
+                            }
+                        }
                     }
 
                     AppState.Instance.FireChangedRemotely();
