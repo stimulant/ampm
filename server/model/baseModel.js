@@ -11,8 +11,8 @@ var BaseModel = Backbone.Model.extend({
             }).extend(opt || {});
 
         function process(targetObj, source) {
-            targetObj.id = source.id || null;
-            targetObj.cid = source.cid || null;
+            // targetObj.id = source.id || null;
+            // targetObj.cid = source.cid || null;
             targetObj.attrs = source.toJSON();
             _.each(source, function(value, key) {
                 // since models store a reference to their collection

@@ -131,9 +131,6 @@ oscReceive.on('getServerState', function(message, sender) {
 
 /*
 Server
-    Comm
-        Remove sender/appstate for a node if it goes away for a while
-        Reduce message payload size
     Logging
         Log content updates
         Log on request from client
