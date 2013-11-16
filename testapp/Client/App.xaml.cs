@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Web.Script.Serialization;
 using System.Windows;
+using System.Windows.Media;
 using System.Windows.Threading;
 using Bespoke.Common.Osc;
 using Client.Properties;
@@ -24,16 +25,13 @@ namespace Client
         private static readonly IPEndPoint MessageSource = new IPEndPoint(IPAddress.Loopback, 3002);
 
         // The OSC server to receive OSC messages.
-        private static readonly OscServer OscReceive = new OscServer(TransportType.Udp, ClientAddress, 3002);
+        private static readonly OscServer OscReceive = new OscServer(TransportType.Udp, ClientAddress, 3002) { FilterRegisteredMethods = false, ConsumeParsingExceptions = false };
 
         // The destination for OSC messages to the local node.js server.
         private static readonly IPEndPoint OscSendLocal = new IPEndPoint(ClientAddress, 3001);
 
         // The destination for OSC messages to the master node.js server.
         private static readonly IPEndPoint OscSendMaster = new IPEndPoint(IPAddress.Parse(Settings.Default.MasterServerIp), 3001);
-
-        // Timer for sending heartbeat messages.
-        private static readonly DispatcherTimer HeartTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.0 / 60.0) };
 
         // Timer for picking up dropped connections.
         private static readonly DispatcherTimer ReconnectTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
@@ -46,19 +44,16 @@ namespace Client
 
         public App()
         {
+            // Handle incoming OSC messages.
+            OscReceive.MessageReceived += Server_MessageReceived;
+            OscReceive.Start();
+
             // Send heartbeats every frame.
-            HeartTimer.Tick += (sender, e) => SendMessage("/heart/" + DateTime.Now.Millisecond);
-            HeartTimer.Start();
+            CompositionTarget.Rendering += (sender, e) => SendMessage("/heart/" + DateTime.Now.Millisecond);
 
             // Request app state every second, even if we haven't sent a change to it -- this should recover lost connections.
             ReconnectTimer.Tick += (sender, e) => RefreshState();
             ReconnectTimer.Start();
-
-            // Handle incoming OSC messages.
-            OscReceive.FilterRegisteredMethods = false;
-            OscReceive.ConsumeParsingExceptions = false;
-            OscReceive.MessageReceived += Server_MessageReceived;
-            OscReceive.Start();
 
             // Whenever the local state changes, send an update to the server.
             AppState.Instance.ChangedLocally += (sender, e) => RefreshState();
@@ -124,13 +119,13 @@ namespace Client
                     Dictionary<string, dynamic> clientStates = token.SelectToken("attrs.clientStates").ToObject<Dictionary<string, dynamic>>();
                     foreach (KeyValuePair<string, dynamic> pair in clientStates)
                     {
-                        string client = pair.Key;
-                        if (!AppState.Instance.ClientStates.ContainsKey(client))
+                        ClientState state = null;
+                        AppState.Instance.ClientStates.TryGetValue(pair.Key, out state);
+                        if (state == null)
                         {
-                            AppState.Instance.ClientStates[client] = new ClientState();
+                            state = AppState.Instance.ClientStates[pair.Key] = new ClientState();
                         }
 
-                        ClientState state = AppState.Instance.ClientStates[client];
                         state.Point = new Point((double)pair.Value.point.x, (double)pair.Value.point.y);
                     }
 
