@@ -14,6 +14,9 @@ exports.ClientUpdater = ContentUpdater.ContentUpdater.extend({
 
 		// The temp path for the client.
 		temp: '../client.tmp/',
+
+		// The name of the executable.
+		processName: 'client.exe'
 	}),
 
 	initialize: function() {

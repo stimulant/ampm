@@ -1,3 +1,8 @@
+var child_process = require('child_process'); // http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
+var os = require('os'); // http://nodejs.org/api/os.html
+var dns = require('dns'); // http://nodejs.org/api/dns.html
+var path = require('path'); //http://nodejs.org/api/path.html
+
 var express = require('express'); // Routing framework. http://expressjs.com/
 var http = require('http'); // HTTP support. http://nodejs.org/api/http.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
@@ -20,8 +25,18 @@ config.server = {
     oscReceivePort: 3001,
     oscSendPort: 3002,
     updateThrotle: 1 / 60,
-    killClientsAfter: 5000
+    killClientsAfter: 5000,
+    clientProcessName: 'client.exe',
+    addresses: []
 };
+
+// Get the network addresses used by this machine -- used to determine which client is local.
+var interfaces = os.networkInterfaces();
+for (var network in interfaces) {
+    for (var i = 0; i < interfaces[network].length; i++) {
+        config.server.addresses.push(interfaces[network][i].address);
+    }
+}
 
 // Set up server.
 var app = express();
@@ -32,6 +47,8 @@ server.listen(config.server.socketPort);
 
 // A cache of OSC clients for each app instance.
 var oscSenders = {};
+
+// console.log(os.hostname());
 
 // Set up OSC server to receive messages from app.
 global.oscReceive = new osc.Server(config.server.oscReceivePort);
@@ -53,8 +70,13 @@ oscReceive.on('message', function(msg, info) {
     var sender = oscSenders[info.address];
     if (!sender) {
         sender = oscSenders[info.address] = new osc.Client(info.address, config.server.oscSendPort);
+        sender.isLocal = config.server.addresses.indexOf(sender.host) != -1;
         sender.killFunction = function() {
             delete oscSenders[sender.host];
+
+            if (sender.isLocal) {
+                restartClient();
+            }
         };
     }
 
@@ -129,8 +151,30 @@ oscReceive.on('getServerState', function(message, sender) {
     }, config.server.updateThrottle);
 });
 
+function shutdownClient(callback) {
+    var clientUpdater = serverState.get('clientUpdater');
+    child_process.exec('taskkill /IM ' + clientUpdater.get('processName') + ' /F', function(error, stdout, stderr) {
+        console.log(error ? 'Client went away.' : 'Client hung and got shut down.');
+        if (callback) {
+            callback();
+        }
+    });
+}
+
+function startClient() {
+    var clientUpdater = serverState.get('clientUpdater');
+    child_process.spawn(path.join(clientUpdater.get('local'), clientUpdater.get('processName')));
+    console.log('Client started.');
+}
+
+function restartClient() {
+    shutdownClient(startClient);
+}
+
 /*
 Server
+    Config
+        Send config to all clients
     Logging
         Log content updates
         Log on request from client
@@ -140,9 +184,7 @@ Server
         Schedule content update
         Schedule shutdown, startup, restart
     Persistence
-        Monitor even if there is no shared app state?
         Monitor uptime
-        Restart on hang/crash
         Give up restart after n times
     Run as service? https://npmjs.org/package/node-windows
 

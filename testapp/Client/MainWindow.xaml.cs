@@ -58,5 +58,12 @@ namespace Client
                 dot.Fill = pair.Value.Color;
             }
         }
+
+        private void Hang_Click(object sender, RoutedEventArgs e)
+        {
+            while (true)
+            {
+            }
+        }
     }
 }
