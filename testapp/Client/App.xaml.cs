@@ -12,16 +12,37 @@ using Newtonsoft.Json.Linq;
 
 namespace Client
 {
+    /// <summary>
+    /// Example application to excercise the features of stimulant/ampm.
+    /// </summary>
     public partial class App : Application
     {
+        // This machine's IP.
         private static readonly IPAddress ClientAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+
+        // Source object used when sending OSC messages.
         private static readonly IPEndPoint MessageSource = new IPEndPoint(IPAddress.Loopback, 3002);
+
+        // The OSC server to receive OSC messages.
         private static readonly OscServer OscReceive = new OscServer(TransportType.Udp, ClientAddress, 3002);
+
+        // The destination for OSC messages to the local node.js server.
         private static readonly IPEndPoint OscSendLocal = new IPEndPoint(ClientAddress, 3001);
+
+        // The destination for OSC messages to the master node.js server.
         private static readonly IPEndPoint OscSendMaster = new IPEndPoint(IPAddress.Parse(Settings.Default.MasterServerIp), 3001);
 
+        // Timer for sending heartbeat messages.
         private static readonly DispatcherTimer HeartTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1.0 / 60.0) };
-        private static readonly DispatcherTimer ConnectTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+
+        // Timer for picking up dropped connections.
+        private static readonly DispatcherTimer ReconnectTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+
+        // Whether this app /should be/ communicating with a master server as well as the local one.
+        private static readonly bool ShouldBeStandalone = false;
+
+        // Whether this app /is/ connecting with a master server as well as the local one.
+        private static bool IsStandalone = false;
 
         public App()
         {
@@ -30,8 +51,8 @@ namespace Client
             HeartTimer.Start();
 
             // Request app state every second, even if we haven't sent a change to it -- this should recover lost connections.
-            ConnectTimer.Tick += (sender, e) => RefreshState();
-            ConnectTimer.Start();
+            ReconnectTimer.Tick += (sender, e) => RefreshState();
+            ReconnectTimer.Start();
 
             // Handle incoming OSC messages.
             OscReceive.FilterRegisteredMethods = false;
@@ -54,8 +75,8 @@ namespace Client
             osc.Send(OscSendMaster);
             osc.Send(OscSendLocal);
 
-            ConnectTimer.Stop();
-            ConnectTimer.Start();
+            ReconnectTimer.Stop();
+            ReconnectTimer.Start();
             SendMessage("/getAppState/");
         }
 
@@ -114,8 +135,8 @@ namespace Client
                     }
 
                     AppState.Instance.FireChangedRemotely();
-                    ConnectTimer.Stop();
-                    ConnectTimer.Start();
+                    ReconnectTimer.Stop();
+                    ReconnectTimer.Start();
                     SendMessage("/getAppState/");
                     break;
             }
