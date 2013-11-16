@@ -19,10 +19,20 @@ AppState = exports.AppState = BaseModel.extend({
         message = JSON.parse(message.state);
         var states = this.get('clientStates');
         var state = states[client];
+
         if (!state) {
+            // Create a state for the new client.
             state = states[client] = new ClientState(config.clients[client]);
+            state.killFunction = function() {
+                delete states[client];
+            };
         }
 
+        // Kill the client if we haven't heard from it in a while.
+        clearTimeout(state.killTimeout);
+        state.killTimeout = setTimeout(state.killFunction, 5000);
+
+        // Parse the OSC message and update the client state.
         state.get('point').set('x', message.Point.X);
         state.get('point').set('y', message.Point.Y);
     }

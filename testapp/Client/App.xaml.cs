@@ -19,51 +19,52 @@ namespace Client
     public partial class App : Application
     {
         // This machine's IP.
-        private static readonly IPAddress ClientAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+        private static readonly IPAddress _ClientAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
 
         // Source object used when sending OSC messages.
-        private static readonly IPEndPoint MessageSource = new IPEndPoint(IPAddress.Loopback, 3002);
+        private static readonly IPEndPoint _MessageSource = new IPEndPoint(IPAddress.Loopback, 3002);
 
         // The OSC server to receive OSC messages.
-        private static readonly OscServer OscReceive = new OscServer(TransportType.Udp, ClientAddress, 3002) { FilterRegisteredMethods = false, ConsumeParsingExceptions = false };
+        private static readonly OscServer _OscReceive = new OscServer(TransportType.Udp, _ClientAddress, 3002) { FilterRegisteredMethods = false, ConsumeParsingExceptions = false };
 
         // The destination for OSC messages to the local node.js server.
-        private static readonly IPEndPoint OscSendLocal = new IPEndPoint(ClientAddress, 3001);
+        private static readonly IPEndPoint _OscSendLocal = new IPEndPoint(_ClientAddress, 3001);
 
         // The destination for OSC messages to the master node.js server.
-        private static readonly IPEndPoint OscSendMaster = new IPEndPoint(IPAddress.Parse(Settings.Default.MasterServerIp), 3001);
+        private static readonly IPEndPoint _OscSendMaster = new IPEndPoint(IPAddress.Parse(Settings.Default.MasterServerIp), 3001);
 
         // Timer for picking up dropped connections.
-        private static readonly DispatcherTimer ReconnectTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        private static readonly DispatcherTimer _ReconnectTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 
         // Timer for detecting server outages.
-        private static readonly DispatcherTimer ServerUpTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+        private static readonly DispatcherTimer _ServerUpTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
 
         // Whether this app /should be/ communicating with a master server as well as the local one.
-        private static readonly bool UseLocalServer = false;
+        private static readonly bool _UseLocalServer = false;
 
         // Whether this app /is/ connecting with a master server as well as the local one.
-        private static bool UsingLocalServer = false;
+        private static bool _UsingLocalServer = false;
 
         // Just don't use a server at all -- for dev only.
-        private static bool Serverless = false;
+        private static bool _Serverless = false;
 
+        // Class to create JSON for the server.
         private static readonly JavaScriptSerializer _Serializer = new JavaScriptSerializer();
 
         public App()
         {
             // Handle incoming OSC messages.
-            OscReceive.MessageReceived += Server_MessageReceived;
-            OscReceive.Start();
+            _OscReceive.MessageReceived += Server_MessageReceived;
+            _OscReceive.Start();
 
             // Send heartbeats every frame.
             CompositionTarget.Rendering += (sender, e) => SendMessage("/heart/" + DateTime.Now.Millisecond);
 
             // Request app state every second, even if we haven't sent a change to it -- this should recover lost connections.
-            ReconnectTimer.Tick += (sender, e) => RefreshState();
-            ReconnectTimer.Start();
+            _ReconnectTimer.Tick += (sender, e) => RefreshState();
+            _ReconnectTimer.Start();
 
-            ServerUpTimer.Tick += (sender, e) => UsingLocalServer = true;
+            _ServerUpTimer.Tick += (sender, e) => _UsingLocalServer = true;
 
             // Whenever the local state changes, send an update to the server.
             AppState.Instance.ChangedLocally += (sender, e) => RefreshState();
@@ -74,13 +75,13 @@ namespace Client
         /// </summary>
         private void RefreshState()
         {
-            if (Serverless || UsingLocalServer || UseLocalServer)
+            if (_Serverless || _UsingLocalServer || _UseLocalServer)
             {
                 // If using the local server, don't bother waiting for an update.
                 AppState.Instance.FireChangedRemotely();
             }
 
-            if (Serverless)
+            if (_Serverless)
             {
                 // If no server, don't bother sending messages.
                 return;
@@ -88,12 +89,12 @@ namespace Client
 
             string state = _Serializer.Serialize(AppState.Instance.ClientStates[Environment.MachineName]);
             string message = string.Format("/setClientState/client/{0}/state/{1}", Environment.MachineName, state);
-            OscMessage osc = new OscMessage(MessageSource, message);
-            osc.Send(OscSendMaster);
-            osc.Send(OscSendLocal);
+            OscMessage osc = new OscMessage(_MessageSource, message);
+            osc.Send(_OscSendMaster);
+            osc.Send(_OscSendLocal);
 
-            ReconnectTimer.Stop();
-            ReconnectTimer.Start();
+            _ReconnectTimer.Stop();
+            _ReconnectTimer.Start();
             SendMessage("/getAppState/");
         }
 
@@ -103,10 +104,10 @@ namespace Client
         /// <param name="message"></param>
         private void SendMessage(string message)
         {
-            ServerUpTimer.Start();
-            OscMessage msg = new OscMessage(MessageSource, message);
-            msg.Send(OscSendMaster);
-            msg.Send(OscSendLocal);
+            _ServerUpTimer.Start();
+            OscMessage msg = new OscMessage(_MessageSource, message);
+            msg.Send(_OscSendMaster);
+            msg.Send(_OscSendLocal);
         }
 
         /// <summary>
@@ -116,17 +117,17 @@ namespace Client
         /// <param name="e"></param>
         private void Server_MessageReceived(object sender, OscMessageReceivedEventArgs e)
         {
-            bool fromLocal = e.Message.SourceEndPoint.Address.Equals(ClientAddress);
+            bool fromLocal = e.Message.SourceEndPoint.Address.Equals(_ClientAddress);
             bool ignore = true;
 
             // Ignore messages from the local server not in standalone mode.
-            if (fromLocal && (UseLocalServer || UsingLocalServer))
+            if (fromLocal && (_UseLocalServer || _UsingLocalServer))
             {
                 ignore = false;
             }
 
             // Ignore messages from the remote server in standalone mode.
-            if (!fromLocal && !UseLocalServer)
+            if (!fromLocal && !_UseLocalServer)
             {
                 ignore = false;
             }
@@ -136,12 +137,12 @@ namespace Client
                 return;
             }
 
-            if (!fromLocal && UsingLocalServer)
+            if (!fromLocal && _UsingLocalServer)
             {
-                UsingLocalServer = false;
+                _UsingLocalServer = false;
             }
 
-            ServerUpTimer.Stop();
+            _ServerUpTimer.Stop();
             string[] parts = e.Message.Address.Substring(1).Split(new char[] { '/' }, 2, StringSplitOptions.RemoveEmptyEntries);
             string action = parts[0];
             string message = parts[1];
@@ -160,6 +161,8 @@ namespace Client
             {
                 case "appState":
                     Dictionary<string, dynamic> clientStates = token.SelectToken("attrs.clientStates").ToObject<Dictionary<string, dynamic>>();
+
+                    // For all the client states, decode the JSON and update the state here.
                     foreach (KeyValuePair<string, dynamic> pair in clientStates)
                     {
                         ClientState state = null;
@@ -186,9 +189,18 @@ namespace Client
                         }
                     }
 
+                    // Remove any clients that went away.
+                    foreach (string client in AppState.Instance.ClientStates.Keys.ToList())
+                    {
+                        if (!clientStates.ContainsKey(client))
+                        {
+                            AppState.Instance.ClientStates.Remove(client);
+                        }
+                    }
+
                     AppState.Instance.FireChangedRemotely();
-                    ReconnectTimer.Stop();
-                    ReconnectTimer.Start();
+                    _ReconnectTimer.Stop();
+                    _ReconnectTimer.Start();
                     SendMessage("/getAppState/");
                     break;
             }

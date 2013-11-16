@@ -43,7 +43,14 @@ oscReceive.on('message', function(msg, info) {
     var sender = oscSenders[info.address];
     if (!sender) {
         sender = oscSenders[info.address] = new osc.Client(info.address, 3002);
+        sender.killFunction = function() {
+            delete oscSenders[sender.host];
+        };
     }
+
+    // Kill the OSC client if we haven't heard from it in a while.
+    clearTimeout(sender.killTimeout);
+    sender.killTimeout = setTimeout(sender.killFunction, 5000);
 
     oscReceive.emit(action, message, sender);
 });
@@ -115,13 +122,8 @@ oscReceive.on('getServerState', function(message, sender) {
 });
 
 /*
-Client
-    Demonstrate remote configuration -- color is defined in remote server config
-
 Server
     Comm
-        ClusterState class maintains an AppState for each node
-        Client gets back its own AppState
         Remove sender/appstate for a node if it goes away for a while
         Reduce message payload size
     Logging
