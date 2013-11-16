@@ -30,7 +30,7 @@ AppState = exports.AppState = BaseModel.extend({
 
         // Kill the client if we haven't heard from it in a while.
         clearTimeout(state.killTimeout);
-        state.killTimeout = setTimeout(state.killFunction, 5000);
+        state.killTimeout = setTimeout(state.killFunction, config.server.killClientsAfter);
 
         // Parse the OSC message and update the client state.
         state.get('point').set('x', message.Point.X);

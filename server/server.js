@@ -14,19 +14,29 @@ try {
     process.exit(1);
 }
 
+// Some global config stuff that will probably never change.
+config.server = {
+    socketPort: 3000,
+    oscReceivePort: 3001,
+    oscSendPort: 3002,
+    updateThrotle: 1 / 60,
+    killClientsAfter: 5000
+};
+
 // Set up server.
 var app = express();
 var server = http.createServer(app);
 global.io = require('socket.io').listen(server);
 io.set('log level', 2);
-server.listen(3000);
+server.listen(config.server.socketPort);
 
 // A cache of OSC clients for each app instance.
 var oscSenders = {};
 
 // Set up OSC server to receive messages from app.
-global.oscReceive = new osc.Server(3001);
+global.oscReceive = new osc.Server(config.server.oscReceivePort);
 oscReceive.on('message', function(msg, info) {
+
     // Convert OSC messages to objects and emit them similar to sockets.
     var parts = msg[0].substr(1).split('/');
     var action = parts.shift();
@@ -42,7 +52,7 @@ oscReceive.on('message', function(msg, info) {
     // Build a client if needed.
     var sender = oscSenders[info.address];
     if (!sender) {
-        sender = oscSenders[info.address] = new osc.Client(info.address, 3002);
+        sender = oscSenders[info.address] = new osc.Client(info.address, config.server.oscSendPort);
         sender.killFunction = function() {
             delete oscSenders[sender.host];
         };
@@ -50,7 +60,7 @@ oscReceive.on('message', function(msg, info) {
 
     // Kill the OSC client if we haven't heard from it in a while.
     clearTimeout(sender.killTimeout);
-    sender.killTimeout = setTimeout(sender.killFunction, 5000);
+    sender.killTimeout = setTimeout(sender.killFunction, config.server.killClientsAfter);
 
     oscReceive.emit(action, message, sender);
 });
@@ -69,8 +79,6 @@ var AppState = require('./model/appState.js').AppState;
 var appState = new AppState();
 
 // Update clients with server state when they ask for it, throttled to 60 FPS.
-var throttle = 1000 / 60;
-
 io.sockets.on('connection', function(socket) {
     socket.on('getServerState', function(message) {
         if (socket.throttled) {
@@ -81,7 +89,7 @@ io.sockets.on('connection', function(socket) {
         socket.throttled = true;
         setTimeout(function() {
             socket.throttled = false;
-        });
+        }, config.server.updateThrottle);
     });
 
     socket.on('getAppState', function(message) {
@@ -93,7 +101,7 @@ io.sockets.on('connection', function(socket) {
         socket.throttled = true;
         setTimeout(function() {
             socket.throttled = false;
-        }, throttle);
+        }, config.server.updateThrottle);
     });
 });
 
@@ -106,7 +114,7 @@ oscReceive.on('getAppState', function(message, sender) {
     sender.throttled = true;
     setTimeout(function() {
         sender.throttled = false;
-    }, throttle);
+    }, config.server.updateThrottle);
 });
 
 oscReceive.on('getServerState', function(message, sender) {
@@ -118,7 +126,7 @@ oscReceive.on('getServerState', function(message, sender) {
     sender.throttled = true;
     setTimeout(function() {
         sender.throttled = false;
-    }, throttle);
+    }, config.server.updateThrottle);
 });
 
 /*
