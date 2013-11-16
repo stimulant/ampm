@@ -40,10 +40,13 @@ namespace Client
         private static readonly DispatcherTimer ServerUpTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
 
         // Whether this app /should be/ communicating with a master server as well as the local one.
-        private static readonly bool ShouldBeStandalone = true;
+        private static readonly bool UseLocalServer = false;
 
         // Whether this app /is/ connecting with a master server as well as the local one.
-        private static bool IsStandalone = false;
+        private static bool UsingLocalServer = false;
+
+        // Just don't use a server at all -- for dev only.
+        private static bool Serverless = false;
 
         public App()
         {
@@ -58,7 +61,7 @@ namespace Client
             ReconnectTimer.Tick += (sender, e) => RefreshState();
             ReconnectTimer.Start();
 
-            ServerUpTimer.Tick += (sender, e) => IsStandalone = true;
+            ServerUpTimer.Tick += (sender, e) => UsingLocalServer = true;
 
             // Whenever the local state changes, send an update to the server.
             AppState.Instance.ChangedLocally += (sender, e) => RefreshState();
@@ -69,6 +72,18 @@ namespace Client
         /// </summary>
         private void RefreshState()
         {
+            if (Serverless || UsingLocalServer || UseLocalServer)
+            {
+                // If using the local server, don't bother waiting for an update.
+                AppState.Instance.FireChangedRemotely();
+            }
+
+            if (Serverless)
+            {
+                // If no server, don't bother sending messages.
+                return;
+            }
+
             string state = new JavaScriptSerializer().Serialize(AppState.Instance.ClientStates[Environment.MachineName]);
             string message = string.Format("/setClientState/client/{0}/state/{1}", Environment.MachineName, state);
             OscMessage osc = new OscMessage(MessageSource, message);
@@ -103,13 +118,13 @@ namespace Client
             bool ignore = true;
 
             // Ignore messages from the local server not in standalone mode.
-            if (fromLocal && (ShouldBeStandalone || IsStandalone))
+            if (fromLocal && (UseLocalServer || UsingLocalServer))
             {
                 ignore = false;
             }
 
             // Ignore messages from the remote server in standalone mode.
-            if (!fromLocal && !ShouldBeStandalone)
+            if (!fromLocal && !UseLocalServer)
             {
                 ignore = false;
             }
@@ -119,9 +134,9 @@ namespace Client
                 return;
             }
 
-            if (!fromLocal && IsStandalone)
+            if (!fromLocal && UsingLocalServer)
             {
-                IsStandalone = false;
+                UsingLocalServer = false;
             }
 
             ServerUpTimer.Stop();
