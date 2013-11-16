@@ -1,7 +1,7 @@
 ﻿<Window x:Class="Client.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="MainWindow" Height="350" Width="525">
+        Title="ampm" Height="350" Width="525">
     <Grid x:Name="_LayoutRoot">
     </Grid>
 </Window>

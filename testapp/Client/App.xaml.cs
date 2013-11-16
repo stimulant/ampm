@@ -36,8 +36,11 @@ namespace Client
         // Timer for picking up dropped connections.
         private static readonly DispatcherTimer ReconnectTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
 
+        // Timer for detecting server outages.
+        private static readonly DispatcherTimer ServerUpTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+
         // Whether this app /should be/ communicating with a master server as well as the local one.
-        private static readonly bool ShouldBeStandalone = false;
+        private static readonly bool ShouldBeStandalone = true;
 
         // Whether this app /is/ connecting with a master server as well as the local one.
         private static bool IsStandalone = false;
@@ -55,6 +58,8 @@ namespace Client
             ReconnectTimer.Tick += (sender, e) => RefreshState();
             ReconnectTimer.Start();
 
+            ServerUpTimer.Tick += (sender, e) => IsStandalone = true;
+
             // Whenever the local state changes, send an update to the server.
             AppState.Instance.ChangedLocally += (sender, e) => RefreshState();
         }
@@ -62,7 +67,7 @@ namespace Client
         /// <summary>
         /// Update this instance's state on the server and get a refresh.
         /// </summary>
-        void RefreshState()
+        private void RefreshState()
         {
             string state = new JavaScriptSerializer().Serialize(AppState.Instance.ClientStates[Environment.MachineName]);
             string message = string.Format("/setClientState/client/{0}/state/{1}", Environment.MachineName, state);
@@ -81,6 +86,7 @@ namespace Client
         /// <param name="message"></param>
         private void SendMessage(string message)
         {
+            ServerUpTimer.Start();
             OscMessage msg = new OscMessage(MessageSource, message);
             msg.Send(OscSendMaster);
             msg.Send(OscSendLocal);
@@ -91,14 +97,34 @@ namespace Client
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        void Server_MessageReceived(object sender, OscMessageReceivedEventArgs e)
+        private void Server_MessageReceived(object sender, OscMessageReceivedEventArgs e)
         {
-            if (e.Message.SourceEndPoint.Address.Equals(ClientAddress))
+            bool fromLocal = e.Message.SourceEndPoint.Address.Equals(ClientAddress);
+            bool ignore = true;
+
+            // Ignore messages from the local server not in standalone mode.
+            if (fromLocal && (ShouldBeStandalone || IsStandalone))
             {
-                // Ignore responses from the local server.
+                ignore = false;
+            }
+
+            // Ignore messages from the remote server in standalone mode.
+            if (!fromLocal && !ShouldBeStandalone)
+            {
+                ignore = false;
+            }
+
+            if (ignore)
+            {
                 return;
             }
 
+            if (!fromLocal && IsStandalone)
+            {
+                IsStandalone = false;
+            }
+
+            ServerUpTimer.Stop();
             string[] parts = e.Message.Address.Substring(1).Split(new char[] { '/' }, 2, StringSplitOptions.RemoveEmptyEntries);
             string action = parts[0];
             string message = parts[1];
