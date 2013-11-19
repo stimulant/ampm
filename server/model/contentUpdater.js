@@ -68,6 +68,11 @@ exports.ContentUpdater = Backbone.Model.extend({
 
     // Process the XML file to extract files to load.
     _processContentRoot: function(error, response, body) {
+        if (response.statusCode != 200) {
+            this._handleError('Error loading root XML -- bad password?');
+            return;
+        }
+
         this._handleError('Error loading root XML.', error);
 
         // Write the root XML file.
