@@ -74,6 +74,7 @@ oscReceive.on('message', function(msg, info) {
         sender.killFunction = function() {
             delete oscSenders[sender.host];
 
+            // Looks like the client is gone, restart it.
             if (sender.isLocal) {
                 restartClient();
             }
@@ -151,20 +152,53 @@ oscReceive.on('getServerState', function(message, sender) {
     }, config.server.updateThrottle);
 });
 
+function isClientRunning(callback) {
+    if (!callback) {
+        return;
+    }
+
+    var process = serverState.get('clientUpdater').get('processName').toUpperCase();
+    child_process.exec('tasklist /FI "IMAGENAME eq ' + process + '"', function(error, stdout, stderr) {
+        callback(stdout.toUpperCase().indexOf(process) != -1);
+    });
+}
+
 function shutdownClient(callback) {
-    var clientUpdater = serverState.get('clientUpdater');
-    child_process.exec('taskkill /IM ' + clientUpdater.get('processName') + ' /F', function(error, stdout, stderr) {
-        console.log(error ? 'Client went away.' : 'Client hung and got shut down.');
-        if (callback) {
-            callback();
+    // See if the client is running.
+    isClientRunning(function(isRunning) {
+        if (!isRunning) {
+            // Nope, not running.
+            if (callback) {
+                callback();
+            }
+
+            return;
         }
+
+        // Kill the client.
+        var process = serverState.get('clientUpdater').get('processName').toUpperCase();
+        child_process.exec('taskkill /IM ' + process + ' /F', function(error, stdout, stderr) {
+            console.log('Client shut down by force.');
+            if (callback) {
+                callback();
+            }
+        });
     });
 }
 
 function startClient() {
-    var clientUpdater = serverState.get('clientUpdater');
-    child_process.spawn(path.join(clientUpdater.get('local'), clientUpdater.get('processName')));
-    console.log('Client started.');
+    isClientRunning(function(isRunning) {
+        if (isRunning) {
+            // It's already running.
+            return;
+        }
+
+        // Start the client.
+        var clientUpdater = serverState.get('clientUpdater');
+        var clientPath = path.join(clientUpdater.get('local'), clientUpdater.get('processName'));
+        child_process.spawn(clientPath);
+        console.log('Client started.');
+    });
 }
 
 function restartClient() {
