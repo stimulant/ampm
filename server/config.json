@@ -1,4 +1,14 @@
 {
+    "network": {
+        "master": "I14",
+        "updateStateThrottle": 16,
+        "updateConfigThrottle": 1000
+    },
+
+    "persistence": {
+        "forgetAfter": 5000
+    },
+
     "clients": {
         "I14": {
             "color": "red"

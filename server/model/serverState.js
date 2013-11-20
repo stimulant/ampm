@@ -19,7 +19,7 @@ exports.ServerState = BaseModel.extend({
 
         oscReceive.on('heart', _.bind(this._onHeart, this));
 
-        io.sockets.on('connection', _.bind(this._onConnection, this));
+        socketServer.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
     _onConnection: function(socket) {

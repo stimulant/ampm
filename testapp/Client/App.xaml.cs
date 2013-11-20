@@ -40,7 +40,7 @@ namespace Client
         private static readonly DispatcherTimer _ServerUpTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
 
         // Whether this app /should be/ communicating with a master server as well as the local one.
-        private static readonly bool _UseLocalServer = false;
+        private static readonly bool _UseLocalServer = true;
 
         // Whether this app /is/ connecting with a master server as well as the local one.
         private static bool _UsingLocalServer = false;

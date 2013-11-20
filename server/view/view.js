@@ -7,7 +7,7 @@ var View = Backbone.View.extend({
 	_socket: null,
 
 	initialize: function() {
-		this._socket = io.connect('http://localhost:3000');
+		this._socket = socketServer.connect('http://localhost:3000');
 		this._socket.on('connect', _.bind(this._onConnect, this));
 	},
 
