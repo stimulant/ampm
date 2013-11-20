@@ -10,21 +10,10 @@ var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/no
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 
-// Load config file.
-try {
-    var oldConfig = fs.readFileSync('./config.json', {
-        encoding: 'utf8'
-    });
-    var configUpdateInterval = null;
-    global.config = JSON.parse(oldConfig);
-} catch (error) {
-    console.log("Couldn't load config file.");
-    console.log(error);
-    process.exit(1);
-}
-
 // Some global config stuff that will probably never change.
 global.constants = {
+    configPath: './config.json',
+    addresses: [],
     network: {
         socketPort: 3000,
         oscReceivePort: 3001,
@@ -33,20 +22,51 @@ global.constants = {
 };
 
 // Get the network addresses used by this machine -- used to determine which client is local.
-var addresses = [];
 var interfaces = os.networkInterfaces();
 for (var network in interfaces) {
     for (var i = 0; i < interfaces[network].length; i++) {
-        addresses.push(interfaces[network][i].address);
+        constants.addresses.push(interfaces[network][i].address);
     }
 }
 
-// Set up server.
+// Load config file.
+function loadConfig() {
+    try {
+        oldConfig = fs.readFileSync(constants.configPath, {
+            encoding: 'utf8'
+        });
+        global.config = JSON.parse(oldConfig);
+        console.log('Config loaded.');
+    } catch (error) {
+        if (!global.config) {
+            console.log('Error loading config file.');
+            console.log(error);
+            process.exit(1);
+        }
+    }
+}
+
+loadConfig();
+
+// Watch the config file for changes.
+if (!config.network.master || config.network.master == os.hostname()) {
+    fs.watch(constants.configPath, function(event, filename) {
+        loadConfig();
+    });
+}
+
+// Set up application server and socket server.
 var app = express();
 var server = http.createServer(app);
 global.socketServer = require('socket.io').listen(server);
 socketServer.set('log level', 2);
 server.listen(constants.network.socketPort);
+
+// Set up view routing.
+app.use('/static', express.static(__dirname + '/view'));
+app.get('/', function(req, res) {
+    res.sendfile(__dirname + '/view/index.html');
+});
 
 // A cache of OSC clients for each app instance.
 var oscSenders = {};
@@ -71,7 +91,7 @@ oscReceive.on('message', function(msg, info) {
     var sender = oscSenders[info.address];
     if (!sender) {
         sender = oscSenders[info.address] = new osc.Client(info.address, constants.network.oscSendPort);
-        sender.isLocal = addresses.indexOf(sender.host) != -1;
+        sender.isLocal = constants.addresses.indexOf(sender.host) != -1;
         sender.throttles = {};
         sender.killFunction = function() {
             delete oscSenders[sender.host];
@@ -90,19 +110,33 @@ oscReceive.on('message', function(msg, info) {
     oscReceive.emit(action, message, sender);
 });
 
-// Set up view routing.
-app.use('/static', express.static(__dirname + '/view'));
-app.get('/', function(req, res) {
-    res.sendfile(__dirname + '/view/index.html');
+// Send server state over OSC when requested.
+oscReceive.on('getServerState', function(message, sender) {
+    if (sender.throttles['getServerState']) {
+        return;
+    }
+
+    sender.send('/serverState/' + JSON.stringify(serverState.xport()));
+    sender.throttles['getServerState'] = true;
+    setTimeout(function() {
+        sender.throttles['getServerState'] = false;
+    }, config.network.updateConfigThrottle);
 });
 
-// Set up models.
-var ServerState = require('./model/serverState.js').ServerState;
-var serverState = new ServerState();
+// Send app state over OSC when requested.
+oscReceive.on('getAppState', function(message, sender) {
+    if (sender.throttles['getAppState']) {
+        return;
+    }
 
-var AppState = require('./model/appState.js').AppState;
-var appState = new AppState();
+    sender.send('/appState/' + JSON.stringify(appState.xport()));
+    sender.throttles['getAppState'] = true;
+    setTimeout(function() {
+        sender.throttles['getAppState'] = false;
+    }, config.network.updateStateThrottle);
+});
 
+// Configure socket server.
 // Update clients with server state when they ask for it, throttled to a reasonable amount.
 socketServer.on('connection', function(socket) {
     socket.throttles = {};
@@ -136,7 +170,6 @@ socketServer.on('connection', function(socket) {
     if (config.network.master == os.hostname()) {
         // Hook up getConfig method on the master.
         socket.on('getConfig', function(message) {
-            console.log('foo');
             if (socket.throttles['getConfig']) {
                 return;
             }
@@ -150,20 +183,24 @@ socketServer.on('connection', function(socket) {
     }
 });
 
-// Hook up config update loop on slaves.
+// On slaves, configure socket client.
 if (config.network.master != os.hostname()) {
-    /*
     global.socketClient = require('socket.io-client')
         .connect('http://' + config.network.master + ':' + constants.network.socketPort);
+
+    // Hook up config update loop on slaves.
+    var configUpdateInterval = null;
     socketClient.on('config', function(message) {
-        clearInterval(configUpdateTimeout);
+        clearInterval(configUpdateInterval);
         var newConfig = JSON.stringify(message, null, 4);
-        console.log(newConfig == oldConfig);
         if (newConfig != oldConfig) {
             console.log('Got new config from master.');
             global.config = config;
+            oldConfig = newConfig;
             fs.writeFile('./config.json', newConfig, function(error) {
-                console.log('Error writing configuration from master.');
+                if (error) {
+                    console.log('Error writing configuration from master.');
+                }
             });
         }
 
@@ -174,32 +211,7 @@ if (config.network.master != os.hostname()) {
 
     // Request config from master.
     socketClient.emit('getConfig');
-    */
 }
-
-oscReceive.on('getServerState', function(message, sender) {
-    if (sender.throttles['getServerState']) {
-        return;
-    }
-
-    sender.send('/serverState/' + JSON.stringify(serverState.xport()));
-    sender.throttles['getServerState'] = true;
-    setTimeout(function() {
-        sender.throttles['getServerState'] = false;
-    }, config.network.updateConfigThrottle);
-});
-
-oscReceive.on('getAppState', function(message, sender) {
-    if (sender.throttles['getAppState']) {
-        return;
-    }
-
-    sender.send('/appState/' + JSON.stringify(appState.xport()));
-    sender.throttles['getAppState'] = true;
-    setTimeout(function() {
-        sender.throttles['getAppState'] = false;
-    }, config.network.updateStateThrottle);
-});
 
 function isClientRunning(callback) {
     if (!callback) {
@@ -253,6 +265,13 @@ function startClient() {
 function restartClient() {
     shutdownClient(startClient);
 }
+
+// Set up models.
+var ServerState = require('./model/serverState.js').ServerState;
+var serverState = new ServerState();
+
+var AppState = require('./model/appState.js').AppState;
+var appState = new AppState();
 
 /*
 Content Updater

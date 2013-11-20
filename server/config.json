@@ -4,11 +4,9 @@
         "updateStateThrottle": 16,
         "updateConfigThrottle": 1000
     },
-
     "persistence": {
         "forgetAfter": 5000
     },
-
     "clients": {
         "I14": {
             "color": "red"
@@ -20,11 +18,9 @@
             "color": "blue"
         }
     },
-
     "contentUpdater": {
         "remote": "http://mvi_video:funk0@content.stimulant.io/mvi_video/category/6"
     },
-
     "clientUpdater": {
         "remote": "http://content.stimulant.io/uploads/mvi_video/mvi_video.zip"
     }
