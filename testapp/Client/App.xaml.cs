@@ -94,9 +94,7 @@ namespace Client
 
             string state = _Serializer.Serialize(AppState.Instance.ClientStates[Environment.MachineName]);
             string message = string.Format("/setClientState/client/{0}/state/{1}", Environment.MachineName, state);
-            OscMessage osc = new OscMessage(_MessageSource, message);
-            osc.Send(_OscSendMaster);
-            osc.Send(_OscSendLocal);
+            SendMessage(message);
 
             _ReconnectTimer.Stop();
             _ReconnectTimer.Start();

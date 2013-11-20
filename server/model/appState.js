@@ -12,7 +12,7 @@ AppState = exports.AppState = BaseModel.extend({
     initialize: function() {
         this.set('clientStates', {});
         oscReceive.on('setClientState', _.bind(this._onSetClientState, this));
-        oscReceive.on('setConfig', _.bind(this._onSetConfig, this));
+        process.on('setConfig', _.bind(this._onSetConfig, this));
     },
 
     _onSetClientState: function(message) {

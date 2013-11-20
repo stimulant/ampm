@@ -37,9 +37,7 @@ function loadConfig() {
         });
         global.config = JSON.parse(oldConfig);
         console.log('Config loaded.');
-        if (oscReceive) {
-            oscReceive.emit('setConfig');
-        }
+        process.emit('setConfig');
     } catch (error) {
         if (!global.config) {
             console.log('Error loading config file.');
@@ -266,6 +264,7 @@ function startClient() {
 }
 
 function restartClient() {
+    return;
     shutdownClient(startClient);
 }
 
