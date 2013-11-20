@@ -40,7 +40,7 @@ namespace Client
         private static readonly DispatcherTimer _ServerUpTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
 
         // Whether this app /should be/ communicating with a master server as well as the local one.
-        private static readonly bool _UseLocalServer = true;
+        private static readonly bool _UseLocalServer = false;
 
         // Whether this app /is/ connecting with a master server as well as the local one.
         private static bool _UsingLocalServer = false;
@@ -53,6 +53,11 @@ namespace Client
 
         public App()
         {
+            if (_UseLocalServer)
+            {
+                _UsingLocalServer = true;
+            }
+
             // Handle incoming OSC messages.
             _OscReceive.MessageReceived += Server_MessageReceived;
             _OscReceive.Start();
@@ -75,7 +80,7 @@ namespace Client
         /// </summary>
         private void RefreshState()
         {
-            if (_Serverless || _UsingLocalServer || _UseLocalServer)
+            if (_UsingLocalServer)
             {
                 // If using the local server, don't bother waiting for an update.
                 AppState.Instance.FireChangedRemotely();
@@ -121,7 +126,7 @@ namespace Client
             bool ignore = true;
 
             // Ignore messages from the local server not in standalone mode.
-            if (fromLocal && (_UseLocalServer || _UsingLocalServer))
+            if (fromLocal && _UsingLocalServer)
             {
                 ignore = false;
             }
@@ -137,7 +142,7 @@ namespace Client
                 return;
             }
 
-            if (!fromLocal && _UsingLocalServer)
+            if (!fromLocal && _UsingLocalServer && !_UseLocalServer)
             {
                 _UsingLocalServer = false;
             }
@@ -174,19 +179,9 @@ namespace Client
 
                         state.Point = new Point((double)pair.Value.point.x, (double)pair.Value.point.y);
 
-                        if (state.Color == Brushes.Black)
-                        {
-                            // Only do this once because it probably takes a while -- but could update it every frame if you wanted.
-                            try
-                            {
-                                string colorName = pair.Value.color;
-                                colorName = colorName[0].ToString().ToUpperInvariant() + colorName.Substring(1);
-                                state.Color = (Brush)typeof(Brushes).GetProperty(colorName).GetGetMethod().Invoke(null, null);
-                            }
-                            catch
-                            {
-                            }
-                        }
+                        string colorName = pair.Value.color;
+                        colorName = colorName[0].ToString().ToUpperInvariant() + colorName.Substring(1);
+                        state.Color = (Brush)typeof(Brushes).GetProperty(colorName).GetGetMethod().Invoke(null, null);
                     }
 
                     // Remove any clients that went away.

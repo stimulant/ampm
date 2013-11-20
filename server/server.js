@@ -37,6 +37,9 @@ function loadConfig() {
         });
         global.config = JSON.parse(oldConfig);
         console.log('Config loaded.');
+        if (oscReceive) {
+            oscReceive.emit('setConfig');
+        }
     } catch (error) {
         if (!global.config) {
             console.log('Error loading config file.');
@@ -278,19 +281,17 @@ Content Updater
     Update from non-web location
 
 Server
-    Config
-        Send config to all clients
-    Logging
-        Log content updates
-        Log on request from client
-        Email on critical state
-        Analytics service?
     Scheduling
         Schedule content update
         Schedule shutdown, startup, restart
     Persistence
         Monitor uptime
         Give up restart after n times
+    Logging
+        Log content updates
+        Log on request from client
+        Email on critical state
+        Analytics service?
     Run as service? https://npmjs.org/package/node-windows
 
 Console

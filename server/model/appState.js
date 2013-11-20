@@ -12,6 +12,7 @@ AppState = exports.AppState = BaseModel.extend({
     initialize: function() {
         this.set('clientStates', {});
         oscReceive.on('setClientState', _.bind(this._onSetClientState, this));
+        oscReceive.on('setConfig', _.bind(this._onSetConfig, this));
     },
 
     _onSetClientState: function(message) {
@@ -22,7 +23,8 @@ AppState = exports.AppState = BaseModel.extend({
 
         if (!state) {
             // Create a state for the new client.
-            state = states[client] = new ClientState(config.clients[client]);
+            state = states[client] = new ClientState();
+            this._onSetConfig();
             state.killFunction = function() {
                 delete states[client];
             };
@@ -35,6 +37,14 @@ AppState = exports.AppState = BaseModel.extend({
         // Parse the OSC message and update the client state.
         state.get('point').set('x', message.Point.X);
         state.get('point').set('y', message.Point.Y);
+    },
+
+    _onSetConfig: function() {
+        var clients = this.get('clientStates');
+        for (var name in clients) {
+            var client = clients[name];
+            client.set(config.clients[name]);
+        }
     }
 });
 
