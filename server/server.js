@@ -12,7 +12,9 @@ var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/no
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 
-// fallback when server dies
+// fallback when server dies -- not right
+// perf?
+// updateHeart fail
 // getstate throttle
 // get state on timer
 // get config on timer
@@ -117,7 +119,7 @@ function setupComm() {
             constants.mode = modes.master;
             comm.fromClients = new osc.Server(constants.network.masterReceivePort);
             comm.fromClients.on('message', function(message, info) {
-                handleOsc(modes.client, constants.mode, message, info);
+                handleOsc(modes.client, modes.master, message, info);
             });
             comm.toClients = {};
         } else {
@@ -125,7 +127,7 @@ function setupComm() {
             comm.toMaster = new osc.Client(config.network.master, constants.network.masterReceivePort);
             comm.fromMaster = new osc.Server(constants.network.masterSendPort);
             comm.fromMaster.on('message', function(message, info) {
-                handleOsc(modes.master, constants.mode, message, info);
+                handleOsc(modes.master, modes.client, message, info);
             });
         }
     } else {
@@ -133,10 +135,10 @@ function setupComm() {
     }
 
     if (constants.mode == modes.standalone || constants.mode == modes.client) {
-        comm.toApp = new osc.Client('127.0.0.1', constants.network.appReceivePort);
+        comm.toApp = new osc.Client(os.hostname(), constants.network.appReceivePort);
         comm.fromApp = new osc.Server(constants.network.appSendPort);
         comm.fromApp.on('message', function(message, info) {
-            handleOsc(modes.app, constants.mode, message, info);
+            handleOsc(modes.app, modes.client, message, info);
         });
     }
 
@@ -206,18 +208,45 @@ function handleOsc(from, to, message, info) {
     }
 
     if (constants.mode == modes.master) {
-        resetIdle(decoded.hostname);
+        // Reset the timer for client timeouts.
+        resetIdleClient(decoded.hostname);
+    } else if (constants.mode == modes.standalone && from == modes.master) {
+        // The master went away, but came back.
+        console.log('Master came back.');
+        constants.mode = modes.client;
+    } else if (from == modes.master) {
+        // Reset the timer for master timeouts.
+        resetIdleMaster();
     }
 }
 
+function resetIdleMaster() {
+    return;
+    var timeout = comm.timeouts[config.network.master];
+    if (!timeout) {
+        timeout = comm.timeouts[config.network.master] = {
+            id: 0,
+            callback: onIdleMaster
+        };
+    }
+
+    clearTimeout(timeout.id);
+    timeout.id = setTimeout(timeout.callback, config.persistence.forgetAfter);
+}
+
+function onIdleMaster() {
+    console.log('Master went away.');
+    constants.mode = modes.standalone;
+}
+
 // Set a timer to clean up clients after they've gone idle.
-function resetIdle(hostname) {
+function resetIdleClient(hostname) {
     var timeout = comm.timeouts[hostname];
     if (!timeout) {
-        comm.timeouts[hostname] = timeout = {
+        timeout = comm.timeouts[hostname] = {
             id: 0,
             callback: function() {
-                clientIdle(hostname);
+                onIdleClient(hostname);
             }
         };
     }
@@ -227,7 +256,7 @@ function resetIdle(hostname) {
 }
 
 // When a client goes away, clean up any resources.
-function clientIdle(hostname) {
+function onIdleClient(hostname) {
     console.log(hostname + ' went away.');
     delete comm.toClients[hostname];
     exhibitState.updateAppState(hostname, null);
@@ -268,21 +297,21 @@ function processHeart(from, to, decoded, message, info) {
 
 // Send a "state" message to whoever asked for it.
 function processGetState(from, to, decoded, message, info) {
-    // console.log('getState ' + os.hostname());
+    // console.log('getState ' + decoded.hostname + ' ' + os.hostname());
     var msg = "/state/" + os.hostname() + "/" + JSON.stringify(exhibitState.xport());
-    console.log(msg);
     getOscClient(decoded.hostname).send(msg);
 }
 
 // Process state updates from the UI.
 function processSetState(from, to, decoded, message, info) {
-    // console.log('setState ' + os.hostname());
+    // console.log('setState ' + decoded.hostname + ' ' + os.hostname());
     exhibitState.updateAppState(decoded.hostname, decoded.data);
 }
 
 // Process state from the master and pass it back to the app.
 function processState(from, to, decoded, message, info) {
-    // console.log('state ' + os.hostname());
+    // console.log('state ' + decoded.hostname + ' ' + os.hostname());
+    exhibitState.mport(decoded.data);
     var msg = "/state/" + os.hostname() + "/" + JSON.stringify(exhibitState.xport());
     comm.toApp.send(msg);
 }
@@ -295,7 +324,7 @@ function processLog(from, to, decoded, message, info) {
 function getOscClient(hostname) {
     var client = comm.toClients[hostname];
     if (!client) {
-        client = comm.toClients[hostname] = new osc.Client(hostname, constants.network.appReceivePort);
+        client = comm.toClients[hostname] = new osc.Client(hostname, constants.network.masterSendPort);
     }
 
     return client;

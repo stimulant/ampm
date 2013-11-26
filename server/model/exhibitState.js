@@ -5,23 +5,26 @@ var BaseModel = require('./baseModel.js').BaseModel;
 var AppState = require('./appState.js').AppState;
 
 ExhibitState = exports.ExhibitState = BaseModel.extend({
-	defaults: {
-		appStates: null
-	},
+	defaults: {},
+
+	appState: null,
 
 	initialize: function() {
-		this.set('appStates', {});
+		this.appStates = new AppStates();
 	},
 
 	updateHeart: function(hostname) {
-		this.getState(hostname).set('lastHeart', moment());
+		//console.log(hostname);
+		//console.log(this.getState(hostname));
+		//this.getState(hostname).set('lastHeart', moment());
 	},
 
 	updateAppState: function(hostname, state) {
 		var appState = this.getState(hostname);
 
 		if (!state) {
-			delete this.get('appStates')[hostname];
+
+			this.appStates.remove(appState);
 			return;
 		}
 
@@ -30,12 +33,27 @@ ExhibitState = exports.ExhibitState = BaseModel.extend({
 	},
 
 	getState: function(hostname) {
-		var appStates = this.get('appStates');
-		var appState = appStates[hostname];
+		var appStates = this.appStates;
+		var appState = _.find(appStates.models, function(model) {
+			return model.get('hostname') == hostname;
+		});
+
 		if (!appState) {
-			appState = appStates[hostname] = new AppState(config.clients[hostname]);
+			appState = new AppState(config.clients[hostname]);
+			appState.set('hostname', hostname);
+			appState.set('lastHeart', moment());
+
+			if (!appStates.add) {
+				console.log(appStates.models);
+			}
+
+			appStates.add(appState);
 		}
 
 		return appState;
 	}
+});
+
+AppStates = exports.AppStates = Backbone.Collection.extend({
+	model: AppState
 });

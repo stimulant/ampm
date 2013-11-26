@@ -11,8 +11,8 @@ var BaseModel = Backbone.Model.extend({
             }).extend(opt || {});
 
         function process(targetObj, source) {
-            // targetObj.id = source.id || null;
-            // targetObj.cid = source.cid || null;
+            targetObj.id = source.id || null;
+            targetObj.cid = source.cid || null;
             targetObj.attrs = source.toJSON();
             _.each(source, function(value, key) {
                 // since models store a reference to their collection
@@ -50,9 +50,9 @@ var BaseModel = Backbone.Model.extend({
             if (data.collections) {
                 _.each(data.collections, function(collection, name) {
                     targetObj[name].id = collection.id;
-                    Skeleton.models[collection.id] = targetObj[name];
+                    //Skeleton.models[collection.id] = targetObj[name];
                     _.each(collection.models, function(modelData, index) {
-                        var newObj = targetObj[name]._add({}, {
+                        var newObj = targetObj[name].add({}, {
                             silent: silent
                         });
                         process(newObj, modelData);

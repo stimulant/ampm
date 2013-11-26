@@ -42,7 +42,7 @@ namespace Client
             _OscReceive.Start();
 
             // Send heartbeats every frame.
-            CompositionTarget.Rendering += (sender, e) => SendMessage("heart");
+            //CompositionTarget.Rendering += (sender, e) => SendMessage("heart");
 
             // Request app state every second, even if we haven't sent a change to it -- this should recover lost connections.
             _ReconnectTimer.Tick += (sender, e) => RefreshState();
@@ -57,8 +57,9 @@ namespace Client
         /// </summary>
         private void RefreshState()
         {
-            string state = _Serializer.Serialize(ExhibitState.Instance.AppStates[Environment.MachineName]);
-            SendMessage("setState", state);
+            AppState state = ExhibitState.Instance.AppStates[Environment.MachineName];
+            string json = _Serializer.Serialize(state);
+            SendMessage("setState", json);
 
             _ReconnectTimer.Stop();
             _ReconnectTimer.Start();
@@ -100,21 +101,28 @@ namespace Client
             switch (action)
             {
                 case "state":
-                    Dictionary<string, dynamic> clientStates = token.SelectToken("attrs.appStates").ToObject<Dictionary<string, dynamic>>();
+                    dynamic[] clientStates = token.SelectToken("collections.appStates.models").ToObject<dynamic[]>();
+                    List<string> hostnames = new List<string>();
 
                     // For all the client states, decode the JSON and update the state here.
-                    foreach (KeyValuePair<string, dynamic> pair in clientStates)
+                    foreach (dynamic clientState in clientStates)
                     {
+                        string hostname = clientState.attrs.hostname;
+                        int x = clientState.attrs.x;
+                        int y = clientState.attrs.y;
+                        string color = clientState.attrs.color;
+
+                        hostnames.Add(hostname);
                         AppState state = null;
-                        ExhibitState.Instance.AppStates.TryGetValue(pair.Key, out state);
+                        ExhibitState.Instance.AppStates.TryGetValue(hostname, out state);
                         if (state == null)
                         {
-                            state = ExhibitState.Instance.AppStates[pair.Key] = new AppState();
+                            state = ExhibitState.Instance.AppStates[hostname] = new AppState();
                         }
 
-                        state.Point = new Point((double)pair.Value.x, (double)pair.Value.y);
+                        state.Point = new Point((double)x, (double)y);
 
-                        string colorName = pair.Value.color;
+                        string colorName = color;
                         colorName = colorName[0].ToString().ToUpperInvariant() + colorName.Substring(1);
                         state.Color = (Brush)typeof(Brushes).GetProperty(colorName).GetGetMethod().Invoke(null, null);
                     }
@@ -122,9 +130,9 @@ namespace Client
                     // Remove any clients that went away.
                     foreach (string client in ExhibitState.Instance.AppStates.Keys.ToList())
                     {
-                        if (!clientStates.ContainsKey(client))
+                        if (!hostnames.Contains(client))
                         {
-                            ExhibitState.Instance.AppStates.Remove(client);
+                            // ExhibitState.Instance.AppStates.Remove(client);
                         }
                     }
 

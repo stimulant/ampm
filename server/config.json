@@ -1,6 +1,6 @@
 {
     "network": {
-        "master": "I14",
+        "master": "I14VM-B",
         "updateStateInterval": 16,
         "updateConfigInterval": 5000
     },
