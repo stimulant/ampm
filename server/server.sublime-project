@@ -3,9 +3,5 @@
         "path": "/E/GitHub/ampm/server",
         "folder_exclude_patterns": ["client", "content", "*.tmp", "node_modules"],
         "file_exclude_patterns": ["*.sublime-workspace"]
-    }, {
-        "path": "/Volumes/C/Stimulant/Git/ampm/server/",
-        "folder_exclude_patterns": ["client", "content", "*.tmp", "node_modules"],
-        "file_exclude_patterns": ["*.sublime-workspace"]
     }]
 }

@@ -8,7 +8,6 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Bespoke.Common.Osc;
-using Client.Properties;
 using Newtonsoft.Json.Linq;
 
 namespace Client
@@ -22,57 +21,35 @@ namespace Client
         private static readonly IPAddress _ClientAddress = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(ip => ip.AddressFamily == AddressFamily.InterNetwork);
 
         // Source object used when sending OSC messages.
-        private static readonly IPEndPoint _MessageSource = new IPEndPoint(IPAddress.Loopback, 3002);
+        private static readonly IPEndPoint _MessageSource = new IPEndPoint(IPAddress.Loopback, 3003);
 
         // The OSC server to receive OSC messages.
-        private static readonly OscServer _OscReceive = new OscServer(TransportType.Udp, _ClientAddress, 3002) { FilterRegisteredMethods = false, ConsumeParsingExceptions = false };
+        private static readonly OscServer _OscReceive = new OscServer(TransportType.Udp, _ClientAddress, 3003) { FilterRegisteredMethods = false, ConsumeParsingExceptions = false };
 
         // The destination for OSC messages to the local node.js server.
-        private static readonly IPEndPoint _OscSendLocal = new IPEndPoint(_ClientAddress, 3001);
-
-        // The destination for OSC messages to the master node.js server.
-        private static readonly IPEndPoint _OscSendMaster = new IPEndPoint(IPAddress.Parse(Settings.Default.MasterServerIp), 3001);
+        private static readonly IPEndPoint _OscSendLocal = new IPEndPoint(_ClientAddress, 3004);
 
         // Timer for picking up dropped connections.
         private static readonly DispatcherTimer _ReconnectTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
-
-        // Timer for detecting server outages.
-        private static readonly DispatcherTimer _ServerUpTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
-
-        // Whether this app /should be/ communicating with a master server as well as the local one.
-        private static readonly bool _UseLocalServer = false;
-
-        // Whether this app /is/ connecting with a master server as well as the local one.
-        private static bool _UsingLocalServer = false;
-
-        // Just don't use a server at all -- for dev only.
-        private static bool _Serverless = false;
 
         // Class to create JSON for the server.
         private static readonly JavaScriptSerializer _Serializer = new JavaScriptSerializer();
 
         public App()
         {
-            if (_UseLocalServer)
-            {
-                _UsingLocalServer = true;
-            }
-
             // Handle incoming OSC messages.
             _OscReceive.MessageReceived += Server_MessageReceived;
             _OscReceive.Start();
 
             // Send heartbeats every frame.
-            CompositionTarget.Rendering += (sender, e) => SendMessage("/heart/" + DateTime.Now.Millisecond);
+            CompositionTarget.Rendering += (sender, e) => SendMessage("heart");
 
             // Request app state every second, even if we haven't sent a change to it -- this should recover lost connections.
             _ReconnectTimer.Tick += (sender, e) => RefreshState();
             _ReconnectTimer.Start();
 
-            _ServerUpTimer.Tick += (sender, e) => _UsingLocalServer = true;
-
             // Whenever the local state changes, send an update to the server.
-            AppState.Instance.ChangedLocally += (sender, e) => RefreshState();
+            ExhibitState.Instance.ChangedLocally += (sender, e) => RefreshState();
         }
 
         /// <summary>
@@ -80,37 +57,23 @@ namespace Client
         /// </summary>
         private void RefreshState()
         {
-            if (_UsingLocalServer)
-            {
-                // If using the local server, don't bother waiting for an update.
-                AppState.Instance.FireChangedRemotely();
-            }
-
-            if (_Serverless)
-            {
-                // If no server, don't bother sending messages.
-                return;
-            }
-
-            string state = _Serializer.Serialize(AppState.Instance.ClientStates[Environment.MachineName]);
-            string message = string.Format("/setClientState/client/{0}/state/{1}", Environment.MachineName, state);
+            string state = _Serializer.Serialize(ExhibitState.Instance.AppStates[Environment.MachineName]);
+            string message = string.Format("setState", state);
             SendMessage(message);
 
             _ReconnectTimer.Stop();
             _ReconnectTimer.Start();
-            SendMessage("/getAppState/");
+            SendMessage("getState");
         }
 
         /// <summary>
         /// Send messages to the local machine and the master.
         /// </summary>
         /// <param name="message"></param>
-        private void SendMessage(string message)
+        private void SendMessage(string type, string message = null)
         {
-            _ServerUpTimer.Start();
-            OscMessage msg = new OscMessage(_MessageSource, message);
-            msg.Send(_OscSendMaster);
-            msg.Send(_OscSendLocal);
+            message = string.Format("/{0}/{1}/{2}/", type, Environment.MachineName, message);
+            new OscMessage(_MessageSource, message).Send(_OscSendLocal);
         }
 
         /// <summary>
@@ -120,32 +83,6 @@ namespace Client
         /// <param name="e"></param>
         private void Server_MessageReceived(object sender, OscMessageReceivedEventArgs e)
         {
-            bool fromLocal = e.Message.SourceEndPoint.Address.Equals(_ClientAddress);
-            bool ignore = true;
-
-            // Ignore messages from the local server not in standalone mode.
-            if (fromLocal && _UsingLocalServer)
-            {
-                ignore = false;
-            }
-
-            // Ignore messages from the remote server in standalone mode.
-            if (!fromLocal && !_UseLocalServer)
-            {
-                ignore = false;
-            }
-
-            if (ignore)
-            {
-                return;
-            }
-
-            if (!fromLocal && _UsingLocalServer && !_UseLocalServer)
-            {
-                _UsingLocalServer = false;
-            }
-
-            _ServerUpTimer.Stop();
             string[] parts = e.Message.Address.Substring(1).Split(new char[] { '/' }, 2, StringSplitOptions.RemoveEmptyEntries);
             string action = parts[0];
             string message = parts[1];
@@ -168,11 +105,11 @@ namespace Client
                     // For all the client states, decode the JSON and update the state here.
                     foreach (KeyValuePair<string, dynamic> pair in clientStates)
                     {
-                        ClientState state = null;
-                        AppState.Instance.ClientStates.TryGetValue(pair.Key, out state);
+                        AppState state = null;
+                        ExhibitState.Instance.AppStates.TryGetValue(pair.Key, out state);
                         if (state == null)
                         {
-                            state = AppState.Instance.ClientStates[pair.Key] = new ClientState();
+                            state = ExhibitState.Instance.AppStates[pair.Key] = new AppState();
                         }
 
                         state.Point = new Point((double)pair.Value.point.x, (double)pair.Value.point.y);
@@ -183,15 +120,15 @@ namespace Client
                     }
 
                     // Remove any clients that went away.
-                    foreach (string client in AppState.Instance.ClientStates.Keys.ToList())
+                    foreach (string client in ExhibitState.Instance.AppStates.Keys.ToList())
                     {
                         if (!clientStates.ContainsKey(client))
                         {
-                            AppState.Instance.ClientStates.Remove(client);
+                            ExhibitState.Instance.AppStates.Remove(client);
                         }
                     }
 
-                    AppState.Instance.FireChangedRemotely();
+                    ExhibitState.Instance.FireChangedRemotely();
                     _ReconnectTimer.Stop();
                     _ReconnectTimer.Start();
                     SendMessage("/getAppState/");

@@ -13,13 +13,13 @@ namespace Client
         public MainWindow()
         {
             InitializeComponent();
-            AppState.Instance.ChangedRemotely += AppState_ChangedRemotely;
+            ExhibitState.Instance.ChangedRemotely += AppState_ChangedRemotely;
         }
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            AppState.Instance.MyState.Point = e.GetPosition(this);
-            AppState.Instance.FireChangedLocally();
+            ExhibitState.Instance.MyState.Point = e.GetPosition(this);
+            ExhibitState.Instance.FireChangedLocally();
             base.OnMouseMove(e);
         }
 
@@ -27,13 +27,13 @@ namespace Client
         {
             foreach (Ellipse dot in _LayoutRoot.Children.Cast<Ellipse>().ToList())
             {
-                if (!AppState.Instance.ClientStates.ContainsValue((ClientState)dot.DataContext))
+                if (!ExhibitState.Instance.AppStates.ContainsValue((AppState)dot.DataContext))
                 {
                     _LayoutRoot.Children.Remove(dot);
                 }
             }
 
-            foreach (KeyValuePair<string, ClientState> pair in AppState.Instance.ClientStates)
+            foreach (KeyValuePair<string, AppState> pair in ExhibitState.Instance.AppStates)
             {
                 Ellipse dot = _LayoutRoot.Children.Cast<Ellipse>().FirstOrDefault(d => d.DataContext == pair.Value);
                 if (dot == null)

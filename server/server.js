@@ -4,6 +4,8 @@ var dns = require('dns'); // http://nodejs.org/api/dns.html
 var path = require('path'); //http://nodejs.org/api/path.html
 
 var express = require('express'); // Routing framework. http://expressjs.com/
+var ioServer = require('socket.io'); // Web socket implementation. http://socket.io/
+var ioClient = require('socket.io-client'); // Web socket implementation. http://socket.io/
 var http = require('http'); // HTTP support. http://nodejs.org/api/http.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
@@ -12,14 +14,261 @@ var Backbone = require('backbone'); // Data model utilities. http://backbonejs.o
 
 // Some global config stuff that will probably never change.
 global.constants = {
+    mode: null,
     configPath: './config.json',
     addresses: [],
     network: {
-        socketPort: 3000,
-        oscReceivePort: 3001,
-        oscSendPort: 3002
+        consolePort: 3000,
+        masterReceivePort: 3001,
+        masterSendPort: 3002,
+        appReceivePort: 3003,
+        appSendPort: 3004,
+        socketLogLevel: 2
     }
 };
+
+global.modes = {
+    master: 1,
+    client: 2,
+    standalone: 3,
+    app: 4
+};
+
+// Servers and clients are stored here.
+global.comm = {};
+
+var ExhibitState = require('./model/exhibitState.js').ExhibitState;
+global.exhibitState = new ExhibitState();
+
+// Load config file.
+function loadConfig() {
+    try {
+        var isFirstConfig = _.isUndefined(global.lastConfig);
+
+        global.lastConfig = fs.readFileSync(constants.configPath, {
+            encoding: 'utf8'
+        });
+
+        global.config = JSON.parse(lastConfig);
+        console.log('Config loaded.');
+
+        if (isFirstConfig) {
+            setupComm();
+        }
+
+        // Watch the config file for changes.
+        fs.unwatchFile(constants.configPath);
+        fs.watchFile(constants.configPath, function(curr, prev) {
+            loadConfig();
+        });
+        /*
+        if (isMaster) {
+            clearInterval(global.sendConfigInterval);
+            sendConfigInterval = setInterval(function() {
+                //                comm.fromMaster.sockets.emit('config', config);
+            }, config.network.updateConfigInterval);
+        }
+        if (!isMaster) {
+            // TODO: Start app.
+        }
+*/
+    } catch (error) {
+        console.log('Error loading config file.');
+        console.log(error);
+        if (!global.config) {
+            process.exit(1);
+        }
+    }
+}
+
+// When a new config comes in, write it to disk and the file watcher will cause it to be read again.
+function onConfig(message) {
+    var newConfig = JSON.stringify(message, null, 4);
+    if (newConfig == lastConfig) {
+        return;
+    }
+
+    console.log('Got new config from master.');
+
+    //if (!isMaster) 
+    {
+        // TODO: Shut down app.
+    }
+
+    fs.writeFile(constants.configPath, newConfig, function(error) {
+        if (error) {
+            console.log('Error writing configuration from master.');
+        }
+    });
+}
+
+loadConfig();
+
+function setupComm() {
+    global.comm = {};
+    var mode = 'I am ' + os.hostname() + ', and ';
+    var isMaster = config.network.master && config.network.master.toUpperCase() == os.hostname().toUpperCase();
+    if (config.network.master) {
+        if (isMaster) {
+            comm.fromClients = new osc.Server(constants.network.masterReceivePort);
+            comm.fromClients.on('message', function(message, info) {
+                handleOsc(modes.client, constants.mode, message, info);
+            });
+            comm.toClients = {};
+            constants.mode = modes.master;
+            mode += 'I am the master.';
+        } else {
+            comm.toMaster = new osc.Client(config.network.master, constants.network.masterReceivePort);
+            comm.fromMaster = new osc.Server(constants.network.masterSendPort);
+            comm.fromMaster.on('message', function(message, info) {
+                handleOsc(modes.master, constants.mode, message, info);
+            });
+            constants.mode = modes.client;
+            mode += config.network.master + ' is the master.';
+        }
+    } else {
+        constants.mode = modes.standalone;
+        mode += 'there is no master.';
+    }
+
+    if (!isMaster) {
+        comm.toApp = new osc.Client('127.0.0.1', constants.network.appReceivePort);
+        comm.fromApp = new osc.Server(constants.network.appSendPort);
+        comm.fromApp.on('message', function(message, info) {
+            handleOsc(modes.app, constants.mode, message, info);
+        });
+    }
+
+    console.log(mode);
+}
+
+function handleOsc(from, to, message, info) {
+    message = message[0];
+    var decoded = decodeOsc(message);
+    switch (decoded.type) {
+        case 'heart':
+            processHeart(from, to, decoded, message, info);
+            if (constants.mode == modes.client) {
+                comm.toMaster.send(message);
+            }
+
+            break;
+
+        case 'getState':
+            if (from == modes.app) {
+                if (to == modes.client) {
+                    comm.toMaster.send(message);
+                } else if (to == modes.standalone) {
+                    processGetState(from, to, decoded, message, info);
+                }
+            } else if (from == modes.client && to == modes.master) {
+                processGetState(from, to, decoded, message, info);
+            }
+
+            break;
+
+        case 'state':
+            if (from == modes.master && to == modes.client) {
+                processState(from, to, decoded, message, info);
+            }
+
+            break;
+
+        case 'setState':
+            if (from == modes.app) {
+                if (constants.mode == modes.client) {
+                    comm.toMaster.send(message);
+                } else if (to == modes.standalone) {
+                    processSetState(from, to, decoded, message, info);
+                }
+            }
+
+            break;
+
+        case 'log':
+            processLog(from, to, decoded, message, info);
+            if (to == modes.client) {
+                comm.toMaster.send(message);
+            }
+            break;
+    }
+}
+
+// /event/hostname/{data}
+function decodeOsc(message) {
+    if (!decodeOsc.emptyFilter) {
+        decodeOsc.emptyFilter = function(part) {
+            return part;
+        };
+    }
+
+    var parts = message.split('/');
+    parts = _.filter(parts, decodeOsc.emptyFilter);
+
+    var type = parts.shift();
+    var hostname = parts.shift();
+    var data = parts.shift();
+    if (data) {
+        try {
+            data = JSON.parse(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    return {
+        hostname: hostname,
+        type: type,
+        data: data
+    };
+}
+
+function processHeart(from, to, decoded, message, info) {
+    exhibitState.updateHeart(decoded.hostname);
+}
+
+// Send a "state" message to whoever asked for it.
+function processGetState(from, to, decoded, message, info) {
+    var msg = "/state/" + os.hostname() + "/" + JSON.stringify(exhibitState.xport());
+    getOscClient(decoded.hostname).send(msg);
+}
+
+// Process state updates from the UI.
+function processSetState(from, to, decoded, message, info) {
+
+}
+
+// Process state from the master and pass it back to the app.
+function processState(from, to, decoded, message, info) {
+    var msg = "/state/" + os.hostname() + "/" + JSON.stringify(exhibitState.xport());
+    comm.toApp.send(msg);
+}
+
+// Process log messages.
+function processLog(from, to, decoded, message, info) {
+
+}
+
+function getOscClient(hostname) {
+    var client = comm.toClients[hostname];
+    if (!client) {
+        client = comm.toClients[hostname] = new osc.Client(hostname, constants.network.masterSendPort);
+    }
+
+    return client;
+}
+
+/*
+// Set up web server for console.
+global.app = express();
+comm.webServer = http.createServer(app).listen(constants.network.consolePort);
+app.use('/static', express.static(__dirname + '/view'));
+app.get('/', function(req, res) {
+    res.sendfile(__dirname + '/view/index.html');
+});
+
+// Set up socket connection to console.
+comm.toConsole = ioServer.listen(comm.webServer).set('log level', constants.network.socketLogLevel);
 
 // Get the network addresses used by this machine -- used to determine which client is local.
 var interfaces = os.networkInterfaces();
@@ -29,45 +278,6 @@ for (var network in interfaces) {
     }
 }
 
-// Load config file.
-function loadConfig() {
-    try {
-        oldConfig = fs.readFileSync(constants.configPath, {
-            encoding: 'utf8'
-        });
-        global.config = JSON.parse(oldConfig);
-        console.log('Config loaded.');
-        process.emit('setConfig');
-    } catch (error) {
-        if (!global.config) {
-            console.log('Error loading config file.');
-            console.log(error);
-            process.exit(1);
-        }
-    }
-}
-
-loadConfig();
-
-// Watch the config file for changes.
-if (!config.network.master || config.network.master == os.hostname()) {
-    fs.watch(constants.configPath, function(event, filename) {
-        loadConfig();
-    });
-}
-
-// Set up application server and socket server.
-var app = express();
-var server = http.createServer(app);
-global.socketServer = require('socket.io').listen(server);
-socketServer.set('log level', 2);
-server.listen(constants.network.socketPort);
-
-// Set up view routing.
-app.use('/static', express.static(__dirname + '/view'));
-app.get('/', function(req, res) {
-    res.sendfile(__dirname + '/view/index.html');
-});
 
 // A cache of OSC clients for each app instance.
 var oscSenders = {};
@@ -276,6 +486,32 @@ var AppState = require('./model/appState.js').AppState;
 var appState = new AppState();
 
 /*
+
+Server
+    toConsole
+    toMaster
+    fromMaster
+    toApp
+    fromapp
+
+    config
+    appState[]
+        lastHeart
+        logs
+        memory
+        etc
+        extendedAppState[]
+            location
+            color
+
+    logger
+    contentUpdater
+    appUpdater
+    serverUpdater
+
+restart on config change
+
+
 Content Updater
     Update from non-web location
 
@@ -289,6 +525,7 @@ Server
     Logging
         Log content updates
         Log on request from client
+            Low-pri logs are kept in memory, only written on crash.
         Email on critical state
         Analytics service?
     Run as service? https://npmjs.org/package/node-windows
@@ -313,5 +550,5 @@ Console
         Update client servers
 
 Installer
-    One-click of node and all dependencies
+    One-click of git, node and all dependencies
 */

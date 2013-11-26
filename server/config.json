@@ -1,8 +1,8 @@
 {
     "network": {
         "master": "I14",
-        "updateStateThrottle": 16,
-        "updateConfigThrottle": 1000
+        "updateStateInterval": 16,
+        "updateConfigInterval": 5000
     },
     "persistence": {
         "forgetAfter": 5000
