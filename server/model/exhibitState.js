@@ -19,6 +19,12 @@ ExhibitState = exports.ExhibitState = BaseModel.extend({
 
 	updateAppState: function(hostname, state) {
 		var appState = this.getState(hostname);
+
+		if (!state) {
+			delete this.get('appStates')[hostname];
+			return;
+		}
+
 		appState.set('x', state.Point.X);
 		appState.set('y', state.Point.Y);
 	},
