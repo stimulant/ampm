@@ -58,8 +58,7 @@ namespace Client
         private void RefreshState()
         {
             string state = _Serializer.Serialize(ExhibitState.Instance.AppStates[Environment.MachineName]);
-            string message = string.Format("setState", state);
-            SendMessage(message);
+            SendMessage("setState", state);
 
             _ReconnectTimer.Stop();
             _ReconnectTimer.Start();
@@ -83,9 +82,10 @@ namespace Client
         /// <param name="e"></param>
         private void Server_MessageReceived(object sender, OscMessageReceivedEventArgs e)
         {
-            string[] parts = e.Message.Address.Substring(1).Split(new char[] { '/' }, 2, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = e.Message.Address.Substring(1).Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
             string action = parts[0];
-            string message = parts[1];
+            string hostname = parts[1];
+            string message = parts[2];
             JToken token = JObject.Parse(message);
             Dispatcher.BeginInvoke((Action)(() => HandleMessage(action, token)), DispatcherPriority.Input);
         }
@@ -99,8 +99,8 @@ namespace Client
         {
             switch (action)
             {
-                case "appState":
-                    Dictionary<string, dynamic> clientStates = token.SelectToken("attrs.clientStates").ToObject<Dictionary<string, dynamic>>();
+                case "state":
+                    Dictionary<string, dynamic> clientStates = token.SelectToken("attrs.appStates").ToObject<Dictionary<string, dynamic>>();
 
                     // For all the client states, decode the JSON and update the state here.
                     foreach (KeyValuePair<string, dynamic> pair in clientStates)
@@ -112,7 +112,7 @@ namespace Client
                             state = ExhibitState.Instance.AppStates[pair.Key] = new AppState();
                         }
 
-                        state.Point = new Point((double)pair.Value.point.x, (double)pair.Value.point.y);
+                        state.Point = new Point((double)pair.Value.x, (double)pair.Value.y);
 
                         string colorName = pair.Value.color;
                         colorName = colorName[0].ToString().ToUpperInvariant() + colorName.Substring(1);

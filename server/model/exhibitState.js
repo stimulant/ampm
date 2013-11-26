@@ -17,11 +17,17 @@ ExhibitState = exports.ExhibitState = BaseModel.extend({
 		this.getState(hostname).set('lastHeart', moment());
 	},
 
+	updateAppState: function(hostname, state) {
+		var appState = this.getState(hostname);
+		appState.set('x', state.Point.X);
+		appState.set('y', state.Point.Y);
+	},
+
 	getState: function(hostname) {
 		var appStates = this.get('appStates');
 		var appState = appStates[hostname];
 		if (!appState) {
-			appState = appStates[hostname] = new AppState();
+			appState = appStates[hostname] = new AppState(config.clients[hostname]);
 		}
 
 		return appState;

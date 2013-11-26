@@ -12,6 +12,15 @@ var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/no
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 
+// get state rendering working
+// get state on timer
+// get config on timer
+// figure out state extension
+// get config working
+// fallback when server dies
+// cleanup when clients die
+
+
 // Some global config stuff that will probably never change.
 global.constants = {
     mode: null,
@@ -106,7 +115,6 @@ loadConfig();
 
 function setupComm() {
     global.comm = {};
-    var mode = 'I am ' + os.hostname() + ', and ';
     var isMaster = config.network.master && config.network.master.toUpperCase() == os.hostname().toUpperCase();
     if (config.network.master) {
         if (isMaster) {
@@ -116,7 +124,6 @@ function setupComm() {
             });
             comm.toClients = {};
             constants.mode = modes.master;
-            mode += 'I am the master.';
         } else {
             comm.toMaster = new osc.Client(config.network.master, constants.network.masterReceivePort);
             comm.fromMaster = new osc.Server(constants.network.masterSendPort);
@@ -124,11 +131,9 @@ function setupComm() {
                 handleOsc(modes.master, constants.mode, message, info);
             });
             constants.mode = modes.client;
-            mode += config.network.master + ' is the master.';
         }
     } else {
         constants.mode = modes.standalone;
-        mode += 'there is no master.';
     }
 
     if (!isMaster) {
@@ -139,7 +144,12 @@ function setupComm() {
         });
     }
 
-    console.log(mode);
+    for (var mode in modes) {
+        if (modes[mode] == constants.mode) {
+            console.log('mode: ' + mode);
+            break;
+        }
+    }
 }
 
 function handleOsc(from, to, message, info) {
@@ -178,9 +188,12 @@ function handleOsc(from, to, message, info) {
             if (from == modes.app) {
                 if (constants.mode == modes.client) {
                     comm.toMaster.send(message);
+                    comm.toMaster.send('/getState/' + os.hostname());
                 } else if (to == modes.standalone) {
                     processSetState(from, to, decoded, message, info);
                 }
+            } else if (from == modes.client && to == modes.master) {
+                processSetState(from, to, decoded, message, info);
             }
 
             break;
@@ -190,6 +203,7 @@ function handleOsc(from, to, message, info) {
             if (to == modes.client) {
                 comm.toMaster.send(message);
             }
+
             break;
     }
 }
@@ -229,17 +243,20 @@ function processHeart(from, to, decoded, message, info) {
 
 // Send a "state" message to whoever asked for it.
 function processGetState(from, to, decoded, message, info) {
+    // console.log('getState ' + os.hostname());
     var msg = "/state/" + os.hostname() + "/" + JSON.stringify(exhibitState.xport());
     getOscClient(decoded.hostname).send(msg);
 }
 
 // Process state updates from the UI.
 function processSetState(from, to, decoded, message, info) {
-
+    // console.log('setState ' + os.hostname());
+    exhibitState.updateAppState(decoded.hostname, decoded.data);
 }
 
 // Process state from the master and pass it back to the app.
 function processState(from, to, decoded, message, info) {
+    // console.log('state ' + os.hostname());
     var msg = "/state/" + os.hostname() + "/" + JSON.stringify(exhibitState.xport());
     comm.toApp.send(msg);
 }
@@ -252,7 +269,7 @@ function processLog(from, to, decoded, message, info) {
 function getOscClient(hostname) {
     var client = comm.toClients[hostname];
     if (!client) {
-        client = comm.toClients[hostname] = new osc.Client(hostname, constants.network.masterSendPort);
+        client = comm.toClients[hostname] = new osc.Client(hostname, constants.network.appReceivePort);
     }
 
     return client;
