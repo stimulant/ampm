@@ -4,12 +4,21 @@ var path = require('path'); //http://nodejs.org/api/path.html
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var moment = require('moment'); // Date processing. http://momentjs.com/
+var later = require('later'); // Schedule processing. http://bunkat.github.io/later/ 
+
 var BaseModel = require('./baseModel.js').BaseModel;
 
 exports.Persistence = BaseModel.extend({
     defaults: {
         restartAppAfter: 5000,
         restartMachineAfter: 5,
+
+        // http://www.generateit.net/cron-job/
+        // M-F at midnight
+        shutdownSchedule: "0 0 * * 1-5",
+        // M-F at 8a
+        startupSchedule: "0 0 * * 1-5",
+
         firstHeart: null,
         lastHeart: null,
         restartCount: 0
@@ -87,6 +96,12 @@ exports.Persistence = BaseModel.extend({
     },
 
     startApp: function() {
+        var shutdown = later.parse.cron(this.get('shutdownSchedule'));
+        var startup = later.parse.cron(this.get('startupSchedule'));
+        var nextShutdown = later.schedule(shutdown).next();
+        nextShutdown = new Date(nextShutdown.getTime() + 480 * 60 * 1000);
+        console.log(nextShutdown);
+
         this._isAppRunning(_.bind(function(isRunning) {
             if (isRunning) {
                 // It's already running.

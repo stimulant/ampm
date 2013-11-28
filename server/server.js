@@ -89,7 +89,6 @@ function decodeOsc(message) {
     };
 }
 
-
 /*
 
 Content Updater
