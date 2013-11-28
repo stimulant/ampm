@@ -6,14 +6,14 @@ var unzip = require('unzip'); // Extract zip files. https://github.com/nearinfin
 var ContentUpdater = require('./contentUpdater.js');
 
 // Like ContentUpdater except for a single file, which gets unzipped when it's done loading.
-exports.ClientUpdater = ContentUpdater.ContentUpdater.extend({
+exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 
 	defaults: _.extend(_.clone(ContentUpdater.ContentUpdater.prototype.defaults), {
-		// The final local path for the client.
-		local: '../client/',
+		// The final local path for the app.
+		local: '../app/',
 
-		// The temp path for the client.
-		temp: '../client.tmp/',
+		// The temp path for the app.
+		temp: '../app.tmp/',
 
 		// The name of the executable.
 		processName: 'client.exe'
@@ -56,7 +56,7 @@ exports.ClientUpdater = ContentUpdater.ContentUpdater.extend({
 			.pipe(unzip.Extract({
 				path: path.dirname(file.get('filePath'))
 			})).on('finish', _.bind(function(error) {
-				this._handleError('Error unzipping client.', error);
+				this._handleError('Error unzipping app.', error);
 				ContentUpdater.ContentUpdater.prototype._completed.call(this);
 			}, this));
 	}

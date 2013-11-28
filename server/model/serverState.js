@@ -3,34 +3,32 @@ var Backbone = require('backbone'); // Data model utilities. http://backbonejs.o
 var moment = require('moment'); // Date processing. http://momentjs.com/
 var BaseModel = require('./baseModel.js').BaseModel;
 var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
-var ClientUpdater = require('./clientUpdater.js').ClientUpdater;
+var AppUpdater = require('./appUpdater.js').AppUpdater;
+var Persistence = require('./persistence.js').Persistence;
 
 // Model for app logic specific to the server.
 exports.ServerState = BaseModel.extend({
     defaults: {
-        lastHeart: null,
         contentUpdater: null,
-        clientUpdater: null
+        appUpdater: null,
+        persistence: null
     },
 
     initialize: function() {
         this.set('contentUpdater', new ContentUpdater(config.contentUpdater));
-        this.set('clientUpdater', new ClientUpdater(config.clientUpdater));
+        this.set('appUpdater', new AppUpdater(config.appUpdater));
+        this.set('persistence', new Persistence(config.persistence));
 
-        oscReceive.on('heart', _.bind(this._onHeart, this));
-
-        socketServer.sockets.on('connection', _.bind(this._onConnection, this));
+        comm.toConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
     _onConnection: function(socket) {
         socket.on('updateContent', _.bind(this.updateContent, this));
     },
 
-    _onHeart: function(message) {
-        this.set('lastHeart', moment());
-    },
-
     updateContent: function() {
+        console.log('Beginning update.');
+        this.get('persistence').shutdownApp();
         this.get('contentUpdater').update(_.bind(this._onContentUpdated, this));
     },
 
@@ -41,19 +39,20 @@ exports.ServerState = BaseModel.extend({
         }
 
         console.log('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
-        this.updateClient();
+        this.updateApp();
     },
 
-    updateClient: function() {
-        this.get('clientUpdater').update(_.bind(this._onClientUpdated, this));
+    updateApp: function() {
+        this.get('appUpdater').update(_.bind(this._onAppUpdated, this));
     },
 
-    _onClientUpdated: function(error) {
+    _onAppUpdated: function(error) {
         if (error) {
             console.log(error);
             throw error;
         }
 
-        console.log('Client update complete! ' + this.get('clientUpdater').get('updated').toString());
+        console.log('App update complete! ' + this.get('appUpdater').get('updated').toString());
+        this.get('persistence').restartApp();
     }
 });

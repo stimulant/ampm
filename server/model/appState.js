@@ -6,6 +6,7 @@ var BaseModel = require('./baseModel.js').BaseModel;
 // Class for sync logic specific to the application.
 AppState = exports.AppState = BaseModel.extend({
     defaults: {
+        hostname: null,
         lastHeart: null,
         color: 'black',
         x: 0,

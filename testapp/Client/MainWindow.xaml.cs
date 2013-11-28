@@ -13,6 +13,12 @@ namespace Client
         public MainWindow()
         {
             InitializeComponent();
+
+            if (ExhibitState.Instance.Config != null)
+            {
+                _Config.Text = ExhibitState.Instance.Config.ToString();
+            }
+
             ExhibitState.Instance.ChangedRemotely += AppState_ChangedRemotely;
         }
 

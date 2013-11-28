@@ -1,27 +1,17 @@
 {
     "network": {
-        "master": "I14VM-B",
+        "master": "I14",
         "updateStateInterval": 16,
         "updateConfigInterval": 5000
     },
     "persistence": {
-        "forgetAfter": 5000
-    },
-    "clients": {
-        "I14": {
-            "color": "red"
-        },
-        "I14VM-B": {
-            "color": "green"
-        },
-        "I14VM-C": {
-            "color": "blue"
-        }
+        "restartAppAfter": 5000,
+        "restartMachineAfter": 5
     },
     "contentUpdater": {
         "remote": "http://mvi_video:funk0@content.stimulant.io/mvi_video/category/6"
     },
-    "clientUpdater": {
-        "remote": "http://content.stimulant.io/uploads/mvi_video/mvi_video.zip"
+    "appUpdater": {
+        "remote": "http://content.stimulant.io/uploads/mvi_video_app/mvi_video.zip"
     }
 }

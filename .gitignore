@@ -1,11 +1,12 @@
 content/
 content.tmp/
-client/
-client.tmp/
+app/
+app.tmp/
 packages/
 bin/
 obj/
 *.sublime-workspace
+*.csproj.user
 
 # Compiled Object files
 *.suo

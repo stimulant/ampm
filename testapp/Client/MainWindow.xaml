@@ -6,6 +6,7 @@
         <Grid x:Name="_LayoutRoot">
 
         </Grid>
+        <TextBox x:Name="_Config" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
         <Button Content="hang" Click="Hang_Click" HorizontalAlignment="Left" VerticalAlignment="Top"/>
     </Grid>
 </Window>

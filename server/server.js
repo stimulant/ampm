@@ -1,4 +1,3 @@
-var child_process = require('child_process'); // http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
 var os = require('os'); // http://nodejs.org/api/os.html
 var dns = require('dns'); // http://nodejs.org/api/dns.html
 var path = require('path'); //http://nodejs.org/api/path.html
@@ -12,15 +11,138 @@ var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/no
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 
-// fallback when server dies -- not right
-// perf?
-// updateHeart fail
-// getstate throttle
-// get state on timer
-// get config on timer
-// figure out state extension
-// get config working
+global.sources = {
+    master: 1,
+    client: 2,
+    app: 3
+};
 
+global.constants = {
+    configPath: './config.json',
+    network: {
+        consolePort: 3000,
+        appSendPort: 3004,
+        socketLogLevel: 2
+    }
+};
+
+global.comm = {};
+
+global.config = JSON.parse(fs.readFileSync(constants.configPath));
+
+// Set up web server for console.
+global.app = express();
+comm.webServer = http.createServer(app).listen(constants.network.consolePort);
+app.use('/static', express.static(__dirname + '/view'));
+app.get('/', function(req, res) {
+    res.sendfile(__dirname + '/view/index.html');
+});
+
+// Set up socket connection to console.
+comm.toConsole = ioServer.listen(comm.webServer).set('log level', constants.network.socketLogLevel);
+
+// Set up OSC connection from app.
+comm.fromApp = new osc.Server(constants.network.appSendPort);
+comm.fromApp.on('message', function(message, info) {
+    handleOsc(comm.fromApp, sources.app, sources.client, message, info);
+});
+
+// Set up models.
+var ServerState = require('./model/serverState.js').ServerState;
+global.serverState = new ServerState();
+
+serverState.get('persistence').startApp();
+
+// Generic handler to decode and re-post OSC messages as native events.
+function handleOsc(transport, from, to, message, info) {
+    message = message[0];
+    var decoded = decodeOsc(message);
+    transport.emit(decoded.type, decoded);
+}
+
+// /event/hostname/{data}
+function decodeOsc(message) {
+    if (!decodeOsc.emptyFilter) {
+        decodeOsc.emptyFilter = function(part) {
+            return part;
+        };
+    }
+
+    var parts = message.split('/');
+    parts = _.filter(parts, decodeOsc.emptyFilter);
+
+    var type = parts.shift();
+    var hostname = parts.shift();
+    var data = parts.shift();
+    if (data) {
+        try {
+            data = JSON.parse(data);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    return {
+        hostname: hostname,
+        type: type,
+        data: data
+    };
+}
+
+
+/*
+
+Content Updater
+    Update from non-web location
+    Log updates
+
+App Updater
+    Update from non-web location
+    Log updates
+
+Persistence
+    Scheduling
+        Schedule content update
+        Schedule shutdown, startup, restart
+
+Logger
+    Log on request from client
+        Low-pri logs are kept in memory, only written on crash.
+    Email on critical state
+    Forward to master if there is one
+    Analytics service?
+
+Console
+    Localhost console shows local client, master console shows all clients
+        List of clients in config file, or use auto-discovery?
+    Output
+        Number of clients
+        Is client running
+        Memory/CPU usage https://github.com/markitondemand/node-perfmon
+        Recent logs
+        Display arbitrary amount of state per client (like ICE)
+    Input
+        Kill running client
+        Kill all running clients
+        Start dead client
+        Start all clients
+        Restart client
+        Restart all clients
+        Update content on client: kill process, update content, update client, restart client
+        Update content on all clients: kill process, update content, update client, restart client
+
+State manager
+    Runs on master only
+    App sends state to master over OSC on interval
+    Server sends state to apps over OSC on interval
+    State is just a JS object
+    App sends config to clients over socket on interval
+        On config, write to file and restart app with new config
+
+Run as service? https://npmjs.org/package/node-windows
+*/
+
+/*
 // Some global config stuff that will probably never change.
 global.constants = {
     mode: null,
@@ -44,7 +166,7 @@ global.modes = {
 
 // Servers and clients are stored here.
 global.comm = {};
-
+/*
 var ExhibitState = require('./model/exhibitState.js').ExhibitState;
 global.exhibitState = new ExhibitState();
 
@@ -69,7 +191,7 @@ function loadConfig() {
         fs.watchFile(constants.configPath, function(curr, prev) {
             loadConfig();
         });
-        /*
+
         if (isMaster) {
             clearInterval(global.sendConfigInterval);
             sendConfigInterval = setInterval(function() {
@@ -79,7 +201,7 @@ function loadConfig() {
         if (!isMaster) {
             // TODO: Start app.
         }
-*/
+
     } catch (error) {
         console.log('Error loading config file.');
         console.log(error);
@@ -556,71 +678,4 @@ var serverState = new ServerState();
 
 var AppState = require('./model/appState.js').AppState;
 var appState = new AppState();
-
-/*
-
-Server
-    toConsole
-    toMaster
-    fromMaster
-    toApp
-    fromapp
-
-    config
-    appState[]
-        lastHeart
-        logs
-        memory
-        etc
-        extendedAppState[]
-            location
-            color
-
-    logger
-    contentUpdater
-    appUpdater
-    serverUpdater
-
-restart on config change
-
-
-Content Updater
-    Update from non-web location
-
-Server
-    Scheduling
-        Schedule content update
-        Schedule shutdown, startup, restart
-    Persistence
-        Monitor uptime
-        Give up restart after n times
-    Logging
-        Log content updates
-        Log on request from client
-            Low-pri logs are kept in memory, only written on crash.
-        Email on critical state
-        Analytics service?
-    Run as service? https://npmjs.org/package/node-windows
-
-Console
-    Output
-        Number of clients
-        Is client running
-        Memory/CPU usage https://github.com/markitondemand/node-perfmon
-        Recent logs
-        Display arbitrary amount of state per client (like ICE)
-    Input
-        Kill running client
-        Kill all running clients
-        Start dead client
-        Start all clients
-        Restart client
-        Restart all clients
-        Update content on client: kill process, update content, update client, restart client
-        Update content on all clients: kill process, update content, update client, restart client
-        Update master server
-        Update client servers
-
-Installer
-    One-click of git, node and all dependencies
 */

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -37,12 +36,15 @@ namespace Client
 
         public App()
         {
+            Startup += App_Startup;
+
+            // Send heartbeats every frame.
+            CompositionTarget.Rendering += (sender, e) => SendMessage("heart");
+
+            /*
             // Handle incoming OSC messages.
             _OscReceive.MessageReceived += Server_MessageReceived;
             _OscReceive.Start();
-
-            // Send heartbeats every frame.
-            //CompositionTarget.Rendering += (sender, e) => SendMessage("heart");
 
             // Request app state every second, even if we haven't sent a change to it -- this should recover lost connections.
             _ReconnectTimer.Tick += (sender, e) => RefreshState();
@@ -50,8 +52,37 @@ namespace Client
 
             // Whenever the local state changes, send an update to the server.
             ExhibitState.Instance.ChangedLocally += (sender, e) => RefreshState();
+             */
         }
 
+        void App_Startup(object sender, StartupEventArgs e)
+        {
+            if (e.Args.Length > 0)
+            {
+                try
+                {
+                    ExhibitState.Instance.Config = JObject.Parse(e.Args[0]);
+                }
+                catch
+                {
+#if DEBUG
+                    throw;
+#endif
+                }
+            }
+        }
+
+        /// <summary>
+        /// Send messages to the local machine and the master.
+        /// </summary>
+        /// <param name="message"></param>
+        private void SendMessage(string type, string message = null)
+        {
+            message = string.Format("/{0}/{1}/{2}/", type, Environment.MachineName, message);
+            new OscMessage(_MessageSource, message).Send(_OscSendLocal);
+        }
+
+        /*
         /// <summary>
         /// Update this instance's state on the server and get a refresh.
         /// </summary>
@@ -64,16 +95,6 @@ namespace Client
             _ReconnectTimer.Stop();
             _ReconnectTimer.Start();
             SendMessage("getState");
-        }
-
-        /// <summary>
-        /// Send messages to the local machine and the master.
-        /// </summary>
-        /// <param name="message"></param>
-        private void SendMessage(string type, string message = null)
-        {
-            message = string.Format("/{0}/{1}/{2}/", type, Environment.MachineName, message);
-            new OscMessage(_MessageSource, message).Send(_OscSendLocal);
         }
 
         /// <summary>
@@ -143,5 +164,6 @@ namespace Client
                     break;
             }
         }
+         */
     }
 }
