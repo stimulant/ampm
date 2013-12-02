@@ -34,6 +34,7 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 	},
 
 	update: function(callback) {
+		this.initialize();
 		this._callback = callback;
 		var file = this.get('files').at(0);
 		this._initDirectories(_.bind(function() {
