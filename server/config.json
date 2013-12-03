@@ -4,6 +4,9 @@
         "updateStateInterval": 16,
         "updateConfigInterval": 5000
     },
+    "server": {
+
+    },
     "persistence": {
         "restartAppAfter": 5000,
         "restartMachineAfter": 5

@@ -47,12 +47,6 @@ comm.fromApp.on('message', function(message, info) {
     handleOsc(comm.fromApp, sources.app, sources.client, message, info);
 });
 
-// Set up models.
-var ServerState = require('./model/serverState.js').ServerState;
-global.serverState = new ServerState();
-
-serverState.get('persistence').startApp();
-
 // Generic handler to decode and re-post OSC messages as native events.
 function handleOsc(transport, from, to, message, info) {
     message = message[0];
@@ -89,6 +83,10 @@ function decodeOsc(message) {
     };
 }
 
+// Set up models, which also starts the app if needed.
+var ServerState = require('./model/serverState.js').ServerState;
+global.serverState = new ServerState(config.server);
+
 /*
 
 Content Updater
@@ -100,9 +98,8 @@ App Updater
     Log updates
 
 Persistence
-    Scheduling
-        Schedule content update
-        Schedule shutdown, startup, restart
+    Don't allow app to run outside of its schedule
+    https://github.com/bunkat/later/issues/31
 
 Logger
     Log on request from client

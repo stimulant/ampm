@@ -13,10 +13,7 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 		local: '../app/',
 
 		// The temp path for the app.
-		temp: '../app.tmp/',
-
-		// The name of the executable.
-		processName: 'client.exe'
+		temp: '../app.tmp/'
 	}),
 
 	initialize: function() {

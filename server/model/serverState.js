@@ -1,6 +1,6 @@
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
-var moment = require('moment'); // Date processing. http://momentjs.com/
+
 var BaseModel = require('./baseModel.js').BaseModel;
 var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
 var AppUpdater = require('./appUpdater.js').AppUpdater;
@@ -11,7 +11,7 @@ exports.ServerState = BaseModel.extend({
     defaults: {
         contentUpdater: null,
         appUpdater: null,
-        persistence: null
+        persistence: null,
     },
 
     initialize: function() {

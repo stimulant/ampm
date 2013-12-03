@@ -3,19 +3,24 @@ var path = require('path'); //http://nodejs.org/api/path.html
 
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
-var moment = require('moment'); // Date processing. http://momentjs.com/
 var later = require('later'); // Schedule processing. http://bunkat.github.io/later/ 
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
 exports.Persistence = BaseModel.extend({
     defaults: {
+        // The name of the executable.
+        processName: 'client.exe',
         // Restart the app if there's no heartbeat for this much time.
         restartAppAfter: 5000,
         // After this many app restarts, give up ans restart the whole machine.
         restartMachineAfter: 5,
         // How many times the app has been restarted.
         restartCount: 0,
+        // The first heartbeat since startup, in ms since epoch.
+        firstHeart: null,
+        // The most recent heartbeat, in ms since epoch.
+        lastHeart: null,
 
         /*
         // http://www.generateit.net/cron-job/
@@ -30,19 +35,12 @@ exports.Persistence = BaseModel.extend({
         shutdownSchedule: "0 0 * * 1-5", // Midnight, M-F
         // Start up the app according to this schedule.
         startupSchedule: "0 8 * * 1-5", // 8a, M-F
-
-        // The first heartbeat since startup, in ms since epoch.
-        firstHeart: null,
-        // The most recent heartbeat, in ms since epoch.
-        lastHeart: null
+        // Update the content and the app according to this schedule.
+        updateSchedule: "0 1 * * 1-5" // 1a, M-F
     },
 
     // The timeout which restarts the app if no heartbeat is received in restartAppAfter ms.
     _restartTimeout: null,
-    // The timeout which shuts down the app on the appointed schedule.
-    _shutDownTimeout: null,
-    // The timeout which starts up the app on the appointed schedule.
-    _startupTimeout: null,
     // Flag indicating a shutdown was requested but not yet completed.
     _isShuttingDown: false,
     // Flag indicating that a startup was requested but not yet completed.
@@ -50,41 +48,77 @@ exports.Persistence = BaseModel.extend({
     // A callback which is passed to startApp(), fired when it's started.
     _startupCallback: null,
 
+
+    // The timeout which shuts down the app on the appointed schedule.
+    _shutdownSchedule: null,
+    _shutDownTimeout: null,
+    // The timeout which starts up the app on the appointed schedule.
+    _startupSchedule: null,
+    _startupTimeout: null,
+    // The timeout which triggers the content updater on the appointed schedule.
+    _updateSchedule: null,
+    _updateTimeout: null,
+
     initialize: function() {
+        comm.fromApp.on('heart', _.bind(this._onHeart, this));
+
         // Important to configure later to not use UTC.
         later.date.localTime();
+        this._shutdownSchedule = later.parse.cron(this.get('shutdownSchedule'));
+        this._startupSchedule = later.parse.cron(this.get('startupSchedule'));
+        this._updateSchedule = later.parse.cron(this.get('updateSchedule'));
 
-        this._setupSchedule();
-        this.on('change:shutdownSchedule', _.bind(this._setupSchedule, this));
-        this.on('change:startupSchedule', _.bind(this._setupSchedule, this));
+        var nextShutdown = later.schedule(this._shutdownSchedule).next();
+        var lastStartup = later.schedule(this._shutdownSchedule).prev();
+        // TODO: Determine if the app should be running, and shut down or start it appropriately.
+        // https://github.com/bunkat/later/issues/31
 
-        comm.fromApp.on('heart', _.bind(this._onHeart, this));
+        this._isAppRunning(_.bind(function(isRunning) {
+
+            if (!isRunning) {
+                this.startApp();
+            } else {
+
+            }
+
+            this._setupSchedule();
+
+        }, this));
     },
 
     _setupSchedule: function() {
-        this._restartTimeout = 0;
+        this.set('restartCount', 0);
 
         if (this._shutdownTimeout) {
             this._shutdownTimeout.clear();
         }
 
         this._shutdownTimeout = later.setTimeout(_.bind(function() {
-            console.log('Shutdown time has arrived.');
+            console.log('Shutdown time has arrived. ' + new Date());
             this.shutdownApp(_.bind(function() {
                 this._setupSchedule();
             }, this));
-        }, this), later.parse.cron(this.get('shutdownSchedule')));
+        }, this), this._shutdownSchedule);
 
         if (this._startupTimeout) {
             this._startupTimeout.clear();
         }
 
         this._startupTimeout = later.setTimeout(_.bind(function() {
-            console.log('Startup time has arrived.');
+            console.log('Startup time has arrived. ' + new Date());
             this.startApp(_.bind(function() {
                 this._setupSchedule();
             }, this));
-        }, this), later.parse.cron(this.get('startupSchedule')));
+        }, this), this._startupSchedule);
+
+        if (this._updateTimeout) {
+            this._updateTimeout.clear();
+        }
+
+        this._updateTimeout = later.setTimeout(_.bind(function() {
+            console.log('Update time has arrived. ' + new Date());
+            serverState.updateContent();
+        }, this), this._updateSchedule);
     },
 
     _onHeart: function(message) {
@@ -128,11 +162,11 @@ exports.Persistence = BaseModel.extend({
             return;
         }
 
-        var process = serverState.get('appUpdater').get('processName').toUpperCase();
-        child_process.exec('tasklist /FI "IMAGENAME eq ' + process + '"', function(error, stdout, stderr) {
+        var process = this.get('processName').toUpperCase();
+        child_process.exec('tasklist /FI "IMAGENAME eq ' + process + '"', _.bind(function(error, stdout, stderr) {
             var isRunning = stdout.toUpperCase().indexOf(process) != -1;
             callback(isRunning);
-        });
+        }, this));
     },
 
     shutdownApp: function(callback) {
@@ -156,7 +190,7 @@ exports.Persistence = BaseModel.extend({
 
             // Kill the app.
             clearTimeout(this._restartTimeout);
-            var process = serverState.get('appUpdater').get('processName').toUpperCase();
+            var process = this.get('processName').toUpperCase();
             child_process.exec('taskkill /IM ' + process + ' /F', _.bind(function(error, stdout, stderr) {
                 console.log('App shut down by force.');
                 this._isShuttingDown = false;
@@ -185,8 +219,7 @@ exports.Persistence = BaseModel.extend({
             }
 
             // Start the app.
-            var appUpdater = serverState.get('appUpdater');
-            var appPath = path.join(appUpdater.get('local'), appUpdater.get('processName'));
+            var appPath = path.join(serverState.get('appUpdater').get('local'), this.get('processName'));
 
             // Config length limited to 8191 characters. (DOT was about 1200)
             this.set('lastHeart', null);
