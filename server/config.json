@@ -7,6 +7,9 @@
     "server": {
 
     },
+    "app": {
+
+    },
     "persistence": {
         "restartAppAfter": 5000,
         "restartMachineAfter": 5
