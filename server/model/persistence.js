@@ -51,74 +51,72 @@ exports.Persistence = BaseModel.extend({
 
     // The timeout which shuts down the app on the appointed schedule.
     _shutdownSchedule: null,
-    _shutDownTimeout: null,
+    _shutDownInterval: null,
     // The timeout which starts up the app on the appointed schedule.
     _startupSchedule: null,
-    _startupTimeout: null,
+    _startupInterval: null,
     // The timeout which triggers the content updater on the appointed schedule.
     _updateSchedule: null,
-    _updateTimeout: null,
+    _updateInterval: null,
 
     initialize: function() {
         comm.fromApp.on('heart', _.bind(this._onHeart, this));
 
+        this._initSchedules();
+        if (this._shouldBeRunning()) {
+            this.restartApp();
+        } else {
+            this.shutdownApp();
+        }
+    },
+
+    _initSchedules: function() {
         // Important to configure later to not use UTC.
         later.date.localTime();
+
+        // Parse cron schedules.
         this._shutdownSchedule = later.parse.cron(this.get('shutdownSchedule'));
         this._startupSchedule = later.parse.cron(this.get('startupSchedule'));
         this._updateSchedule = later.parse.cron(this.get('updateSchedule'));
 
-        var nextShutdown = later.schedule(this._shutdownSchedule).next();
-        var lastStartup = later.schedule(this._shutdownSchedule).prev();
-        // TODO: Determine if the app should be running, and shut down or start it appropriately.
-        // https://github.com/bunkat/later/issues/31
-
-        this._isAppRunning(_.bind(function(isRunning) {
-
-            if (!isRunning) {
-                this.startApp();
-            } else {
-
-            }
-
-            this._setupSchedule();
-
-        }, this));
-    },
-
-    _setupSchedule: function() {
-        this.set('restartCount', 0);
-
-        if (this._shutdownTimeout) {
-            this._shutdownTimeout.clear();
+        // Shutdown on schedule.
+        if (this._shutdownInterval) {
+            this._shutdownInterval.clear();
         }
 
-        this._shutdownTimeout = later.setTimeout(_.bind(function() {
+        this._shutdownInterval = later.setInterval(_.bind(function() {
             console.log('Shutdown time has arrived. ' + new Date());
-            this.shutdownApp(_.bind(function() {
-                this._setupSchedule();
-            }, this));
+            this.set('restartCount', 0);
+            this.shutdownApp();
         }, this), this._shutdownSchedule);
 
-        if (this._startupTimeout) {
-            this._startupTimeout.clear();
+        // Start up on schedule.
+        if (this._startupInterval) {
+            this._startupInterval.clear();
         }
 
-        this._startupTimeout = later.setTimeout(_.bind(function() {
+        this._startupInterval = later.setInterval(_.bind(function() {
             console.log('Startup time has arrived. ' + new Date());
-            this.startApp(_.bind(function() {
-                this._setupSchedule();
-            }, this));
+            this.set('restartCount', 0);
+            this.startApp();
         }, this), this._startupSchedule);
 
-        if (this._updateTimeout) {
-            this._updateTimeout.clear();
+        // Update content on schedule.
+        if (this._updateInterval) {
+            this._updateInterval.clear();
         }
 
-        this._updateTimeout = later.setTimeout(_.bind(function() {
+        this._updateInterval = later.setInterval(_.bind(function() {
             console.log('Update time has arrived. ' + new Date());
+            this.set('restartCount', 0);
             serverState.updateContent();
         }, this), this._updateSchedule);
+    },
+
+    _shouldBeRunning: function() {
+        var lastStartup = later.schedule(this._startupSchedule).prev().getTime();
+        var lastShutdown = later.schedule(this._shutdownSchedule).prev().getTime();
+        return lastStartup > lastShutdown;
     },
 
     _onHeart: function(message) {
@@ -204,7 +202,7 @@ exports.Persistence = BaseModel.extend({
     },
 
     startApp: function(callback) {
-        if (this._isStartingUp) {
+        if (this._isStartingUp || !this._shouldBeRunning()) {
             return;
         }
 
