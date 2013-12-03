@@ -154,6 +154,8 @@ exports.Persistence = BaseModel.extend({
         }
 
         this.set('restartCount', restartCount);
+        this._isStartingUp = false;
+        this._isShuttingDown = false;
         this.restartApp();
     },
 
@@ -227,6 +229,7 @@ exports.Persistence = BaseModel.extend({
             this._startupCallback = callback;
             child_process.spawn(appPath, [JSON.stringify(config)]);
             console.log('App starting up.');
+            this._resetRestartTimeout();
         }, this));
     },
 
