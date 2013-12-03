@@ -1,4 +1,4 @@
-var child_process = require('child_process'); // http://nodejs.org/api/child_process.html#child_process_child_process_spawn_command_args_options
+var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
 var path = require('path'); //http://nodejs.org/api/path.html
 
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
@@ -17,10 +17,6 @@ exports.Persistence = BaseModel.extend({
         restartMachineAfter: 5,
         // How many times the app has been restarted.
         restartCount: 0,
-        // The first heartbeat since startup, in ms since epoch.
-        firstHeart: null,
-        // The most recent heartbeat, in ms since epoch.
-        lastHeart: null,
 
         /*
         // http://www.generateit.net/cron-job/
@@ -38,6 +34,11 @@ exports.Persistence = BaseModel.extend({
         // Update the content and the app according to this schedule.
         updateSchedule: "0 1 * * 1-5" // 1a, M-F
     },
+
+    // The first heartbeat since startup, in ms since epoch.
+    _firstHeart: null,
+    // The most recent heartbeat, in ms since epoch.
+    _lastHeart: null,
 
     // The timeout which restarts the app if no heartbeat is received in restartAppAfter ms.
     _restartTimeout: null,
@@ -121,9 +122,9 @@ exports.Persistence = BaseModel.extend({
 
     _onHeart: function(message) {
         this._resetRestartTimeout();
-        if (!this.get('lastHeart')) {
+        if (!this._lastHeart) {
             this._isStartingUp = false;
-            this.set('firstHeart', Date.now());
+            this._firstHeart = Date.now();
             console.log('App started.');
             if (this._startupCallback) {
                 this._startupCallback();
@@ -131,7 +132,8 @@ exports.Persistence = BaseModel.extend({
             }
         }
 
-        this.set('lastHeart', Date.now());
+        this._lastHeart = Date.now();
+        this.trigger('heart');
     },
 
     _resetRestartTimeout: function() {
@@ -145,6 +147,7 @@ exports.Persistence = BaseModel.extend({
         var restartCount = this.get('restartCount');
         restartCount++;
         console.log('App went away. ' + restartCount);
+        this.trigger('crash');
 
         if (restartCount >= this.get('restartMachineAfter')) {
             this._restartMachine();
@@ -222,8 +225,8 @@ exports.Persistence = BaseModel.extend({
             var appPath = path.join(serverState.get('appUpdater').get('local'), this.get('processName'));
 
             // Config length limited to 8191 characters. (DOT was about 1200)
-            this.set('lastHeart', null);
-            this.set('firstHeart', null);
+            this._lastHeart = null;
+            this._firstHeart = null;
             this._startupCallback = callback;
             child_process.spawn(appPath, [JSON.stringify(config)]);
             console.log('App starting up.');

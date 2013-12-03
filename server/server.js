@@ -86,6 +86,7 @@ function decodeOsc(message) {
 // Set up models, which also starts the app if needed.
 var ServerState = require('./model/serverState.js').ServerState;
 global.serverState = new ServerState(config.server);
+serverState.start();
 
 /*
 
@@ -96,10 +97,6 @@ Content Updater
 App Updater
     Update from non-web location
     Log updates
-
-Persistence
-    Don't allow app to run outside of its schedule
-    https://github.com/bunkat/later/issues/31
 
 Logger
     Log on request from client

@@ -16,7 +16,9 @@ exports.ServerState = BaseModel.extend({
         appState: null
     },
 
-    initialize: function() {
+    initialize: function() {},
+
+    start: function() {
         this.set('contentUpdater', new ContentUpdater(config.contentUpdater));
         this.set('appUpdater', new AppUpdater(config.appUpdater));
         this.set('persistence', new Persistence(config.persistence));
