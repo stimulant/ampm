@@ -10,41 +10,45 @@ var BaseModel = require('./baseModel.js').BaseModel;
 AppState = exports.AppState = BaseModel.extend({
 	defaults: {
 		isRunning: false,
-		fps: 0,
-		cpu: 0,
-		memory: 0,
-		uptime: 0
+		uptime: 0,
+		fps: null,
+		cpu: null,
+		memory: null,
 	},
 
 	// How often to update stats.
 	_updateFrequency: 1000,
+	// How many updates of historical data to keep.
+	_statHistory: 60,
+	_statIndex: 0,
 	// The interval to update stats.
 	_updateTimeout: 0,
 	// The last time the app was running to compute uptime.
 	_startupTime: 0,
 
 	initialize: function() {
-		this._tickList = [];
-		while (this._tickList.length < this._maxTicks) {
-			this._tickList.push(0);
-		}
-
 		serverState.get('persistence').on('heart', _.bind(this._onHeart, this));
 		this._updateStats();
 	},
 
 	_updateStats: function() {
+		var fpsHistory = this.get('fps');
+		var cpuHistory = this.get('cpu');
+		var memoryHistory = this.get('memory');
+
+		if (!fpsHistory || !cpuHistory || !memoryHistory) {
+			fpsHistory = [];
+			cpuHistory = [];
+			memoryHistory = [];
+			this.set({
+				fps: fpsHistory,
+				cpu: cpuHistory,
+				memory: memoryHistory
+			});
+		}
+
 		clearTimeout(this._updateTimeout);
 		var process = serverState.get('persistence').get('processName').toUpperCase();
-
-		/*
-		// tasklist.exe output looks like this:
-		Image Name:   Client.exe
-		PID:          12008
-		Session Name: Console
-		Session#:     1
-		Mem Usage:    39,384 K
-		*/
 
 		// Is the app running?
 		child_process.exec('tasklist /FI "IMAGENAME eq ' + process + '" /FO LIST', _.bind(function(error, stdout, stderr) {
@@ -56,10 +60,13 @@ AppState = exports.AppState = BaseModel.extend({
 
 			if (!isRunning) {
 				// Not running, so reset everything.
-				this.set('memory', 0);
-				this.set('cpu', 0);
 				this.set('uptime', 0);
-				this.set('fps', 0);
+				this.set({
+					fps: null,
+					cpu: null,
+					memory: null
+				});
+
 				this._updateTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
 				return;
 			}
@@ -76,11 +83,26 @@ AppState = exports.AppState = BaseModel.extend({
 			fps *= 100;
 			fps = Math.round(fps);
 			fps /= 100;
-			this.set('fps', fps);
+			fpsHistory.push(fps);
+			while (fpsHistory.length > this._statHistory) {
+				fpsHistory.shift();
+			}
+
+			/*
+			// tasklist.exe output looks like this:
+			Image Name:   Client.exe
+			PID:          12008
+			Session Name: Console
+			Session#:     1
+			Mem Usage:    39,384 K
+			*/
 
 			// Update the memory.
-			var bytes = parseInt(stdout.split('\r\n')[5].split('    ')[1].split(' ')[0].replace(',', ''), 10) * 1024;
-			this.set('memory', bytes);
+			var memory = parseInt(stdout.split('\r\n')[5].split('    ')[1].split(' ')[0].replace(',', ''), 10) * 1024;
+			memoryHistory.push(memory);
+			while (memoryHistory.length > this._statHistory) {
+				memoryHistory.shift();
+			}
 
 			// Get CPU usage.
 			child_process.exec('wmic path Win32_PerfFormattedData_PerfProc_Process where name=\'' + process.split('.')[0] + '\' get PercentProcessorTime', _.bind(function(error, stdout, stderr) {
@@ -92,7 +114,10 @@ AppState = exports.AppState = BaseModel.extend({
 				*/
 
 				var cpu = parseInt(stdout.split('\r\r\n')[1], 10);
-				this.set('cpu', cpu);
+				cpuHistory.push(cpu);
+				while (cpuHistory.length > this._statHistory) {
+					cpuHistory.shift();
+				}
 
 				// Update again.
 				this._updateTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
@@ -108,6 +133,13 @@ AppState = exports.AppState = BaseModel.extend({
 	_lastHeart: 0,
 
 	_onHeart: function(message) {
+		if (!this._tickList) {
+			this._tickList = [];
+			while (this._tickList.length < this._maxTicks) {
+				this._tickList.push(0);
+			}
+		}
+
 		if (!this._lastHeart) {
 			this._lastHeart = Date.now();
 			this._lastFpsUpdate = this._lastHeart;
