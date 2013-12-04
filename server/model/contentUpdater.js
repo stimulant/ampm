@@ -8,6 +8,7 @@ var XRegExp = require('xregexp').XRegExp; // Fancy regular expressions. http://x
 var rimraf = require('rimraf'); // Recursive directory delete. https://github.com/isaacs/rimraf
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var ncp = require('ncp').ncp; // Recursive directory copy. https://npmjs.org/package/ncp
+var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 
 // Update content for the application, as well as the application itself.
 exports.ContentUpdater = Backbone.Model.extend({
@@ -158,7 +159,7 @@ exports.ContentUpdater = Backbone.Model.extend({
 
     // Load the file into memory and create its temp output directory.
     _downloadFile: function(contentFile) {
-        console.log('Downloading ' + contentFile.get('url'));
+        winston.info('Downloading ' + contentFile.get('url'));
 
         // Request the file from the network.
         progress(request({
@@ -206,7 +207,7 @@ exports.ContentUpdater = Backbone.Model.extend({
             return file.get('progress') < 1;
         }).length;
         var style = contentFile.get('totalBytes') ? 'loaded' : 'cached';
-        console.log(contentFile.get('url') + ' ' + style + ', ' + filesToGo + ' to go');
+        winston.info(contentFile.get('url') + ' ' + style + ', ' + filesToGo + ' to go');
 
         if (!filesToGo) {
             this._processFiles();
@@ -244,8 +245,8 @@ exports.ContentUpdater = Backbone.Model.extend({
             return;
         }
 
-        console.log(message);
-        console.log(error);
+        winston.info(message);
+        winston.info(error);
         if (this._callback) {
             this._callback(error);
         }

@@ -10,6 +10,7 @@ var fs = require('node-fs'); // Recursive directory creation. https://github.com
 var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
+var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 
 global.sources = {
     master: 1,
@@ -72,7 +73,7 @@ function decodeOsc(message) {
         try {
             data = JSON.parse(data);
         } catch (error) {
-            console.log(error);
+            winston.info(error);
         }
     }
 
@@ -86,7 +87,10 @@ function decodeOsc(message) {
 // Set up models, which also starts the app if needed.
 var ServerState = require('./model/serverState.js').ServerState;
 global.serverState = new ServerState(config.server);
+
+winston.info('Server starting up.');
 serverState.start();
+winston.info('Server started.');
 
 /*
 Content Updater
@@ -117,6 +121,7 @@ Logger
             from master to loggly (flagged differently)
 
     http://msdn.microsoft.com/en-us/library/system.net.websockets.websocket(v=vs.110).aspx
+    http://blogs.msdn.com/b/dotnet/archive/2013/12/04/microsoft-diagnostics-tracing-eventsource-is-now-rc-on-nuget-org.aspx
 
 Demo App
     crash

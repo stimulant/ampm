@@ -1,5 +1,6 @@
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
+var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 
 var BaseModel = require('./baseModel.js').BaseModel;
 var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
@@ -32,18 +33,18 @@ exports.ServerState = BaseModel.extend({
     },
 
     updateContent: function() {
-        console.log('Beginning update.');
+        winston.info('Beginning update.');
         this.get('persistence').shutdownApp();
         this.get('contentUpdater').update(_.bind(this._onContentUpdated, this));
     },
 
     _onContentUpdated: function(error) {
         if (error) {
-            console.log(error);
+            winston.info(error);
             throw error;
         }
 
-        console.log('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
+        winston.info('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
         this.updateApp();
     },
 
@@ -53,11 +54,11 @@ exports.ServerState = BaseModel.extend({
 
     _onAppUpdated: function(error) {
         if (error) {
-            console.log(error);
+            winston.info(error);
             throw error;
         }
 
-        console.log('App update complete! ' + this.get('appUpdater').get('updated').toString());
+        winston.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
         this.get('persistence').restartApp();
     }
 });

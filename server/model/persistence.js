@@ -4,6 +4,7 @@ var path = require('path'); //http://nodejs.org/api/path.html
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var later = require('later'); // Schedule processing. http://bunkat.github.io/later/ 
+var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
@@ -86,7 +87,7 @@ exports.Persistence = BaseModel.extend({
         }
 
         this._shutdownInterval = later.setInterval(_.bind(function() {
-            console.log('Shutdown time has arrived. ' + new Date());
+            winston.info('Shutdown time has arrived. ' + new Date());
             this.set('restartCount', 0);
             this.shutdownApp();
         }, this), this._shutdownSchedule);
@@ -97,7 +98,7 @@ exports.Persistence = BaseModel.extend({
         }
 
         this._startupInterval = later.setInterval(_.bind(function() {
-            console.log('Startup time has arrived. ' + new Date());
+            winston.info('Startup time has arrived. ' + new Date());
             this.set('restartCount', 0);
             this.startApp();
         }, this), this._startupSchedule);
@@ -108,7 +109,7 @@ exports.Persistence = BaseModel.extend({
         }
 
         this._updateInterval = later.setInterval(_.bind(function() {
-            console.log('Update time has arrived. ' + new Date());
+            winston.info('Update time has arrived. ' + new Date());
             this.set('restartCount', 0);
             serverState.updateContent();
         }, this), this._updateSchedule);
@@ -125,7 +126,7 @@ exports.Persistence = BaseModel.extend({
         if (!this._lastHeart) {
             this._isStartingUp = false;
             this._firstHeart = Date.now();
-            console.log('App started.');
+            winston.info('App started.');
             if (this._startupCallback) {
                 this._startupCallback();
                 this._startupCallback = null;
@@ -146,7 +147,7 @@ exports.Persistence = BaseModel.extend({
     _onRestartTimeout: function() {
         var restartCount = this.get('restartCount');
         restartCount++;
-        console.log('App went away. ' + restartCount);
+        winston.info('App went away. ' + restartCount);
         this.trigger('crash');
 
         if (restartCount >= this.get('restartMachineAfter')) {
@@ -195,7 +196,7 @@ exports.Persistence = BaseModel.extend({
             clearTimeout(this._restartTimeout);
             var process = this.get('processName').toUpperCase();
             child_process.exec('taskkill /IM ' + process + ' /F', _.bind(function(error, stdout, stderr) {
-                console.log('App shut down by force.');
+                winston.info('App shut down by force.');
                 this._isShuttingDown = false;
                 if (callback) {
                     callback();
@@ -229,7 +230,7 @@ exports.Persistence = BaseModel.extend({
             this._firstHeart = null;
             this._startupCallback = callback;
             child_process.spawn(appPath, [JSON.stringify(config)]);
-            console.log('App starting up.');
+            winston.info('App starting up.');
             this._resetRestartTimeout();
         }, this));
     },
@@ -239,7 +240,7 @@ exports.Persistence = BaseModel.extend({
     },
 
     _restartMachine: function() {
-        console.log('Already restarted app ' + this.get('restartMachineAfter') + ' times, rebooting machine.');
+        winston.info('Already restarted app ' + this.get('restartMachineAfter') + ' times, rebooting machine.');
 
         // Restart but wait a bit to log things.
         // /t 0 - shutdown now
