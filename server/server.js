@@ -99,6 +99,11 @@ App Updater
     Log updates
 
 Logger
+    https://github.com/flatiron/winston
+    https://github.com/jfromaniello/winston-winlog
+    http://jfromaniello.github.io/windowseventlogjs/
+    http://www.loggly.com/
+    
     Log on request from client
         Low-pri logs are kept in memory, only written on crash.
     Email on critical state
