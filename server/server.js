@@ -20,16 +20,48 @@ global.sources = {
 
 global.constants = {
     configPath: './config.json',
+
     network: {
         consolePort: 3000,
         appSendPort: 3004,
         socketLogLevel: 2
+    },
+
+    // Config for winston. Comment out or delete a transport to not use it.
+    // https://github.com/flatiron/winston
+    logging: {
+        console: {
+            colorize: true,
+            timestamp: true,
+            level: 'silly'
+        },
+        file: {
+            filename: '../logs/server.log',
+            maxsize: 1024 * 1024, // 1MB
+            json: false,
+            level: 'silly'
+        },
+        loggly: {
+            subdomain: 'stimulant', // https://stimulant.loggly.com/dashboards
+            inputToken: 'b8eeee6e-12f4-4f2f-b6b4-62f087ad795e'
+        },
+        mail: {
+            host: 'smtp.gmail.com',
+            ssl: true,
+            username: 'google@stimulant.io',
+            password: 'google_p455!',
+            subject: 'ERROR: ' + os.hostname(),
+            level: 'error',
+            to: 'josh@stimulant.io'
+        }
     }
 };
 
 global.comm = {};
 
 global.config = JSON.parse(fs.readFileSync(constants.configPath));
+
+setupLogging();
 
 // Set up web server for console.
 global.app = express();
@@ -82,6 +114,48 @@ function decodeOsc(message) {
         type: type,
         data: data
     };
+}
+
+function setupLogging() {
+    // silly: 0, debug: 1, verbose: 2, info: 3, warn: 4, error: 5
+    winston.setLevels(winston.config.npm.levels);
+
+    // Set up console logger.
+    if (constants.logging.console) {
+        winston.remove(winston.transports.Console);
+        winston.add(winston.transports.Console, constants.logging.console);
+    }
+
+    // Set up file logger.
+    if (constants.logging.file) {
+        // Create the log file folder.
+        var dir = path.dirname(constants.logging.file.filename);
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir);
+        }
+
+        winston.add(winston.transports.File, constants.logging.file);
+    }
+
+    // Set up loggly.
+    if (constants.logging.loggly) {
+        winston.add(require('winston-loggly').Loggly, constants.logging.loggly);
+    }
+
+    // Set up email. 
+    if (constants.logging.mail) {
+        winston.add(require('winston-mail').Mail, constants.logging.mail);
+    }
+
+    // Set up Windows event log.
+    return;
+    var winlog = require('winston-winlog');
+    winston.add(winlog.EventLog, {
+        source: 'ampm',
+        eventLog: 'ampm'
+    });
+    winston.setLevels(winlog.config.levels);
+
 }
 
 // Set up models, which also starts the app if needed.

@@ -5,6 +5,7 @@ app.tmp/
 packages/
 bin/
 obj/
+logs/
 *.sublime-workspace
 *.csproj.user
 
