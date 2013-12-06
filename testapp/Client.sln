@@ -12,6 +12,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{EF14CE
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ampm", "Ampm\Ampm.csproj", "{22A89612-F2F4-48DA-8462-895ADBB5B5D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +32,14 @@ Global
 		{2150F3BF-E744-4D16-8F5B-713F223328F5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2150F3BF-E744-4D16-8F5B-713F223328F5}.Release|x64.ActiveCfg = Release|Any CPU
 		{2150F3BF-E744-4D16-8F5B-713F223328F5}.Release|x86.ActiveCfg = Release|Any CPU
+		{22A89612-F2F4-48DA-8462-895ADBB5B5D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22A89612-F2F4-48DA-8462-895ADBB5B5D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22A89612-F2F4-48DA-8462-895ADBB5B5D5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{22A89612-F2F4-48DA-8462-895ADBB5B5D5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{22A89612-F2F4-48DA-8462-895ADBB5B5D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22A89612-F2F4-48DA-8462-895ADBB5B5D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22A89612-F2F4-48DA-8462-895ADBB5B5D5}.Release|x64.ActiveCfg = Release|Any CPU
+		{22A89612-F2F4-48DA-8462-895ADBB5B5D5}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
