@@ -57,6 +57,8 @@ namespace Client
 
         void App_Startup(object sender, StartupEventArgs e)
         {
+            Logger.Log.DebugTrace("foo");
+
             if (e.Args.Length > 0)
             {
                 try
