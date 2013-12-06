@@ -71,5 +71,13 @@ namespace Client
             {
             }
         }
+
+        private void Log_Click(object sender, RoutedEventArgs e)
+        {
+            Logger.Critical("critical!");
+            Logger.Error("error!");
+            Logger.Informational("informational!");
+            Logger.Warning("warning!");
+        }
     }
 }

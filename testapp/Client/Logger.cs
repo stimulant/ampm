@@ -3,27 +3,62 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Windows;
 using Microsoft.Diagnostics.Tracing;
 
 namespace Client
 {
-    [EventSource(Name = "ampm")]
+    [EventSource(Name = "ampm-app")]
     public sealed class Logger : EventSource
     {
-        public static Logger Log = new Logger();
+        private static Logger _Log = new Logger();
 
-        [Event(1, Keywords = Keywords.Debug, Message = "DebugMessage: {0}", Channel = EventChannel.Admin)]
-        public void DebugTrace(string message)
+        [Event(1, Level = EventLevel.Critical, Message = "{0}", Channel = EventChannel.Admin)]
+        private void CriticalMessage(string message)
         {
             Installer.EnsureInstall(this);
             WriteEvent(1, message);
         }
 
-        public class Keywords
+        public static void Critical(string message)
         {
-            public const EventKeywords Debug = (EventKeywords)0x0001;
+            _Log.CriticalMessage(message);
+        }
+
+        [Event(2, Level = EventLevel.Error, Message = "{0}", Channel = EventChannel.Admin)]
+        private void ErrorMessage(string message)
+        {
+            Installer.EnsureInstall(this);
+            WriteEvent(2, message);
+        }
+
+        public static void Error(string message)
+        {
+            _Log.ErrorMessage(message);
+        }
+
+        [Event(3, Level = EventLevel.Informational, Message = "{0}", Channel = EventChannel.Admin)]
+        private void InformationalMessage(string message)
+        {
+            Installer.EnsureInstall(this);
+            WriteEvent(3, message);
+        }
+
+        public static void Informational(string message)
+        {
+            _Log.InformationalMessage(message);
+        }
+
+        [Event(4, Level = EventLevel.Warning, Message = "{0}", Channel = EventChannel.Admin)]
+        private void WarningMessage(string message)
+        {
+            Installer.EnsureInstall(this);
+            WriteEvent(4, message);
+        }
+
+        public static void Warning(string message)
+        {
+            _Log.WarningMessage(message);
         }
 
         private static class Installer
@@ -49,7 +84,7 @@ namespace Client
                 string manifestName = string.Format("{0}.{1}.etwManifest.man", Assembly.GetExecutingAssembly().GetName().Name, source.Name);
                 string sourceFile = Directory.EnumerateFiles(sourceFolder, manifestName).FirstOrDefault();
                 string destFile = Directory.Exists(destFolder) ? Directory.EnumerateFiles(destFolder, manifestName).FirstOrDefault() : null;
-                bool filesMatch = destFile != null && FilesAreEqual(new FileInfo(sourceFile), new FileInfo(destFile));
+                bool filesMatch = destFile != null && File.ReadAllText(sourceFile) == File.ReadAllText(destFile);
 
                 // Second check: See if the ETW is listed in the event publishers list.
                 bool published = false;
@@ -79,6 +114,7 @@ namespace Client
                 // Do the install.
                 try
                 {
+                    // TODO: Rather than running multiple processes, there might be a slicker way: http://stackoverflow.com/questions/437419/
                     string args;
 
                     // To be safe, uninstall the manifest already in the target folder.
@@ -97,6 +133,7 @@ namespace Client
 
                     string destPath = Path.Combine(destFolder, Path.GetFileName(sourceFile));
                     File.Copy(sourceFile, destPath, true);
+                    File.Copy(sourceFile.Replace(".man", ".dll"), destPath.Replace(".man", ".dll"), true);
 
                     // Install the manifest.
                     args = string.Format("im {0} /rf:\"{1}\" /mf:\"{1}\"", destPath, Path.Combine(destFolder, Path.GetFileNameWithoutExtension(destPath) + ".dll"));
@@ -104,46 +141,11 @@ namespace Client
                     Process.Start(new ProcessStartInfo("wevtutil.exe", args) { Verb = "runAs" }).WaitForExit();
 
                     _IsInstalled = true;
-                    Thread.Sleep(3000);
                 }
                 catch (Exception e)
                 {
                     MessageBox.Show(e.Message, "Couldn't install logger.");
                 }
-            }
-
-            private const int _BytesToRead = sizeof(Int64);
-
-            /// <summary>
-            /// http://stackoverflow.com/a/1359947/468472
-            /// </summary>
-            /// <param name="first"></param>
-            /// <param name="second"></param>
-            /// <returns></returns>
-            static bool FilesAreEqual(FileInfo first, FileInfo second)
-            {
-                if (first.Length != second.Length)
-                    return false;
-
-                int iterations = (int)Math.Ceiling((double)first.Length / _BytesToRead);
-
-                using (FileStream fs1 = first.OpenRead())
-                using (FileStream fs2 = second.OpenRead())
-                {
-                    byte[] one = new byte[_BytesToRead];
-                    byte[] two = new byte[_BytesToRead];
-
-                    for (int i = 0; i < iterations; i++)
-                    {
-                        fs1.Read(one, 0, _BytesToRead);
-                        fs2.Read(two, 0, _BytesToRead);
-
-                        if (BitConverter.ToInt64(one, 0) != BitConverter.ToInt64(two, 0))
-                            return false;
-                    }
-                }
-
-                return true;
             }
         }
     }
