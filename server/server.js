@@ -105,7 +105,7 @@ function decodeOsc(message) {
         try {
             data = JSON.parse(data);
         } catch (error) {
-            winston.info(error);
+            winston.warn('Bad OSC message from app.', error);
         }
     }
 

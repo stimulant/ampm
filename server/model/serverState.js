@@ -40,7 +40,7 @@ exports.ServerState = BaseModel.extend({
 
     _onContentUpdated: function(error) {
         if (error) {
-            winston.info(error);
+            winston.error(error);
             throw error;
         }
 
@@ -54,7 +54,7 @@ exports.ServerState = BaseModel.extend({
 
     _onAppUpdated: function(error) {
         if (error) {
-            winston.info(error);
+            winston.error(error);
             throw error;
         }
 

@@ -245,8 +245,7 @@ exports.ContentUpdater = Backbone.Model.extend({
             return;
         }
 
-        winston.info(message);
-        winston.info(error);
+        winston.error(message, error);
         if (this._callback) {
             this._callback(error);
         }
