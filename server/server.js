@@ -105,7 +105,7 @@ function decodeOsc(message) {
         try {
             data = JSON.parse(data);
         } catch (error) {
-            winston.warn('Bad OSC message from app.', error);
+            winston.warning('Bad OSC message from app.', error);
         }
     }
 
@@ -118,7 +118,19 @@ function decodeOsc(message) {
 
 function setupLogging() {
     // silly: 0, debug: 1, verbose: 2, info: 3, warn: 4, error: 5
-    winston.setLevels(winston.config.npm.levels);
+    winston.setLevels({
+        info: 0,
+        warning: 1,
+        error: 2,
+        critical: 3
+    });
+
+    winston.addColors({
+        info: 'green',
+        warning: 'yellow',
+        error: 'red',
+        critical: 'red'
+    });
 
     // Set up console logger.
     if (constants.logging.console) {
@@ -127,6 +139,7 @@ function setupLogging() {
     }
 
     // Set up file logger.
+    var file = null;
     if (constants.logging.file) {
         // Create the log file folder.
         var dir = path.dirname(constants.logging.file.filename);
@@ -134,7 +147,7 @@ function setupLogging() {
             fs.mkdirSync(dir);
         }
 
-        winston.add(winston.transports.File, constants.logging.file);
+        file = winston.add(winston.transports.File, constants.logging.file);
     }
 
     // Set up loggly.
@@ -147,15 +160,34 @@ function setupLogging() {
         winston.add(require('winston-mail').Mail, constants.logging.mail);
     }
 
-    // Set up Windows event log.
-    return;
+    /*
+    // Can't seem to get winston-winlog to work.
+    // https://github.com/jfromaniello/winston-winlog/issues/5
     var winlog = require('winston-winlog');
     winston.add(winlog.EventLog, {
         source: 'ampm',
         eventLog: 'ampm'
     });
     winston.setLevels(winlog.config.levels);
+    */
 
+    // Set up Windows event log. Sort of hacky. Piggy-back on the file logger and log to the event log whenever it does.
+    if (file) {
+        var EventLog = require('windows-eventlog').EventLog;
+        file.eventLog = new EventLog('ampm-server', 'ampm-server');
+
+        // The windows log needs title-case events.
+        file.eventLog.winLevels = {
+            info: 'Information',
+            warning: 'Warning',
+            error: 'Error',
+            critical: 'Critical'
+        };
+
+        file.on('logging', function(transport, level, msg, meta) {
+            file.eventLog.log(msg, file.eventLog.winLevels[level]);
+        });
+    }
 }
 
 // Set up models, which also starts the app if needed.
@@ -187,15 +219,14 @@ Logger
         to email for critical
 
     Log app events
-        from app directly to event log
-        from app directly to loggly
-        from app to server over websocket
+        x from app directly to event log
+        from app directly to loggly // https://github.com/karlseguin/loggly-csharp
+        from app to server over websocket // http://msdn.microsoft.com/en-us/library/system.net.websockets.websocket(v=vs.110).aspx
             pass these to master
             from master to event log
             from master to loggly (flagged differently)
 
-    http://msdn.microsoft.com/en-us/library/system.net.websockets.websocket(v=vs.110).aspx
-    http://blogs.msdn.com/b/dotnet/archive/2013/12/04/microsoft-diagnostics-tracing-eventsource-is-now-rc-on-nuget-org.aspx
+    
 
 Demo App
     crash
