@@ -25,7 +25,7 @@ namespace Ampm
         }
 
         [Event(3, Level = EventLevel.Informational, Message = "{0}", Channel = EventChannel.Admin)]
-        internal void Informational(string message)
+        internal void Info(string message)
         {
             EventSourceInstaller.EnsureInstall(this);
             WriteEvent(3, message);

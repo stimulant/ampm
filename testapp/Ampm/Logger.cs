@@ -18,9 +18,9 @@ namespace Ampm
             _EventSource.Error(message);
         }
 
-        public static void Informational(string message)
+        public static void Info(string message)
         {
-            _EventSource.Informational(message);
+            _EventSource.Info(message);
         }
 
         public static void Warning(string message)

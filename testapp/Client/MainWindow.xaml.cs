@@ -77,7 +77,7 @@ namespace Client
         {
             Logger.Critical("critical!");
             Logger.Error("error!");
-            Logger.Informational("informational!");
+            Logger.Info("informational!");
             Logger.Warning("warning!");
         }
     }
