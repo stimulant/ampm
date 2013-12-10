@@ -33,13 +33,13 @@ global.constants = {
         console: {
             colorize: true,
             timestamp: true,
-            level: 'silly'
+            level: 'info'
         },
         file: {
             filename: '../logs/server.log',
             maxsize: 1024 * 1024, // 1MB
             json: false,
-            level: 'silly'
+            level: 'info'
         },
         loggly: {
             subdomain: 'stimulant', // https://stimulant.loggly.com/dashboards
@@ -139,7 +139,6 @@ function setupLogging() {
     }
 
     // Set up file logger.
-    var file = null;
     if (constants.logging.file) {
         // Create the log file folder.
         var dir = path.dirname(constants.logging.file.filename);
@@ -147,7 +146,34 @@ function setupLogging() {
             fs.mkdirSync(dir);
         }
 
-        file = winston.add(winston.transports.File, constants.logging.file);
+        var logger = winston.add(winston.transports.DailyRotateFile, constants.logging.file);
+
+        /*
+        // Can't seem to get winston-winlog to work.
+        // https://github.com/jfromaniello/winston-winlog/issues/5
+        var winlog = require('winston-winlog');
+        winston.add(winlog.EventLog, {
+            source: 'ampm',
+            eventLog: 'ampm'
+        });
+        winston.setLevels(winlog.config.levels);
+        */
+
+        // Set up Windows event log. Sort of hacky. Piggy-back on the file logger and log to the event log whenever it does.
+        var EventLog = require('windows-eventlog').EventLog;
+        logger.eventLog = new EventLog('ampm-server', 'ampm-server');
+
+        // The windows log needs title-case events.
+        logger.eventLog.winLevels = {
+            info: 'Information',
+            warning: 'Warning',
+            error: 'Error',
+            critical: 'Critical'
+        };
+
+        logger.on('logging', function(transport, level, msg, meta) {
+            logger.eventLog.log(msg, logger.eventLog.winLevels[level]);
+        });
     }
 
     // Set up loggly.
@@ -158,35 +184,6 @@ function setupLogging() {
     // Set up email. 
     if (constants.logging.mail) {
         winston.add(require('winston-mail').Mail, constants.logging.mail);
-    }
-
-    /*
-    // Can't seem to get winston-winlog to work.
-    // https://github.com/jfromaniello/winston-winlog/issues/5
-    var winlog = require('winston-winlog');
-    winston.add(winlog.EventLog, {
-        source: 'ampm',
-        eventLog: 'ampm'
-    });
-    winston.setLevels(winlog.config.levels);
-    */
-
-    // Set up Windows event log. Sort of hacky. Piggy-back on the file logger and log to the event log whenever it does.
-    if (file) {
-        var EventLog = require('windows-eventlog').EventLog;
-        file.eventLog = new EventLog('ampm-server', 'ampm-server');
-
-        // The windows log needs title-case events.
-        file.eventLog.winLevels = {
-            info: 'Information',
-            warning: 'Warning',
-            error: 'Error',
-            critical: 'Critical'
-        };
-
-        file.on('logging', function(transport, level, msg, meta) {
-            file.eventLog.log(msg, file.eventLog.winLevels[level]);
-        });
     }
 }
 
@@ -201,25 +198,12 @@ winston.info('Server started.');
 /*
 Content Updater
     Update from non-web location
-    Log updates
 
 App Updater
     Update from non-web location
-    Log updates
 
 Logger
-    https://github.com/flatiron/winston
-    https://github.com/jfromaniello/winston-winlog
-    http://jfromaniello.github.io/windowseventlogjs/
-    http://www.loggly.com/
-    
-    Log server events
-        to event log
-        to loggly
-        to email for critical
-
     Log app events
-        x from app directly to event log
         from app directly to loggly // https://github.com/karlseguin/loggly-csharp
         from app to server over websocket // http://msdn.microsoft.com/en-us/library/system.net.websockets.websocket(v=vs.110).aspx
             pass these to master
