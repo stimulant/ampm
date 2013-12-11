@@ -43,7 +43,8 @@ global.constants = {
         },
         loggly: {
             subdomain: 'stimulant', // https://stimulant.loggly.com/dashboards
-            inputToken: 'b8eeee6e-12f4-4f2f-b6b4-62f087ad795e'
+            inputToken: 'b8eeee6e-12f4-4f2f-b6b4-62f087ad795e',
+            json: true
         },
         mail: {
             host: 'smtp.gmail.com',
@@ -198,9 +199,11 @@ winston.info('Server started.');
 /*
 Content Updater
     Update from non-web location
+    Don't shut down app while downloading to temp
 
 App Updater
     Update from non-web location
+    Don't shut down app while downloading to temp
 
 Logger
     Log app events
