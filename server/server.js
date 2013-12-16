@@ -41,10 +41,9 @@ global.constants = {
             json: false,
             level: 'info'
         },
-        loggly: {
-            subdomain: 'stimulant', // https://stimulant.loggly.com/dashboards
-            inputToken: 'b8eeee6e-12f4-4f2f-b6b4-62f087ad795e',
-            json: true
+        google: {
+            accountId: 'UA-46432303-2',
+            userId: '3e582629-7aad-4aa3-90f2-9f7cb3f89597'
         },
         mail: {
             host: 'smtp.gmail.com',
@@ -175,11 +174,14 @@ function setupLogging() {
         logger.on('logging', function(transport, level, msg, meta) {
             logger.eventLog.log(msg, logger.eventLog.winLevels[level]);
         });
-    }
 
-    // Set up loggly.
-    if (constants.logging.loggly) {
-        winston.add(require('winston-loggly').Loggly, constants.logging.loggly);
+        if (constants.logging.google) {
+            var ua = require('universal-analytics');
+            logger.ua = ua(constants.logging.google.accountId, constants.logging.google.userId);
+            logger.on('logging', function(transport, level, msg, meta) {
+                logger.ua.event('log', msg, level).send();
+            });
+        }
     }
 
     // Set up email. 
@@ -196,6 +198,8 @@ winston.info('Server starting up.');
 serverState.start();
 winston.info('Server started.');
 
+
+
 /*
 Content Updater
     Update from non-web location
@@ -206,14 +210,8 @@ App Updater
     Don't shut down app while downloading to temp
 
 Logger
-    Log app events
-        from app directly to loggly // https://github.com/karlseguin/loggly-csharp
-        from app to server over websocket // http://msdn.microsoft.com/en-us/library/system.net.websockets.websocket(v=vs.110).aspx
-            pass these to master
-            from master to event log
-            from master to loggly (flagged differently)
-
-    
+    Accept log messages from app via web socket // http://msdn.microsoft.com/en-us/library/system.net.websockets.websocket(v=vs.110).aspx
+    Pass those log messages to google analytics // https://npmjs.org/package/universal-analytics
 
 Demo App
     crash
@@ -241,13 +239,14 @@ Console
         Restart all clients
         Update content on client: kill process, update content, update client, restart client
         Update content on all clients: kill process, update content, update client, restart client
+        Config editor
 
 State manager
     Runs on master only
     App sends state to master over OSC on interval
     Server sends state to apps over OSC on interval
     State is just a JS object
-    App sends config to clients over socket on interval
+    Server sends config to clients over socket on interval - or socket?
         On config, write to file and restart app with new config
 
 Run as service? https://npmjs.org/package/node-windows
