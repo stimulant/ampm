@@ -36,6 +36,8 @@ namespace Ampm
             _SocketToServer = new SocketIOClient.Client("http://localhost:3001");
             _SocketToServer.Opened += Socket_Opened;
             _SocketToServer.Connect();
+            _SocketToServer.SocketConnectionClosed += (sender, e) => _SocketToServer.Connect();
+            _SocketToServer.Error += (sender, e) => _SocketToServer.Connect();
         }
 
         /// <summary>
