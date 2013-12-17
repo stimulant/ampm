@@ -8,6 +8,7 @@ var winston = require('winston'); // Logging. https://github.com/flatiron/winsto
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
+// Startup and shutdown the app on demand and on schedule.
 exports.Persistence = BaseModel.extend({
     defaults: {
         // The name of the executable.
@@ -15,7 +16,7 @@ exports.Persistence = BaseModel.extend({
         // Restart the app if there's no heartbeat for this much time.
         restartAppAfter: 5000,
         // After this many app restarts, give up ans restart the whole machine.
-        restartMachineAfter: 5,
+        restartMachineAfter: Infinity,
         // How many times the app has been restarted.
         restartCount: 0,
 

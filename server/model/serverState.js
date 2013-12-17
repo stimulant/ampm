@@ -3,6 +3,7 @@ var Backbone = require('backbone'); // Data model utilities. http://backbonejs.o
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 
 var BaseModel = require('./baseModel.js').BaseModel;
+var Network = require('./network.js').Network;
 var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
 var AppUpdater = require('./appUpdater.js').AppUpdater;
 var Persistence = require('./persistence.js').Persistence;
@@ -16,12 +17,14 @@ exports.ServerState = BaseModel.extend({
         appUpdater: null,
         persistence: null,
         appState: null,
-        logging: null
+        logging: null,
+        network: null
     },
 
     initialize: function() {},
 
     start: function() {
+        this.set('network', new Network(config.network));
         this.set('contentUpdater', new ContentUpdater(config.contentUpdater));
         this.set('appUpdater', new AppUpdater(config.appUpdater));
         this.set('persistence', new Persistence(config.persistence));
