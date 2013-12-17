@@ -7,6 +7,7 @@ var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
 var AppUpdater = require('./appUpdater.js').AppUpdater;
 var Persistence = require('./persistence.js').Persistence;
 var AppState = require('./appState.js').AppState;
+var Logging = require('./logging.js').Logging;
 
 // Model for app logic specific to the server.
 exports.ServerState = BaseModel.extend({
@@ -14,7 +15,8 @@ exports.ServerState = BaseModel.extend({
         contentUpdater: null,
         appUpdater: null,
         persistence: null,
-        appState: null
+        appState: null,
+        logging: null
     },
 
     initialize: function() {},
@@ -24,6 +26,7 @@ exports.ServerState = BaseModel.extend({
         this.set('appUpdater', new AppUpdater(config.appUpdater));
         this.set('persistence', new Persistence(config.persistence));
         this.set('appState', new AppState(config.app));
+        this.set('logging', new Logging(config.logging));
 
         comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
