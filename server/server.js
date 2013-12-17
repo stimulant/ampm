@@ -43,7 +43,15 @@ global.constants = {
             json: false,
             level: 'info'
         },
-        eventLog: {},
+        eventLog: {
+            // The Windows log needs title-case events.
+            levels: {
+                debug: 'Information',
+                info: 'Information',
+                warning: 'Warning',
+                error: 'Error'
+            }
+        },
         google: {
             accountId: 'UA-46432303-2',
             userId: '3e582629-7aad-4aa3-90f2-9f7cb3f89597'
@@ -61,7 +69,7 @@ global.constants = {
 };
 
 global.comm = {};
-
+global.loggers = {};
 global.config = JSON.parse(fs.readFileSync(constants.configPath));
 
 setupLogging();
@@ -90,11 +98,23 @@ comm.oscToApp = new osc.Client(constants.network.oscToAppPort);
 // Set up socket connection to app.
 comm.socketToApp = ioServer.listen(constants.network.socketToAppPort)
     .set('log level', constants.network.socketLogLevel);
+
 comm.socketToApp.sockets.on('connection', function(socket) {
     socket.on('log', function(data) {
+        for (var level in constants.logging.eventLog.levels) {
+            if (constants.logging.eventLog.levels[level] == data.level) {
+                data.level = level;
+            }
+        }
+
         if (winston && winston[data.level]) {
             winston[data.level](data.message);
         }
+    });
+
+    socket.on('event', function(data) {
+        console.log(data, loggers.google.event);
+        loggers.google.event(data.Category, data.Action, data.Label, data.Value).send();
     });
 });
 
@@ -149,14 +169,12 @@ function setupLogging() {
     });
 
     // Set up console logger.
-    var console = null;
     if (constants.logging.console) {
         winston.remove(winston.transports.Console);
-        console = winston.add(winston.transports.Console, constants.logging.console);
+        loggers.console = winston.add(winston.transports.Console, constants.logging.console);
     }
 
     // Set up file logger.
-    var file = null;
     if (constants.logging.file) {
         // Create the log file folder.
         var dir = path.dirname(constants.logging.file.filename);
@@ -164,41 +182,32 @@ function setupLogging() {
             fs.mkdirSync(dir);
         }
 
-        file = winston.add(winston.transports.DailyRotateFile, constants.logging.file);
+        loggers.file = winston.add(winston.transports.DailyRotateFile, constants.logging.file);
     }
 
     // Set up email. 
-    var mail = null;
     if (constants.logging.mail) {
-        mail = winston.add(require('winston-mail').Mail, constants.logging.mail);
+        loggers.mail = winston.add(require('winston-mail').Mail, constants.logging.mail);
     }
 
     // Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
-    if (console && constants.logging.eventLog) {
+    if (loggers.console && constants.logging.eventLog) {
         var EventLog = require('windows-eventlog').EventLog;
-        console.eventLog = new EventLog('ampm-server', 'ampm-server');
+        loggers.eventLog = new EventLog('ampm-server', 'ampm-server');
 
-        // The windows log needs title-case events.
-        console.eventLog.winLevels = {
-            debug: 'Information',
-            info: 'Information',
-            warning: 'Warning',
-            error: 'Error'
-        };
-
-        console.on('logging', function(transport, level, msg, meta) {
+        loggers.console.on('logging', function(transport, level, msg, meta) {
             if (transport.name == 'console') {
-                console.eventLog.log(msg, console.eventLog.winLevels[level]);
+                loggers.eventLog.log(msg, constants.logging.eventLog.levels[level]);
             }
         });
     }
 
     // Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
-    if (console && constants.logging.google) {
+    if (loggers.console && constants.logging.google) {
         var ua = require('universal-analytics');
-        console.ua = ua(constants.logging.google.accountId, constants.logging.google.userId);
-        console.on('logging', function(transport, level, msg, meta) {
-            console.ua.event('log', msg, level).send();
+        loggers.google = ua(constants.logging.google.accountId, constants.logging.google.userId);
+        loggers.console.on('logging', function(transport, level, msg, meta) {
+            loggers.google.event('log', msg, level).send();
         });
     }
 }

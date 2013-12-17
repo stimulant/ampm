@@ -10,22 +10,21 @@ namespace Ampm
     /// </summary>
     public static class Logger
     {
+        // The event source to log to event viewer.
         private static AmpmEventSource _EventSource = new AmpmEventSource();
 
+        // The socket to log to the server.
         private static SocketIOClient.Client _SocketToServer;
 
+        // Log messages stored while not connected to the server.
         private static Dictionary<EventLevel, List<string>> _LogQueue;
 
-        private static Dictionary<EventLevel, string> _LevelMap;
+        // Event messages stored while not connected to the server.
+        private static List<TrackEvent> _EventQueue;
 
         static Logger()
         {
-            _LevelMap = new Dictionary<EventLevel, string>
-            {
-                { EventLevel.Error, "error" },
-                { EventLevel.Warning, "warning" },
-                { EventLevel.Informational, "info" },
-            };
+            _EventQueue = new List<TrackEvent>();
 
             _LogQueue = new Dictionary<EventLevel, List<string>> 
             {
@@ -39,6 +38,54 @@ namespace Ampm
             _SocketToServer.Connect();
         }
 
+        /// <summary>
+        /// Log an error.
+        /// </summary>
+        /// <param name="message"></param>
+        public static void Error(string message)
+        {
+            _EventSource.Error(message);
+            SendLog(EventLevel.Error, message);
+        }
+
+        /// <summary>
+        /// Log a warning.
+        /// </summary>
+        /// <param name="message"></param>
+        public static void Warning(string message)
+        {
+            _EventSource.Warning(message);
+            SendLog(EventLevel.Warning, message);
+        }
+
+        /// <summary>
+        /// Log informational info.
+        /// </summary>
+        /// <param name="message"></param>
+        public static void Info(string message)
+        {
+            _EventSource.Info(message);
+            SendLog(EventLevel.Informational, message);
+        }
+
+        /// <summary>
+        /// Log a usage event.
+        /// </summary>
+        /// <param name="category"></param>
+        /// <param name="action"></param>
+        /// <param name="label"></param>
+        /// <param name="value"></param>
+        public static void Event(string category = null, string action = null, string label = null, int value = 0)
+        {
+            TrackEvent e = new TrackEvent { Category = category, Action = action, Label = label, Value = value };
+            SendEvent(e);
+        }
+
+        /// <summary>
+        /// When the socket connection is opened, clear out any queue of events/logs.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         static void Socket_Opened(object sender, EventArgs e)
         {
             foreach (KeyValuePair<EventLevel, List<string>> pair in _LogQueue)
@@ -50,13 +97,20 @@ namespace Ampm
 
                 pair.Value.Clear();
             }
+
+            foreach (TrackEvent ev in _EventQueue)
+            {
+                SendEvent(ev);
+            }
+
+            _EventQueue.Clear();
         }
 
         private static void SendLog(EventLevel eventLevel, string message)
         {
             if (_SocketToServer.ReadyState == WebSocket4Net.WebSocketState.Open)
             {
-                _SocketToServer.Emit("log", new { level = _LevelMap[eventLevel], message = message });
+                _SocketToServer.Emit("log", new { level = eventLevel.ToString(), message = message });
             }
             else
             {
@@ -64,22 +118,24 @@ namespace Ampm
             }
         }
 
-        public static void Error(string message)
+        private static void SendEvent(TrackEvent e)
         {
-            _EventSource.Error(message);
-            SendLog(EventLevel.Error, message);
+            if (_SocketToServer.ReadyState == WebSocket4Net.WebSocketState.Open)
+            {
+                _SocketToServer.Emit("event", e);
+            }
+            else
+            {
+                _EventQueue.Add(e);
+            }
         }
 
-        public static void Warning(string message)
+        private class TrackEvent
         {
-            _EventSource.Warning(message);
-            SendLog(EventLevel.Warning, message);
-        }
-
-        public static void Info(string message)
-        {
-            _EventSource.Info(message);
-            SendLog(EventLevel.Informational, message);
+            public string Category { get; set; }
+            public string Action { get; set; }
+            public string Label { get; set; }
+            public int Value { get; set; }
         }
     }
 }

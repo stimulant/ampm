@@ -79,5 +79,10 @@ namespace Client
             Logger.Warning("warning!");
             Logger.Error("error!");
         }
+
+        private void Event_Click(object sender, RoutedEventArgs e)
+        {
+            Logger.Event("app event", "clicked", "button", 2);
+        }
     }
 }
