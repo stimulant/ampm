@@ -26,9 +26,9 @@ exports.Network = BaseModel.extend({
 		// Set up web server for console.
 		global.app = express();
 		comm.webServer = http.createServer(app).listen(this.get('socketToConsolePort'));
-		app.use('/static', express.static(__dirname + '/view'));
+		app.use('/static', express.static(path.resolve(__dirname + '/../view')));
 		app.get('/', function(req, res) {
-			res.sendfile(__dirname + '/view/index.html');
+			res.sendfile(path.resolve(__dirname + '/../view/index.html'));
 		});
 
 		// Set up socket connection to console.
