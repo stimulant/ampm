@@ -84,5 +84,11 @@ namespace Client
         {
             Logger.Event("app event", "clicked", "button", 2);
         }
+
+        private void Crash_Click(object sender, RoutedEventArgs e)
+        {
+            dynamic x = null;
+            var y = x.bar;
+        }
     }
 }

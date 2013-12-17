@@ -30,8 +30,6 @@ App Updater
     Don't shut down app while downloading to temp
 
 Demo App
-    crash
-    hang
     more/less fps
     more/less memory
     log (info/warn/critical)

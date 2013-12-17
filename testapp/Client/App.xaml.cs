@@ -6,6 +6,7 @@ using System.Web.Script.Serialization;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Ampm;
 using Bespoke.Common.Osc;
 using Newtonsoft.Json.Linq;
 
@@ -40,6 +41,19 @@ namespace Client
 
             // Send heartbeats every frame.
             CompositionTarget.Rendering += (sender, e) => SendMessage("heart");
+
+            // Log crashes.
+            DispatcherUnhandledException += (sender, e) =>
+            {
+                Logger.Error(e.Exception.Message + Environment.NewLine + e.Exception.StackTrace);
+                Application.Current.MainWindow.Close();
+            };
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+            {
+                Exception exception = e.ExceptionObject as Exception;
+                Logger.Error(exception == null ? e.ToString() : exception.Message + Environment.NewLine + exception.StackTrace);
+                Application.Current.MainWindow.Close();
+            };
 
             /*
             // Handle incoming OSC messages.
