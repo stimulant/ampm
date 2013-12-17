@@ -18,7 +18,6 @@ serverState.start();
 winston.info('Server started.');
 
 /*
-
 Server
     Watch config file for changes.
 

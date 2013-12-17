@@ -5,6 +5,8 @@ var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
+var ua = require('universal-analytics'); // Google Analytics. https://npmjs.org/package/universal-analytics
+var EventLog = require('windows-eventlog').EventLog; // Windows Event Log. http://jfromaniello.github.io/windowseventlogjs/
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
@@ -23,15 +25,7 @@ exports.Logging = BaseModel.extend({
 			level: 'info'
 		},
 
-		eventLog: {
-			// The Windows log needs title-case events.
-			levels: {
-				debug: 'Information',
-				info: 'Information',
-				warning: 'Warning',
-				error: 'Error'
-			}
-		},
+		eventLog: {},
 
 		google: {
 			accountId: 'UA-46432303-2',
@@ -47,6 +41,20 @@ exports.Logging = BaseModel.extend({
 			level: 'error',
 			to: 'josh@stimulant.io'
 		}
+	},
+
+	// Mappings from MS.Diagnostics.Tracing.EventLevel to the Winston levels.
+	_appLevelToWinstonLevel: {
+		Informational: 'info',
+		Warning: 'warning',
+		Error: 'error'
+	},
+
+	// Mappings from the Winston levels to what Event Viewer wants.
+	_winstonLevelToWindowsLevel: {
+		info: 'Information',
+		warn: 'Warning',
+		error: 'Error'
 	},
 
 	initialize: function() {
@@ -86,18 +94,16 @@ exports.Logging = BaseModel.extend({
 
 		// Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
 		if (loggers.console && this.get('eventLog')) {
-			var EventLog = require('windows-eventlog').EventLog;
 			loggers.eventLog = new EventLog('ampm-server', 'ampm-server');
 			loggers.console.on('logging', _.bind(function(transport, level, msg, meta) {
 				if (transport.name == 'console') {
-					loggers.eventLog.log(msg, this.get('eventLog').levels[level]);
+					loggers.eventLog.log(msg, this._winstonLevelToWindowsLevel[level]);
 				}
 			}, this));
 		}
 
-		// Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
+		// Set up Google Analytics. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
 		if (loggers.console && this.get('google')) {
-			var ua = require('universal-analytics');
 			loggers.google = ua(this.get('google').accountId, this.get('google').userId);
 			loggers.console.on('logging', _.bind(function(transport, level, msg, meta) {
 				loggers.google.event('log', msg, level).send();
@@ -108,12 +114,7 @@ exports.Logging = BaseModel.extend({
 
 			// Log on request from the app.
 			socket.on('log', _.bind(function(data) {
-				for (var level in this.get('eventLog').levels) {
-					if (this.get('eventLog').levels[level] == data.level) {
-						data.level = level;
-					}
-				}
-
+				data.level = this._appLevelToWinstonLevel[data.level];
 				if (winston && winston[data.level]) {
 					winston[data.level](data.message);
 				}
