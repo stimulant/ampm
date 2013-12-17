@@ -1,11 +1,24 @@
-// cycle.js
-// 2011-08-24
+/*
+    cycle.js
+    2013-02-19
+
+    Public Domain.
+
+    NO WARRANTY EXPRESSED OR IMPLIED. USE AT YOUR OWN RISK.
+
+    This code should be minified before deployment.
+    See http://javascript.crockford.com/jsmin.html
+
+    USE YOUR OWN COPY. IT IS EXTREMELY UNWISE TO LOAD CODE FROM SERVERS YOU DO
+    NOT CONTROL.
+*/
 
 /*jslint evil: true, regexp: true */
 
 /*members $ref, apply, call, decycle, hasOwnProperty, length, prototype, push,
     retrocycle, stringify, test, toString
 */
+
 var cycle = exports;
 
 cycle.decycle = function decycle(object) {
@@ -38,20 +51,15 @@ cycle.decycle = function decycle(object) {
             name,       // Property name
             nu;         // The new object or array
 
-        switch (typeof value) {
-        case 'object':
+// typeof null === 'object', so go on if this value is really an object but not
+// one of the weird builtin objects.
 
-// typeof null === 'object', so get out if this value is not really an object.
-// Also get out if it is a weird builtin object.
-
-            if (value === null ||
-                  value instanceof Boolean ||
-                  value instanceof Date ||
-                  value instanceof Number ||
-                  value instanceof RegExp ||
-                  value instanceof String) {
-              return value;
-            }
+        if (typeof value === 'object' && value !== null &&
+                !(value instanceof Boolean) &&
+                !(value instanceof Date)    &&
+                !(value instanceof Number)  &&
+                !(value instanceof RegExp)  &&
+                !(value instanceof String)) {
 
 // If the value is an object or array, look to see if we have already
 // encountered it. If so, return a $ref/path object. This is a hard way,
@@ -65,8 +73,8 @@ cycle.decycle = function decycle(object) {
 
 // Otherwise, accumulate the unique value and its path.
 
-           objects.push(value);
-           paths.push(path);
+            objects.push(value);
+            paths.push(path);
 
 // If it is an array, replicate the array.
 
@@ -88,13 +96,11 @@ cycle.decycle = function decycle(object) {
                 }
             }
             return nu;
-        case 'number':
-        case 'string':
-        case 'boolean':
-            return value;
         }
+        return value;
     }(object, '$'));
 };
+
 
 cycle.retrocycle = function retrocycle($) {
     'use strict';

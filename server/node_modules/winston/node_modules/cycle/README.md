@@ -1,6 +1,10 @@
 Fork of https://github.com/douglascrockford/JSON-js, maintained in npm as `cycle`.
 
-Original readme follows
+# Contributors
+
+* Douglas Crockford
+* Nuno Job
+* Justin Warkentin
 
 # JSON in JavaScript
 

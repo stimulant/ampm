@@ -3,6 +3,11 @@
     "description": "watcher/updater",
     "version": "0.0.1",
     "private": true,
+    "repository": {
+        "type": "svn",
+        "url": "https://github.com/stimulant/ampm.git/trunk"
+    },
+    "main": "server.js",
     "dependencies": {
         "backbone": "1.1.0",
         "express": "3.4.4",
@@ -11,12 +16,12 @@
         "ncp": "0.4.2",
         "node-fs": "0.1.7",
         "node-osc": "0.2.1",
+        "nodemon": "0.7.10",
         "request": "2.27.0",
         "request-progress": "0.3.1",
         "rimraf": "2.2.2",
         "socket.io": "0.9.16",
         "socket.io-client": "0.9.16",
-        "supervisor": "0.5.6",
         "underscore": "1.5.2",
         "unzip": "0.1.9",
         "universal-analytics": "0.3.0",
