@@ -62,7 +62,7 @@ exports.Persistence = BaseModel.extend({
     _updateInterval: null,
 
     initialize: function() {
-        comm.fromApp.on('heart', _.bind(this._onHeart, this));
+        comm.oscFromApp.on('heart', _.bind(this._onHeart, this));
 
         this._initSchedules();
         if (this._shouldBeRunning()) {

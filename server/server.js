@@ -22,8 +22,10 @@ global.constants = {
     configPath: './config.json',
 
     network: {
-        consolePort: 3000,
-        appSendPort: 3004,
+        socketToConsolePort: 3000,
+        socketToAppPort: 3001,
+        oscFromAppPort: 3004,
+        oscToAppPort: 3005,
         socketLogLevel: 2
     },
 
@@ -41,6 +43,7 @@ global.constants = {
             json: false,
             level: 'info'
         },
+        eventLog: {},
         google: {
             accountId: 'UA-46432303-2',
             userId: '3e582629-7aad-4aa3-90f2-9f7cb3f89597'
@@ -65,19 +68,34 @@ setupLogging();
 
 // Set up web server for console.
 global.app = express();
-comm.webServer = http.createServer(app).listen(constants.network.consolePort);
+comm.webServer = http.createServer(app).listen(constants.network.socketToConsolePort);
 app.use('/static', express.static(__dirname + '/view'));
 app.get('/', function(req, res) {
     res.sendfile(__dirname + '/view/index.html');
 });
 
 // Set up socket connection to console.
-comm.toConsole = ioServer.listen(comm.webServer).set('log level', constants.network.socketLogLevel);
+comm.socketToConsole = ioServer.listen(comm.webServer)
+    .set('log level', constants.network.socketLogLevel);
 
 // Set up OSC connection from app.
-comm.fromApp = new osc.Server(constants.network.appSendPort);
-comm.fromApp.on('message', function(message, info) {
-    handleOsc(comm.fromApp, sources.app, sources.client, message, info);
+comm.oscFromApp = new osc.Server(constants.network.oscFromAppPort);
+comm.oscFromApp.on('message', function(message, info) {
+    handleOsc(comm.oscFromApp, sources.app, sources.client, message, info);
+});
+
+// Set up OSC connection to app.
+comm.oscToApp = new osc.Client(constants.network.oscToAppPort);
+
+// Set up socket connection to app.
+comm.socketToApp = ioServer.listen(constants.network.socketToAppPort)
+    .set('log level', constants.network.socketLogLevel);
+comm.socketToApp.sockets.on('connection', function(socket) {
+    socket.on('log', function(data) {
+        if (winston && winston[data.level]) {
+            winston[data.level](data.message);
+        }
+    });
 });
 
 // Generic handler to decode and re-post OSC messages as native events.
@@ -121,24 +139,24 @@ function setupLogging() {
     winston.setLevels({
         info: 0,
         warning: 1,
-        error: 2,
-        critical: 3
+        error: 2
     });
 
     winston.addColors({
         info: 'green',
         warning: 'yellow',
-        error: 'red',
-        critical: 'red'
+        error: 'red'
     });
 
     // Set up console logger.
+    var console = null;
     if (constants.logging.console) {
         winston.remove(winston.transports.Console);
-        winston.add(winston.transports.Console, constants.logging.console);
+        console = winston.add(winston.transports.Console, constants.logging.console);
     }
 
     // Set up file logger.
+    var file = null;
     if (constants.logging.file) {
         // Create the log file folder.
         var dir = path.dirname(constants.logging.file.filename);
@@ -146,47 +164,42 @@ function setupLogging() {
             fs.mkdirSync(dir);
         }
 
-        var logger = winston.add(winston.transports.DailyRotateFile, constants.logging.file);
-
-        /*
-        // Can't seem to get winston-winlog to work.
-        // https://github.com/jfromaniello/winston-winlog/issues/5
-        var winlog = require('winston-winlog');
-        winston.add(winlog.EventLog, {
-            source: 'ampm',
-            eventLog: 'ampm'
-        });
-        winston.setLevels(winlog.config.levels);
-        */
-
-        // Set up Windows event log. Sort of hacky. Piggy-back on the file logger and log to the event log whenever it does.
-        var EventLog = require('windows-eventlog').EventLog;
-        logger.eventLog = new EventLog('ampm-server', 'ampm-server');
-
-        // The windows log needs title-case events.
-        logger.eventLog.winLevels = {
-            info: 'Information',
-            warning: 'Warning',
-            error: 'Error',
-            critical: 'Critical'
-        };
-
-        logger.on('logging', function(transport, level, msg, meta) {
-            logger.eventLog.log(msg, logger.eventLog.winLevels[level]);
-        });
-
-        if (constants.logging.google) {
-            var ua = require('universal-analytics');
-            logger.ua = ua(constants.logging.google.accountId, constants.logging.google.userId);
-            logger.on('logging', function(transport, level, msg, meta) {
-                logger.ua.event('log', msg, level).send();
-            });
-        }
+        file = winston.add(winston.transports.DailyRotateFile, constants.logging.file);
     }
 
     // Set up email. 
+    var mail = null;
     if (constants.logging.mail) {
-        winston.add(require('winston-mail').Mail, constants.logging.mail);
+        mail = winston.add(require('winston-mail').Mail, constants.logging.mail);
+    }
+
+    // Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
+    if (console && constants.logging.eventLog) {
+        var EventLog = require('windows-eventlog').EventLog;
+        console.eventLog = new EventLog('ampm-server', 'ampm-server');
+
+        // The windows log needs title-case events.
+        console.eventLog.winLevels = {
+            debug: 'Information',
+            info: 'Information',
+            warning: 'Warning',
+            error: 'Error'
+        };
+
+        console.on('logging', function(transport, level, msg, meta) {
+            if (transport.name == 'console') {
+                console.eventLog.log(msg, console.eventLog.winLevels[level]);
+            }
+        });
+    }
+
+    // Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
+    if (console && constants.logging.google) {
+        var ua = require('universal-analytics');
+        console.ua = ua(constants.logging.google.accountId, constants.logging.google.userId);
+        console.on('logging', function(transport, level, msg, meta) {
+            console.ua.event('log', msg, level).send();
+        });
     }
 }
 
@@ -201,6 +214,10 @@ winston.info('Server started.');
 
 
 /*
+
+Server
+    Watch config file for changes.
+
 Content Updater
     Update from non-web location
     Don't shut down app while downloading to temp

@@ -25,7 +25,7 @@ exports.ServerState = BaseModel.extend({
         this.set('persistence', new Persistence(config.persistence));
         this.set('appState', new AppState(config.app));
 
-        comm.toConsole.sockets.on('connection', _.bind(this._onConnection, this));
+        comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
     _onConnection: function(socket) {

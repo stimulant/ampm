@@ -75,10 +75,9 @@ namespace Client
 
         private void Log_Click(object sender, RoutedEventArgs e)
         {
-            Logger.Critical("critical!");
-            Logger.Error("error!");
             Logger.Info("informational!");
             Logger.Warning("warning!");
+            Logger.Error("error!");
         }
     }
 }
