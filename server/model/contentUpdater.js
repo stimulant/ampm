@@ -266,8 +266,8 @@ exports.ContentUpdater = Backbone.Model.extend({
             sourceDir,
             targetDir,
             file,
-            '/v', // Produces verbose output, and shows all skipped files.
             '/e', // Copies subdirectories. Note that this option includes empty directories.
+            '/v', // Produces verbose output, and shows all skipped files.
             '/np', // Specifies that the progress of the copying operation (the number of files or directories copied so far) will not be displayed.
             '/njs', // Specifies that there is no job summary.
             '/njh', // Specifies that there is no job header.
@@ -277,10 +277,16 @@ exports.ContentUpdater = Backbone.Model.extend({
         ];
 
         if (!file) {
+            // We're copying full directories, remove the file argument.
             args.splice(2, 1);
+        } else {
+            // We're copying one file, remove the copy-subdirectories argument.
+            args.splice(3, 1);
         }
 
+
         var copy = child_process.spawn('robocopy', args);
+        winston.info('robocopy: robocopy ' + args.join(' '));
 
         copy.stdout.on('data', _.bind(function(data) {
             var lines = data.toString().split('\r\n');
@@ -297,6 +303,7 @@ exports.ContentUpdater = Backbone.Model.extend({
         }, this));
 
         copy.on('close', _.bind(function(code) {
+            // The return codes are weird. http://support.microsoft.com/kb/954404
             if (callback) {
                 callback(code);
             }
