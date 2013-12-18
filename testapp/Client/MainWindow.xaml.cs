@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using Ampm;
 
@@ -62,6 +63,11 @@ namespace Client
             GC.Collect();
             GC.WaitForPendingFinalizers();
             SetProcessWorkingSetSize(System.Diagnostics.Process.GetCurrentProcess().Handle, -1, -1);
+        }
+
+        private void Slow_Click(object sender, RoutedEventArgs e)
+        {
+            Thread.Sleep(500);
         }
     }
 }

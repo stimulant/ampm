@@ -14,6 +14,7 @@
             <Button Content="event" Click="Event_Click" />
             <Button Content="leak" Click="Leak_Click" />
             <Button Content="gc" Click="GC_Click" />
+            <Button Content="slow" Click="Slow_Click" />
         </UniformGrid>
         <TextBox Grid.Row="1" x:Name="_Config" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     </Grid>
