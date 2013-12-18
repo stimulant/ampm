@@ -40,8 +40,9 @@ exports.ServerState = BaseModel.extend({
 
     updateContent: function() {
         winston.info('Beginning update.');
-        this.get('persistence').shutdownApp();
-        this.get('contentUpdater').update(_.bind(this._onContentUpdated, this));
+        this.get('persistence').shutdownApp(_.bind(function() {
+            this.get('contentUpdater').update(_.bind(this._onContentUpdated, this));
+        }, this));
     },
 
     _onContentUpdated: function(error) {
