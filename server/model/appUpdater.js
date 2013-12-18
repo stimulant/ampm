@@ -2,6 +2,7 @@ var path = require('path'); // File path processing. http://nodejs.org/api/path.
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var unzip = require('unzip'); // Extract zip files. https://github.com/nearinfinity/node-unzip
+var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 
 var ContentUpdater = require('./contentUpdater.js');
 
@@ -31,11 +32,28 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 	},
 
 	update: function(callback) {
-		this.initialize();
 		this._callback = callback;
+		this.initialize();
 		var file = this.get('files').at(0);
+
 		this._initDirectories(_.bind(function() {
-			this._processFile(file);
+			if (this.get('remote').indexOf('http') === 0) {
+				// We're going to download a file from the web using the content updater logic.
+				this._processFile(file);
+			} else {
+				// We're just going to copy a local file.
+				this._robocopy(
+					path.dirname(this.get('remote')),
+					path.dirname(path.resolve(file.get('tempPath'))),
+					path.basename(this.get('remote')),
+					_.bind(function(success) {
+						if (success) {
+							this._processFiles();
+						} else {
+							winston.error('Robocopy failed.');
+						}
+					}, this));
+			}
 		}, this));
 	},
 
@@ -49,6 +67,7 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 		}
 
 		// Unzip the file.
+		winston.info('Unzipping app.');
 		fs.createReadStream(
 			file.get('filePath'))
 			.pipe(unzip.Extract({

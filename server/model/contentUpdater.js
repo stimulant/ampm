@@ -43,7 +43,7 @@ exports.ContentUpdater = Backbone.Model.extend({
                 request(this.get('remote'), _.bind(this._processContentRoot, this));
             } else {
                 // We're going to just robocopy from another folder instead.
-                this._robocopy(_.bind(function(success) {
+                this._robocopy(this.get('remote'), path.resolve(this.get('temp')), null, _.bind(function(success) {
                     if (success) {
                         this._processFiles();
                     } else {
@@ -266,11 +266,12 @@ exports.ContentUpdater = Backbone.Model.extend({
     },
 
     // Robocopy files instead of downloading them.
-    _robocopy: function(callback) {
+    _robocopy: function(sourceDir, targetDir, file, callback) {
         // http://technet.microsoft.com/en-us/library/cc733145.aspx
         var args = [
-            this.get('remote'),
-            path.resolve(this.get('temp')),
+            sourceDir,
+            targetDir,
+            file,
             '/v', // Produces verbose output, and shows all skipped files.
             '/e', // Copies subdirectories. Note that this option includes empty directories.
             '/np', // Specifies that the progress of the copying operation (the number of files or directories copied so far) will not be displayed.
@@ -280,6 +281,10 @@ exports.ContentUpdater = Backbone.Model.extend({
             '/fft', // Assumes FAT file times (two-second precision).
             '/ndl' // Specifies that directory names are not to be logged.
         ];
+
+        if (!file) {
+            args.splice(2, 1);
+        }
 
         var copy = child_process.spawn('robocopy', args);
 
@@ -295,6 +300,7 @@ exports.ContentUpdater = Backbone.Model.extend({
         }, this));
 
         copy.on('close', _.bind(function(code) {
+            console.log(code);
             // http://support.microsoft.com/kb/954404
             var success = code <= 8;
             if (callback) {
