@@ -4,12 +4,15 @@ var fs = require('node-fs'); // Recursive directory creation. https://github.com
 var unzip = require('unzip'); // Extract zip files. https://github.com/nearinfinity/node-unzip
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 
-var ContentUpdater = require('./contentUpdater.js');
+var cu = require('./contentUpdater.js');
+var ContentUpdater = cu.ContentUpdater;
+var ContentFiles = cu.ContentFiles;
+var ContentFile = cu.ContentFile;
 
 // Like ContentUpdater except for a single file, which gets unzipped when it's done loading.
-exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
+exports.AppUpdater = ContentUpdater.extend({
 
-	defaults: _.extend(_.clone(ContentUpdater.ContentUpdater.prototype.defaults), {
+	defaults: _.extend(_.clone(ContentUpdater.prototype.defaults), {
 		// The final local path for the app.
 		local: '../app/',
 
@@ -19,7 +22,7 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 
 	initialize: function() {
 		var filename = path.basename(this.get('remote'));
-		var file = new ContentUpdater.ContentFile({
+		var file = new ContentFile({
 			url: this.get('remote'),
 			filePath: this.get('local') + filename,
 			tempPath: this.get('temp') + filename
@@ -27,7 +30,7 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 
 		file.on('loaded', this._onFileLoaded, this);
 
-		this.set('files', new ContentUpdater.ContentFiles());
+		this.set('files', new ContentFiles());
 		this.get('files').add(file);
 	},
 
@@ -49,7 +52,7 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 					_.bind(function(code) {
 						if (code === 0) {
 							// Nothing was copied.
-							ContentUpdater.ContentUpdater.prototype._completed.call(this);
+							ContentUpdater.prototype._completed.call(this);
 						} else if (code <= 8) {
 							// Stuff was copied.
 							this._processFiles();
@@ -67,7 +70,7 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 
 		// Not a zip file, so bail.
 		if (path.extname(file.get('url')).toUpperCase() != '.ZIP') {
-			ContentUpdater.ContentUpdater.prototype._completed.call(this);
+			ContentUpdater.prototype._completed.call(this);
 			return;
 		}
 
@@ -80,13 +83,13 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 			})).on('finish', _.bind(function(error) {
 				this._handleError('Error unzipping app.', error);
 				if (error) {
-					ContentUpdater.ContentUpdater.prototype._completed.call(this);
+					ContentUpdater.prototype._completed.call(this);
 					return;
 				}
 
 				// Delete the zip file.
 				fs.unlink(file.get('filePath'), _.bind(function() {
-					ContentUpdater.ContentUpdater.prototype._completed.call(this);
+					ContentUpdater.prototype._completed.call(this);
 				}, this));
 			}, this));
 	}
