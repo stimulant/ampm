@@ -1,26 +1,32 @@
-﻿using System.Web.Script.Serialization;
+﻿
+using System;
+using System.Collections.Generic;
 using System.Windows;
-using System.Windows.Media;
+using Newtonsoft.Json.Linq;
 
 namespace Client
 {
     public class AppState
     {
-        public AppState()
+        private static AppState _Instance;
+
+        public static AppState Instance
         {
-            Color = Brushes.Black;
+            get
+            {
+                if (_Instance == null)
+                {
+                    _Instance = new AppState();
+                }
+
+                return _Instance;
+            }
         }
 
-        /// <summary>
-        /// The color to represent this client with.
-        /// Ignored because it's a config setting, so no point sending it back to the server all the time.
-        /// </summary>
-        [ScriptIgnore]
-        public Brush Color { get; set; }
+        private AppState()
+        {
+        }
 
-        /// <summary>
-        /// The location of this client.
-        /// </summary>
-        public Point Point { get; set; }
+        public JToken Config { get; set; }
     }
 }

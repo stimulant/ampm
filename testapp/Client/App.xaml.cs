@@ -75,7 +75,7 @@ namespace Client
             {
                 try
                 {
-                    ExhibitState.Instance.Config = JObject.Parse(e.Args[0]);
+                    AppState.Instance.Config = JObject.Parse(e.Args[0]);
                 }
                 catch
                 {
