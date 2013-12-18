@@ -46,11 +46,16 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 					path.dirname(this.get('remote')),
 					path.dirname(path.resolve(file.get('tempPath'))),
 					path.basename(this.get('remote')),
-					_.bind(function(success) {
-						if (success) {
+					_.bind(function(code) {
+						if (code === 0) {
+							// Nothing was copied.
+							ContentUpdater.ContentUpdater.prototype._completed.call(this);
+						} else if (code <= 8) {
+							// Stuff was copied.
 							this._processFiles();
 						} else {
-							winston.error('Robocopy failed.');
+							// Something bad happened.
+							winston.error('Robocopy failed with code ' + code);
 						}
 					}, this));
 			}
@@ -74,7 +79,15 @@ exports.AppUpdater = ContentUpdater.ContentUpdater.extend({
 				path: path.dirname(file.get('filePath'))
 			})).on('finish', _.bind(function(error) {
 				this._handleError('Error unzipping app.', error);
-				ContentUpdater.ContentUpdater.prototype._completed.call(this);
+				if (error) {
+					ContentUpdater.ContentUpdater.prototype._completed.call(this);
+					return;
+				}
+
+				// Delete the zip file.
+				fs.unlink(file.get('filePath'), _.bind(function() {
+					ContentUpdater.ContentUpdater.prototype._completed.call(this);
+				}, this));
 			}, this));
 	}
 });

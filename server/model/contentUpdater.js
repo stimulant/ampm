@@ -43,10 +43,15 @@ exports.ContentUpdater = Backbone.Model.extend({
                 request(this.get('remote'), _.bind(this._processContentRoot, this));
             } else {
                 // We're going to just robocopy from another folder instead.
-                this._robocopy(this.get('remote'), path.resolve(this.get('temp')), null, _.bind(function(success) {
-                    if (success) {
+                this._robocopy(this.get('remote'), path.resolve(this.get('temp')), null, _.bind(function(code) {
+                    if (code === 0) {
+                        // Nothing was copied.
+                        this._completed();
+                    } else if (code <= 8) {
+                        // Stuff was copied.
                         this._processFiles();
                     } else {
+                        // Something bad happened.
                         winston.error('Robocopy failed.');
                     }
                 }, this));
@@ -56,25 +61,20 @@ exports.ContentUpdater = Backbone.Model.extend({
 
     // Set up the temp and output directories.
     _initDirectories: function(callback) {
-        // Delete the temp directory.
-        rimraf(this.get('temp'), _.bind(function(error) {
-            this._handleError('Error clearing temp directory.', error);
+        // Make the temp directory.
+        fs.mkdir(this.get('temp'), 0777, true, _.bind(function(error) {
+            this._handleError('Error creating temp directory.', error);
 
-            // Make the temp directory.
-            fs.mkdir(this.get('temp'), 0777, true, _.bind(function(error) {
-                this._handleError('Error creating temp directory.', error);
+            fs.exists(this.get('local'), _.bind(function(exists) {
+                if (exists) {
+                    callback();
+                    return;
+                }
 
-                fs.exists(this.get('local'), _.bind(function(exists) {
-                    if (exists) {
-                        callback();
-                        return;
-                    }
-
-                    // Make the ouput directory.
-                    fs.mkdir(this.get('local'), 0777, true, _.bind(function(error) {
-                        this._handleError('Error creating ouput directory.', error);
-                        callback();
-                    }, this));
+                // Make the ouput directory.
+                fs.mkdir(this.get('local'), 0777, true, _.bind(function(error) {
+                    this._handleError('Error creating ouput directory.', error);
+                    callback();
                 }, this));
             }, this));
         }, this));
@@ -142,7 +142,7 @@ exports.ContentUpdater = Backbone.Model.extend({
 
     // Determine if the file needs to be loaded, or if it's already up to date.
     _processFile: function(contentFile) {
-        fs.exists(contentFile.get('filePath'), _.bind(function(exists) {
+        fs.exists(contentFile.get('tempPath'), _.bind(function(exists) {
             if (!exists) {
                 // The file doesn't exist locally, so download it.
                 this._downloadFile(contentFile);
@@ -150,7 +150,7 @@ exports.ContentUpdater = Backbone.Model.extend({
             }
 
             // The file does exist locally, check if the remote one is newer.
-            fs.stat(contentFile.get('filePath'), _.bind(function(error, stats) {
+            fs.stat(contentFile.get('tempPath'), _.bind(function(error, stats) {
                 var localFileModified = moment(stats.mtime);
                 request({
                     url: contentFile.get('url'),
@@ -228,17 +228,11 @@ exports.ContentUpdater = Backbone.Model.extend({
     },
 
     // Copy files to their final destination when all files are loaded.
-    // TODO: If a file is removed from the CMS, it will never get removed from the output directory.
     _processFiles: function() {
         // Recursive copy from temp to target.
         ncp(this.get('temp'), this.get('local'), _.bind(function(error) {
             this._handleError('Error copying from temp folder.', error);
-
-            // Delete the temp folder.
-            rimraf(this.get('temp'), _.bind(function(error) {
-                this._handleError('Error clearing temp directory.', error);
-                this._completed();
-            }, this));
+            this._completed();
         }, this));
     },
 
@@ -300,11 +294,8 @@ exports.ContentUpdater = Backbone.Model.extend({
         }, this));
 
         copy.on('close', _.bind(function(code) {
-            console.log(code);
-            // http://support.microsoft.com/kb/954404
-            var success = code <= 8;
             if (callback) {
-                callback(success);
+                callback(code);
             }
         }, this));
     }
