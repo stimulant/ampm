@@ -16,6 +16,7 @@ exports.ContentUpdater = Backbone.Model.extend({
 
     defaults: {
         // When the content was last updated.
+        downloaded: null,
         updated: null,
 
         // The remote URL to the root XML.
@@ -28,14 +29,16 @@ exports.ContentUpdater = Backbone.Model.extend({
         temp: '../content.tmp/',
 
         // A collection of file objects that are being processed.
-        files: null
+        files: null,
+        needsUpdate: false,
     },
 
     // A callback to call when updating is complete.
     _callback: null,
 
-    // Manually update content.
-    update: function(callback) {
+    // Download new content to the temp folder.
+    download: function(callback) {
+        this.set('needsUpdate', false);
         this._callback = callback;
         this._initDirectories(_.bind(function() {
             if (this.get('remote').indexOf('http') === 0) {
@@ -44,15 +47,12 @@ exports.ContentUpdater = Backbone.Model.extend({
             } else {
                 // We're going to just robocopy from another folder instead.
                 this._robocopy(this.get('remote'), path.resolve(this.get('temp')), null, _.bind(function(code) {
-                    if (code === 0) {
-                        // Nothing was copied.
-                        this._completed();
-                    } else if (code <= 8) {
-                        // Stuff was copied.
-                        this._processFiles();
+                    this.set('needsUpdate', code > 0 && code <= 8);
+                    if (code <= 8) {
+                        this._callback();
                     } else {
                         // Something bad happened.
-                        winston.error('Robocopy failed.');
+                        winston.error('Robocopy failed with code ' + code);
                     }
                 }, this));
             }
@@ -179,6 +179,7 @@ exports.ContentUpdater = Backbone.Model.extend({
             url: contentFile.get('url'),
             encoding: null // Required for binary files.
         }, _.bind(function(error, response, body) {
+            this.set('needsUpdate', true);
             this._handleError('Error loading ' + contentFile.get('url'), error);
 
             // Create the file's output directory if needed.
@@ -223,12 +224,14 @@ exports.ContentUpdater = Backbone.Model.extend({
         winston.info(contentFile.get('url') + ' ' + style + ', ' + filesToGo + ' to go');
 
         if (!filesToGo) {
-            this._processFiles();
+            this.set('downloaded', moment());
+            this._callback();
         }
     },
 
     // Copy files to their final destination when all files are loaded.
-    _processFiles: function() {
+    update: function(callback) {
+        this._callback = callback;
         // Recursive copy from temp to target.
         ncp(this.get('temp'), this.get('local'), _.bind(function(error) {
             this._handleError('Error copying from temp folder.', error);
@@ -284,7 +287,6 @@ exports.ContentUpdater = Backbone.Model.extend({
             args.splice(3, 1);
         }
 
-
         var copy = child_process.spawn('robocopy', args);
         winston.info('robocopy: robocopy ' + args.join(' '));
 
@@ -304,6 +306,7 @@ exports.ContentUpdater = Backbone.Model.extend({
 
         copy.on('close', _.bind(function(code) {
             // The return codes are weird. http://support.microsoft.com/kb/954404
+            this.set('downloaded', moment());
             if (callback) {
                 callback(code);
             }

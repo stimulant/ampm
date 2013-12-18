@@ -18,12 +18,13 @@ serverState.start();
 winston.info('Server started.');
 
 /*
+What happens if the app/content isn't even there?
+
 Content Updater
-    Don't shut down app while downloading to temp
+    Restart app when there's an error
 
 App Updater
-    Update from non-web location
-    Don't shut down app while downloading to temp
+    Restart app when there's an error
 
 Demo App
     more/less fps

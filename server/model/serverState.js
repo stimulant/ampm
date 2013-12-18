@@ -40,32 +40,62 @@ exports.ServerState = BaseModel.extend({
 
     updateContent: function() {
         winston.info('Beginning update.');
-        this.get('persistence').shutdownApp(_.bind(function() {
-            this.get('contentUpdater').update(_.bind(this._onContentUpdated, this));
+
+        var contentDownloaded = false;
+        var appDownloaded = false;
+
+        // Download content update.
+        this.get('contentUpdater').download(_.bind(function() {
+            winston.info('Content download complete! ' + this.get('contentUpdater').get('downloaded').toString());
+            contentDownloaded = true;
+            this._onDownloaded(contentDownloaded, appDownloaded);
+        }, this));
+
+        // Download app update.
+        this.get('appUpdater').download(_.bind(function() {
+            winston.info('App download complete! ' + this.get('appUpdater').get('downloaded').toString());
+            appDownloaded = true;
+            this._onDownloaded(contentDownloaded, appDownloaded);
         }, this));
     },
 
-    _onContentUpdated: function(error) {
-        if (error) {
-            winston.error(error);
-            throw error;
+    _onDownloaded: function(contentDownloaded, appDownloaded) {
+        if (!contentDownloaded || !appDownloaded) {
+            return;
         }
 
-        winston.info('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
-        this.updateApp();
-    },
-
-    updateApp: function() {
-        this.get('appUpdater').update(_.bind(this._onAppUpdated, this));
-    },
-
-    _onAppUpdated: function(error) {
-        if (error) {
-            winston.error(error);
-            throw error;
+        if (!this.get('contentUpdater').get('needsUpdate') && !this.get('appUpdater').get('needsUpdate')) {
+            return;
         }
 
-        winston.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
+        // New stuff was downloaded, so shut down the app and process the downloaded files.
+        var contentUpdated = false;
+        var appUpdated = false;
+
+        this.get('persistence').shutdownApp(_.bind(function() {
+
+            // Copy content files from the temp folder.
+            this.get('contentUpdater').update(_.bind(function() {
+                winston.info('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
+                contentUpdated = true;
+                this._onUpdated(contentUpdated, appUpdated);
+            }, this));
+
+            // Copy the app from the temp folder, and unzip it.
+            this.get('appUpdater').update(_.bind(function() {
+                winston.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
+                appUpdated = true;
+                this._onUpdated(contentUpdated, appUpdated);
+            }, this));
+        }, this));
+    },
+
+    // Once the download has been processed, restart the app.
+    _onUpdated: function(contentUpdated, appUpdated) {
+        if (!contentUpdated || !appUpdated) {
+            return;
+        }
+
         this.get('persistence').restartApp();
     }
 });

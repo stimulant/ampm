@@ -34,7 +34,8 @@ exports.AppUpdater = ContentUpdater.extend({
 		this.get('files').add(file);
 	},
 
-	update: function(callback) {
+	// Download the new app to the temp folder.
+	download: function(callback) {
 		this._callback = callback;
 		this.initialize();
 		var file = this.get('files').at(0);
@@ -50,12 +51,9 @@ exports.AppUpdater = ContentUpdater.extend({
 					path.dirname(path.resolve(file.get('tempPath'))),
 					path.basename(this.get('remote')),
 					_.bind(function(code) {
-						if (code === 0) {
-							// Nothing was copied.
-							ContentUpdater.prototype._completed.call(this);
-						} else if (code <= 8) {
-							// Stuff was copied.
-							this._processFiles();
+						this.set('needsUpdate', code > 0 && code <= 8);
+						if (code <= 8) {
+							this._callback();
 						} else {
 							// Something bad happened.
 							winston.error('Robocopy failed with code ' + code);
