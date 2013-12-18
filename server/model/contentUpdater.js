@@ -1,3 +1,4 @@
+var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
 var path = require('path'); // File path processing. http://nodejs.org/api/path.html
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
@@ -37,7 +38,19 @@ exports.ContentUpdater = Backbone.Model.extend({
     update: function(callback) {
         this._callback = callback;
         this._initDirectories(_.bind(function() {
-            request(this.get('remote'), _.bind(this._processContentRoot, this));
+            if (this.get('remote').indexOf('http') === 0) {
+                // We're going to pull down an XML file from the web and parse it for other files.
+                request(this.get('remote'), _.bind(this._processContentRoot, this));
+            } else {
+                // We're going to just robocopy from another folder instead.
+                this._robocopy(_.bind(function(success) {
+                    if (success) {
+                        this._processFiles();
+                    } else {
+                        winston.error('Robocopy failed.');
+                    }
+                }, this));
+            }
         }, this));
     },
 
@@ -239,7 +252,6 @@ exports.ContentUpdater = Backbone.Model.extend({
     },
 
     // Generic error handling function.
-    // TODO: Replace with real logging.
     _handleError: function(message, error) {
         if (!error) {
             return;
@@ -251,6 +263,44 @@ exports.ContentUpdater = Backbone.Model.extend({
         }
 
         throw error;
+    },
+
+    // Robocopy files instead of downloading them.
+    _robocopy: function(callback) {
+        // http://technet.microsoft.com/en-us/library/cc733145.aspx
+        var args = [
+            this.get('remote'),
+            path.resolve(this.get('temp')),
+            '/v', // Produces verbose output, and shows all skipped files.
+            '/e', // Copies subdirectories. Note that this option includes empty directories.
+            '/np', // Specifies that the progress of the copying operation (the number of files or directories copied so far) will not be displayed.
+            '/njs', // Specifies that there is no job summary.
+            '/njh', // Specifies that there is no job header.
+            '/bytes', // Prints sizes, as bytes.
+            '/fft', // Assumes FAT file times (two-second precision).
+            '/ndl' // Specifies that directory names are not to be logged.
+        ];
+
+        var copy = child_process.spawn('robocopy', args);
+
+        copy.stdout.on('data', _.bind(function(data) {
+            var line = data.toString().trim();
+            if (line) {
+                winston.info('robocopy: ' + line);
+            }
+        }, this));
+
+        copy.stderr.on('data', _.bind(function(data) {
+            winston.error('robocopy: ' + data.toString());
+        }, this));
+
+        copy.on('close', _.bind(function(code) {
+            // http://support.microsoft.com/kb/954404
+            var success = code <= 8;
+            if (callback) {
+                callback(success);
+            }
+        }, this));
     }
 });
 
