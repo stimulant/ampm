@@ -1,5 +1,6 @@
 var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
 var path = require('path'); //http://nodejs.org/api/path.html
+var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 
 var _ = require('underscore'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
@@ -223,16 +224,25 @@ exports.Persistence = BaseModel.extend({
                 return;
             }
 
-            // Start the app.
-            var appPath = path.join(serverState.get('appUpdater').get('local'), this.get('processName'));
-
             // Config length limited to 8191 characters. (DOT was about 1200)
             this._lastHeart = null;
             this._firstHeart = null;
             this._startupCallback = callback;
-            child_process.spawn(appPath, [JSON.stringify(config)]);
-            winston.info('App starting up.');
-            this._resetRestartTimeout();
+
+            // Start the app.
+            var appPath = path.join(serverState.get('appUpdater').get('local'), this.get('processName'));
+            fs.exists(appPath, _.bind(function(exists) {
+                if (!exists) {
+                    this._isStartingUp = false;
+                    winston.error('Application not found.');
+                    serverState.updateContent();
+                    return;
+                }
+
+                winston.info('App starting up.');
+                child_process.spawn(appPath, [JSON.stringify(config)]);
+                this._resetRestartTimeout();
+            }, this));
         }, this));
     },
 

@@ -20,12 +20,6 @@ winston.info('Server started.');
 /*
 What happens if the app/content isn't even there?
 
-Content Updater
-    Restart app when there's an error
-
-App Updater
-    Restart app when there's an error
-
 Demo App
     more/less fps
     more/less memory
@@ -40,6 +34,7 @@ Console
         Is client running
         Memory/CPU usage 
         Recent logs
+        CPU temperature? http://arstechnica.com/civis/viewtopic.php?f=15&p=22433263
         Display arbitrary amount of state per client (like ICE)
     Input
         Kill running client
