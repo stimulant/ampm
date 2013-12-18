@@ -1,1 +1,1 @@
-nodemon -e js,json
+nodemon -q -e js,json
