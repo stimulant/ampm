@@ -45,17 +45,21 @@ exports.ServerState = BaseModel.extend({
         var appDownloaded = false;
 
         // Download content update.
-        this.get('contentUpdater').download(_.bind(function() {
-            winston.info('Content download complete! ' + this.get('contentUpdater').get('downloaded').toString());
+        this.get('contentUpdater').download(_.bind(function(error) {
             contentDownloaded = true;
             this._onDownloaded(contentDownloaded, appDownloaded);
+            if (!error) {
+                winston.info('Content download complete! ' + this.get('contentUpdater').get('downloaded').toString());
+            }
         }, this));
 
         // Download app update.
-        this.get('appUpdater').download(_.bind(function() {
-            winston.info('App download complete! ' + this.get('appUpdater').get('downloaded').toString());
+        this.get('appUpdater').download(_.bind(function(error) {
             appDownloaded = true;
             this._onDownloaded(contentDownloaded, appDownloaded);
+            if (!error) {
+                winston.info('App download complete! ' + this.get('appUpdater').get('downloaded').toString());
+            }
         }, this));
     },
 
@@ -75,17 +79,21 @@ exports.ServerState = BaseModel.extend({
         this.get('persistence').shutdownApp(_.bind(function() {
 
             // Copy content files from the temp folder.
-            this.get('contentUpdater').update(_.bind(function() {
-                winston.info('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
+            this.get('contentUpdater').update(_.bind(function(error) {
                 contentUpdated = true;
                 this._onUpdated(contentUpdated, appUpdated);
+                if (!error) {
+                    winston.info('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
+                }
             }, this));
 
             // Copy the app from the temp folder, and unzip it.
-            this.get('appUpdater').update(_.bind(function() {
-                winston.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
+            this.get('appUpdater').update(_.bind(function(error) {
                 appUpdated = true;
                 this._onUpdated(contentUpdated, appUpdated);
+                if (!error) {
+                    winston.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
+                }
             }, this));
         }, this));
     },

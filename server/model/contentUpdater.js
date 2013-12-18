@@ -48,9 +48,8 @@ exports.ContentUpdater = Backbone.Model.extend({
                 // We're going to just robocopy from another folder instead.
                 this._robocopy(this.get('remote'), path.resolve(this.get('temp')), null, _.bind(function(code) {
                     this.set('needsUpdate', code > 0 && code <= 8);
-                    if (code <= 8) {
-                        this._callback();
-                    } else {
+                    this._callback(code > 8 ? code : 0);
+                    if (code > 8) {
                         // Something bad happened.
                         winston.error('Robocopy failed with code ' + code);
                     }
@@ -179,7 +178,11 @@ exports.ContentUpdater = Backbone.Model.extend({
             url: contentFile.get('url'),
             encoding: null // Required for binary files.
         }, _.bind(function(error, response, body) {
-            this.set('needsUpdate', true);
+            if (!error && response.statusCode != 200) {
+                error = response.statusCode;
+            }
+
+            this.set('needsUpdate', !error);
             this._handleError('Error loading ' + contentFile.get('url'), error);
 
             // Create the file's output directory if needed.
@@ -258,8 +261,6 @@ exports.ContentUpdater = Backbone.Model.extend({
         if (this._callback) {
             this._callback(error);
         }
-
-        throw error;
     },
 
     // Robocopy files instead of downloading them.

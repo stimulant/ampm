@@ -52,9 +52,8 @@ exports.AppUpdater = ContentUpdater.extend({
 					path.basename(this.get('remote')),
 					_.bind(function(code) {
 						this.set('needsUpdate', code > 0 && code <= 8);
-						if (code <= 8) {
-							this._callback();
-						} else {
+						this._callback(code > 8 ? code : 0);
+						if (code > 8) {
 							// Something bad happened.
 							winston.error('Robocopy failed with code ' + code);
 						}
