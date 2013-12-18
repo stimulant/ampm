@@ -18,8 +18,6 @@ serverState.start();
 winston.info('Server started.');
 
 /*
-What happens if the app/content isn't even there?
-
 Demo App
     more/less fps
     more/less memory

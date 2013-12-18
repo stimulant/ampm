@@ -32,6 +32,12 @@ exports.Logging = BaseModel.extend({
 			userId: '3e582629-7aad-4aa3-90f2-9f7cb3f89597'
 		},
 
+		loggly: {
+			subdomain: 'stimulant', // https://stimulant.loggly.com/dashboards
+			inputToken: 'b8eeee6e-12f4-4f2f-b6b4-62f087ad795e',
+			json: true
+		},
+
 		mail: {
 			host: 'smtp.gmail.com',
 			ssl: true,
@@ -105,9 +111,17 @@ exports.Logging = BaseModel.extend({
 		// Set up Google Analytics. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
 		if (loggers.console && this.get('google')) {
 			loggers.google = ua(this.get('google').accountId, this.get('google').userId);
+			/*
+			// This is proving to not be very useful -- probably just want GA for actual events.
 			loggers.console.on('logging', _.bind(function(transport, level, msg, meta) {
 				loggers.google.event('log', msg, level).send();
 			}, this));
+			*/
+		}
+
+		// Set up loggly.
+		if (loggers.console && this.get('loggly')) {
+			winston.add(require('winston-loggly').Loggly, this.get('loggly'));
 		}
 
 		comm.socketToApp.sockets.on('connection', _.bind(function(socket) {

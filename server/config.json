@@ -1,10 +1,10 @@
 {
 	"network": {},
 	"appUpdater": {
-		"remote": "http://content.stimulant.io/uploads/mvi_video_app/mvi_video.zip"
+		"remote": "C:\\Users\\josh.STIMULANT\\Desktop\\mvi_video.zip"
 	},
 	"contentUpdater": {
-		"remote": "http://mvi_video:funk0@content.stimulant.io/mvi_video/category/6"
+		"remote": "C:\\Users\\josh.STIMULANT\\Desktop\\content-copy"
 	},
 	"persistence": {},
 	"logging": {}

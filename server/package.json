@@ -27,6 +27,7 @@
         "universal-analytics": "0.3.0",
         "windows-eventlog": "1.0.1",
         "winston": "0.7.2",
+        "winston-loggly": "1.0.3",
         "winston-mail": "0.2.7",
         "xregexp": "2.0.0"
     }
