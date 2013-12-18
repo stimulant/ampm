@@ -283,10 +283,13 @@ exports.ContentUpdater = Backbone.Model.extend({
         var copy = child_process.spawn('robocopy', args);
 
         copy.stdout.on('data', _.bind(function(data) {
-            var line = data.toString().trim();
-            if (line) {
-                winston.info('robocopy: ' + line);
-            }
+            var lines = data.toString().split('\r\n');
+            _.each(lines, function(line) {
+                line = line.trim();
+                if (line) {
+                    winston.info('robocopy: ' + line);
+                }
+            });
         }, this));
 
         copy.stderr.on('data', _.bind(function(data) {
