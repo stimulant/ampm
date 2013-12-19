@@ -21,9 +21,14 @@
     <script type="text/template" id="info-template"> 
         <p>isRunning: <%- isRunning %>
         <br/>uptime: <%- uptime %>
+        <br/>restartCount: <%- restartCount %>
         <br/>fps: <%- fps %>
         <br/>cpu: <%- cpu %>
-        <br/>memory: <%- memory %>
+        <br/>memory: <%- memory %></p>
+        <hr/>
+        <pre><%- logList %></pre>
+        <hr/>
+        <pre><%- eventList %></pre>
     </script>
 </head>
 <body>

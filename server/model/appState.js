@@ -22,13 +22,25 @@ AppState = exports.AppState = BaseModel.extend({
 	_statHistory: 60,
 	_statIndex: 0,
 	// The interval to update stats.
-	_updateTimeout: 0,
+	_updateStatsTimeout: 0,
+	_updateConsoleTimeout: 0,
 	// The last time the app was running to compute uptime.
 	_startupTime: 0,
 
 	initialize: function() {
 		serverState.get('persistence').on('heart', _.bind(this._onHeart, this));
 		this._updateStats();
+
+		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
+	},
+
+	_updateConsole: function() {
+		var message = _.clone(this.attributes);
+		message.restartCount = serverState.get('persistence').get('restartCount');
+		message.logs = serverState.get('logging').get('logCache');
+		message.events = serverState.get('logging').get('eventCache');
+		comm.socketToConsole.sockets.emit('appState', message);
+		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
 	},
 
 	_updateStats: function() {
@@ -47,7 +59,7 @@ AppState = exports.AppState = BaseModel.extend({
 			});
 		}
 
-		clearTimeout(this._updateTimeout);
+		clearTimeout(this._updateStatsTimeout);
 		var process = serverState.get('persistence').get('processName').toUpperCase();
 
 		// Is the app running?
@@ -67,7 +79,7 @@ AppState = exports.AppState = BaseModel.extend({
 					memory: null
 				});
 
-				this._finishUpdateStats();
+				this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
 				return;
 			}
 
@@ -119,14 +131,9 @@ AppState = exports.AppState = BaseModel.extend({
 					cpuHistory.shift();
 				}
 
-				this._finishUpdateStats();
+				this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
 			}, this));
 		}, this));
-	},
-
-	_finishUpdateStats: function() {
-		comm.socketToConsole.sockets.emit('appState', this.attributes);
-		this._updateTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
 	},
 
 	// Compute FPS in a fast way. http://stackoverflow.com/a/87732/468472

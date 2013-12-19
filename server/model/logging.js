@@ -46,7 +46,13 @@ exports.Logging = BaseModel.extend({
 			subject: 'ERROR: ' + os.hostname(),
 			level: 'error',
 			to: 'josh@stimulant.io'
-		}
+		},
+
+		// Cache of the last n log messages, sent to console.
+		logCache: null,
+		// Cache of the last n GA events, sent to console.
+		eventCache: null,
+		cacheAmount: 20,
 	},
 
 	// Mappings from MS.Diagnostics.Tracing.EventLevel to the Winston levels.
@@ -110,6 +116,7 @@ exports.Logging = BaseModel.extend({
 
 		// Set up Google Analytics. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
 		if (loggers.console && this.get('google')) {
+			this.set('eventCache', []);
 			loggers.google = ua(this.get('google').accountId, this.get('google').userId);
 			/*
 			// This is proving to not be very useful -- probably just want GA for actual events.
@@ -124,6 +131,23 @@ exports.Logging = BaseModel.extend({
 			winston.add(require('winston-loggly').Loggly, this.get('loggly'));
 		}
 
+		// Set up the cache, which is just a history of log messages.
+		if (loggers.console && this.get('cacheAmount')) {
+			this.set('logCache', []);
+			loggers.console.on('logging', _.bind(function(transport, level, msg, meta) {
+				if (transport.name == 'console') {
+					var cache = this.get('logCache');
+					cache.push({
+						level: level,
+						msg: msg
+					});
+					if (cache.length > this.get('cacheAmount')) {
+						cache.splice(0, cache.length - this.get('cacheAmount'));
+					}
+				}
+			}, this));
+		}
+
 		comm.socketToApp.sockets.on('connection', _.bind(function(socket) {
 
 			// Log on request from the app.
@@ -136,7 +160,24 @@ exports.Logging = BaseModel.extend({
 
 			// Track events on request from the app.
 			socket.on('event', _.bind(function(data) {
-				loggers.google.event(data.Category, data.Action, data.Label, data.Value).send();
+				loggers.google.event(data.Category, data.Action, data.Label, data.Value, _.bind(function(error) {
+					if (error) {
+						winston.warn('Error with Google Analytics', error);
+						return;
+					}
+
+					// Cache events for the console.
+					var cache = this.get('eventCache');
+					cache.push({
+						category: data.Category,
+						action: data.Action,
+						label: data.Label,
+						value: data.Value
+					});
+					if (cache.length > this.get('cacheAmount')) {
+						cache.splice(0, cache.length - this.get('cacheAmount'));
+					}
+				}, this)).send();
 			}, this));
 		}, this));
 	}

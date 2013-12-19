@@ -16,6 +16,16 @@ var View = Backbone.View.extend({
 		message.fps = message.fps ? message.fps[message.fps.length - 1] : '';
 		message.cpu = message.cpu ? message.cpu[message.cpu.length - 1] : '';
 		message.memory = message.memory ? humanize.filesize(message.memory[message.memory.length - 1]) : '';
+		message.logList = '';
+		_.each(message.logs, function(log) {
+			message.logList += log.level + ': ' + log.msg + '\n';
+		});
+
+		message.eventList = '';
+		_.each(message.events, function(e) {
+			message.eventList += JSON.stringify(e) + '\n';
+		});
+
 		var template = _.template($('#info-template').html(), message);
 		$('#info').html(template);
 	},

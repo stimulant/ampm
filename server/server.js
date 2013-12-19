@@ -26,10 +26,7 @@ Console
         List of clients in config file, or use auto-discovery?
     Output
         Number of clients
-        Is client running
-        Memory/CPU usage 
-        Recent logs
-        CPU temperature? http://arstechnica.com/civis/viewtopic.php?f=15&p=22433263
+        CPU temperature? http://ipmiutil.sourceforge.net/
         Display arbitrary amount of state per client (like ICE)
     Input
         Kill running client
@@ -38,7 +35,6 @@ Console
         Start all clients
         Restart client
         Restart all clients
-        Update content on client: kill process, update content, update client, restart client
         Update content on all clients: kill process, update content, update client, restart client
         Config editor
         Push config to all clients
