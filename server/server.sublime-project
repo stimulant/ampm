@@ -1,7 +1,19 @@
 {
-    "folders": [{
-        "path": "/E/GitHub/ampm/server",
-        "folder_exclude_patterns": ["client", "content", "*.tmp", "node_modules"],
-        "file_exclude_patterns": ["*.sublime-workspace"]
-    }]
+	"folders":
+	[
+		{
+			"file_exclude_patterns":
+			[
+				"*.sublime-workspace"
+			],
+			"folder_exclude_patterns":
+			[
+				"client",
+				"content",
+				"*.tmp",
+				"node_modules"
+			],
+			"path": "/E/GitHub/ampm/server"
+		}
+	]
 }
