@@ -7,7 +7,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        <UniformGrid Rows="1" HorizontalAlignment="Left" VerticalAlignment="Top">
+        <UniformGrid Rows="1">
             <Button Content="crash" Click="Crash_Click" />
             <Button Content="hang" Click="Hang_Click"/>
             <Button Content="log" Click="Log_Click" />

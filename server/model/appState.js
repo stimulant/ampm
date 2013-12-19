@@ -119,6 +119,8 @@ AppState = exports.AppState = BaseModel.extend({
 					cpuHistory.shift();
 				}
 
+				comm.socketToConsole.sockets.emit('appState', this.attributes);
+
 				// Update again.
 				this._updateTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
 			}, this));

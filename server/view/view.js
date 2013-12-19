@@ -8,16 +8,16 @@ var View = Backbone.View.extend({
 
 	initialize: function() {
 		this._socket = io.connect('http://localhost:3000');
-		this._socket.on('connect', _.bind(this._onConnect, this));
+		this._socket.on('appState', _.bind(this._onAppState, this));
 	},
 
-	_onConnect: function(socket) {
-		this._socket.on('serverState', _.bind(this._onServerState, this));
-		this._socket.emit('getServerState');
-	},
-
-	_onServerState: function(message) {
-		this._socket.emit('getServerState');
+	_onAppState: function(message) {
+		message.uptime = moment.duration(message.uptime, 'milliseconds').humanize();
+		message.fps = message.fps[message.fps.length - 1];
+		message.cpu = message.cpu[message.cpu.length - 1];
+		message.memory = humanize.filesize(message.memory[message.memory.length - 1]);
+		var template = _.template($('#info-template').html(), message);
+		$('#info').html(template);
 	},
 
 	_onUpdateClicked: function() {

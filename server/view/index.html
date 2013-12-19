@@ -7,6 +7,7 @@
     <script src="/static/libs/underscore.js"></script>
     <script src="/static/libs/backbone.js"></script>
     <script src="/static/libs/moment.js"></script>
+    <script src="/static/libs/humanize.js"></script>
     <script src="/static/view.js"></script>
     <script type="text/javascript">
 
@@ -15,8 +16,17 @@
     });
 
     </script>
+    <script type="text/template" id="info-template"> 
+        <p>isRunning: <%- isRunning %>
+        <br/>uptime: <%- uptime %>
+        <br/>fps: <%- fps %>
+        <br/>cpu: <%- cpu %>
+        <br/>memory: <%- memory %>
+    </script>
 </head>
 <body>
     <button id="update">update</button>
+    <div id="info">
+    </div>
 </body>
 </html>

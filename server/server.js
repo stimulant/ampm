@@ -19,9 +19,6 @@ winston.info('Server started.');
 
 /*
 Demo App
-    more/less fps
-    more/less memory
-    log (info/warn/critical)
     share state
 
 Console
@@ -44,6 +41,7 @@ Console
         Update content on client: kill process, update content, update client, restart client
         Update content on all clients: kill process, update content, update client, restart client
         Config editor
+        Push config to all clients
 
 State manager
     Runs on master only
