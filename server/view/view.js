@@ -13,9 +13,9 @@ var View = Backbone.View.extend({
 
 	_onAppState: function(message) {
 		message.uptime = moment.duration(message.uptime, 'milliseconds').format('dd:hh:mm:ss');
-		message.fps = message.fps[message.fps.length - 1];
-		message.cpu = message.cpu[message.cpu.length - 1];
-		message.memory = humanize.filesize(message.memory[message.memory.length - 1]);
+		message.fps = message.fps ? message.fps[message.fps.length - 1] : '';
+		message.cpu = message.cpu ? message.cpu[message.cpu.length - 1] : '';
+		message.memory = message.memory ? humanize.filesize(message.memory[message.memory.length - 1]) : '';
 		var template = _.template($('#info-template').html(), message);
 		$('#info').html(template);
 	},

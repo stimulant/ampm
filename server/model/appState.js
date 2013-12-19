@@ -67,7 +67,7 @@ AppState = exports.AppState = BaseModel.extend({
 					memory: null
 				});
 
-				this._updateTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
+				this._finishUpdateStats();
 				return;
 			}
 
@@ -119,12 +119,14 @@ AppState = exports.AppState = BaseModel.extend({
 					cpuHistory.shift();
 				}
 
-				comm.socketToConsole.sockets.emit('appState', this.attributes);
-
-				// Update again.
-				this._updateTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
+				this._finishUpdateStats();
 			}, this));
 		}, this));
+	},
+
+	_finishUpdateStats: function() {
+		comm.socketToConsole.sockets.emit('appState', this.attributes);
+		this._updateTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
 	},
 
 	// Compute FPS in a fast way. http://stackoverflow.com/a/87732/468472
