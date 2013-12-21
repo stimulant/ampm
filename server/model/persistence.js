@@ -149,7 +149,7 @@ exports.Persistence = BaseModel.extend({
     _onRestartTimeout: function() {
         var restartCount = this.get('restartCount');
         restartCount++;
-        winston.error('App went away. ' + restartCount);
+        winston.error('App went away.', restartCount);
         this.trigger('crash');
 
         if (restartCount >= this.get('restartMachineAfter')) {
