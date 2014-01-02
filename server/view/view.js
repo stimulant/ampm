@@ -1,7 +1,8 @@
 var View = Backbone.View.extend({
 
 	events: {
-		'click #update': '_onUpdateClicked'
+		'click #update': '_onUpdateClicked',
+		'click #restart': '_onRestartClicked'
 	},
 
 	_socket: null,
@@ -32,5 +33,9 @@ var View = Backbone.View.extend({
 
 	_onUpdateClicked: function() {
 		this._socket.emit('updateContent');
+	},
+
+	_onRestartClicked: function() {
+		this._socket.emit('restart');
 	}
 });

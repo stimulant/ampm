@@ -31,7 +31,8 @@ exports.ServerState = BaseModel.extend({
         this.set('appState', new AppState(config.app));
         this.set('logging', new Logging(config.logging));
 
-        comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
+        //comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
+        comm.socketToConsole.sockets.on('updateContent', _.bind(this.updateContent, this));
     },
 
     _onConnection: function(socket) {

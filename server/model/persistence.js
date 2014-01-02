@@ -66,12 +66,19 @@ exports.Persistence = BaseModel.extend({
     initialize: function() {
         comm.oscFromApp.on('heart', _.bind(this._onHeart, this));
 
+
         this._initSchedules();
         if (this._shouldBeRunning()) {
             this.restartApp();
         } else {
             this.shutdownApp();
         }
+        comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
+    },
+
+    _onConnection: function(socket) {
+        winston.info('Restart requested from console.');
+        socket.on('restart', _.bind(this.restartApp, this));
     },
 
     _initSchedules: function() {
