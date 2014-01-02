@@ -85,46 +85,54 @@ exports.Persistence = BaseModel.extend({
         // Important to configure later to not use UTC.
         later.date.localTime();
 
-        // Parse cron schedules.
-        this._shutdownSchedule = later.parse.cron(this.get('shutdownSchedule'));
-        this._startupSchedule = later.parse.cron(this.get('startupSchedule'));
-        this._updateSchedule = later.parse.cron(this.get('updateSchedule'));
-
         // Shutdown on schedule.
-        if (this._shutdownInterval) {
-            this._shutdownInterval.clear();
-        }
+        if (this.get('shutdownSchedule')) {
+            this._shutdownSchedule = later.parse.cron(this.get('shutdownSchedule'));
+            if (this._shutdownInterval) {
+                this._shutdownInterval.clear();
+            }
 
-        this._shutdownInterval = later.setInterval(_.bind(function() {
-            winston.info('Shutdown time has arrived. ' + new Date());
-            this.set('restartCount', 0);
-            this.shutdownApp();
-        }, this), this._shutdownSchedule);
+            this._shutdownInterval = later.setInterval(_.bind(function() {
+                winston.info('Shutdown time has arrived. ' + new Date());
+                this.set('restartCount', 0);
+                this.shutdownApp();
+            }, this), this._shutdownSchedule);
+        }
 
         // Start up on schedule.
-        if (this._startupInterval) {
-            this._startupInterval.clear();
-        }
+        if (this.get('startupSchedule')) {
+            this._startupSchedule = later.parse.cron(this.get('startupSchedule'));
+            if (this._startupInterval) {
+                this._startupInterval.clear();
+            }
 
-        this._startupInterval = later.setInterval(_.bind(function() {
-            winston.info('Startup time has arrived. ' + new Date());
-            this.set('restartCount', 0);
-            this.startApp();
-        }, this), this._startupSchedule);
+            this._startupInterval = later.setInterval(_.bind(function() {
+                winston.info('Startup time has arrived. ' + new Date());
+                this.set('restartCount', 0);
+                this.startApp();
+            }, this), this._startupSchedule);
+        }
 
         // Update content on schedule.
-        if (this._updateInterval) {
-            this._updateInterval.clear();
-        }
+        if (this.get('updateSchedule')) {
+            this._updateSchedule = later.parse.cron(this.get('updateSchedule'));
+            if (this._updateInterval) {
+                this._updateInterval.clear();
+            }
 
-        this._updateInterval = later.setInterval(_.bind(function() {
-            winston.info('Update time has arrived. ' + new Date());
-            this.set('restartCount', 0);
-            serverState.updateContent();
-        }, this), this._updateSchedule);
+            this._updateInterval = later.setInterval(_.bind(function() {
+                winston.info('Update time has arrived. ' + new Date());
+                this.set('restartCount', 0);
+                serverState.updateContent();
+            }, this), this._updateSchedule);
+        }
     },
 
     _shouldBeRunning: function() {
+        if (!this._startupSchedule || !this._shutdownSchedule) {
+            return true;
+        }
+
         var lastStartup = later.schedule(this._startupSchedule).prev().getTime();
         var lastShutdown = later.schedule(this._shutdownSchedule).prev().getTime();
         return lastStartup > lastShutdown;
