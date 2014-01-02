@@ -44,7 +44,7 @@ exports.Logging = BaseModel.extend({
 			username: 'ampm@content.stimulant.io',
 			from: 'ampm@content.stimulant.io',
 			password: 'JPv5U9N6',
-			subject: 'ERROR: ' + os.hostname(),
+			subject: 'ERROR: {hostname}',
 			level: 'error',
 			to: 'josh@stimulant.io'
 		},
@@ -102,6 +102,7 @@ exports.Logging = BaseModel.extend({
 
 		// Set up email.
 		if (this.get('mail')) {
+			this.get('mail').subject = this.get('mail').subject ? this.get('mail').subject.replace('{hostname}', os.hostname()) : os.hostname();
 			loggers.mail = winston.add(require('winston-mail').Mail, this.get('mail'));
 		}
 
