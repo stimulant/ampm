@@ -39,10 +39,11 @@ exports.Logging = BaseModel.extend({
 		},
 
 		mail: {
-			host: 'smtp.gmail.com',
-			ssl: true,
-			username: 'google@stimulant.io',
-			password: 'google_p455!',
+			host: 'mail.content.stimulant.io',
+			ssl: false,
+			username: 'ampm@content.stimulant.io',
+			from: 'ampm@content.stimulant.io',
+			password: 'JPv5U9N6',
 			subject: 'ERROR: ' + os.hostname(),
 			level: 'error',
 			to: 'josh@stimulant.io'
@@ -99,7 +100,7 @@ exports.Logging = BaseModel.extend({
 			loggers.file = winston.add(winston.transports.DailyRotateFile, this.get('file'));
 		}
 
-		// Set up email. 
+		// Set up email.
 		if (this.get('mail')) {
 			loggers.mail = winston.add(require('winston-mail').Mail, this.get('mail'));
 		}

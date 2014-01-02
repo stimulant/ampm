@@ -18,6 +18,9 @@ serverState.start();
 winston.info('Server started.');
 
 /*
+Logging
+    Offline Google Analytics -- save events when offline, send when online
+
 Demo App
     share state
 
