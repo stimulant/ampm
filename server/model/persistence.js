@@ -66,7 +66,6 @@ exports.Persistence = BaseModel.extend({
     initialize: function() {
         comm.oscFromApp.on('heart', _.bind(this._onHeart, this));
 
-
         this._initSchedules();
         if (this._shouldBeRunning()) {
             this.restartApp();
@@ -214,12 +213,23 @@ exports.Persistence = BaseModel.extend({
             // Kill the app.
             clearTimeout(this._restartTimeout);
             var process = this.get('processName').toUpperCase();
-            child_process.exec('taskkill /IM ' + process + ' /F', _.bind(function(error, stdout, stderr) {
-                winston.info('App shut down by force.');
-                this._isShuttingDown = false;
-                if (callback) {
-                    callback();
-                }
+            child_process.exec('taskkill /IM ' + process + ' /T /F', _.bind(function(error, stdout, stderr) {
+
+                // Check on an interval to see if it's dead.
+                var check = setInterval(_.bind(function() {
+                    this._isAppRunning(_.bind(function(isRunning) {
+                        if (isRunning) {
+                            return;
+                        }
+
+                        clearInterval(check);
+                        winston.info('App shut down by force.');
+                        this._isShuttingDown = false;
+                        if (callback) {
+                            callback();
+                        }
+                    }, this));
+                }, this), 250);
             }, this));
         }, this));
     },
