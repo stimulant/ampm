@@ -36,6 +36,10 @@ exports.AppUpdater = ContentUpdater.extend({
 
 	// Download the new app to the temp folder.
 	download: function(callback) {
+		if (!this.get('remote')) {
+			return;
+		}
+
 		this._callback = callback;
 		this.initialize();
 		var file = this.get('files').at(0);
