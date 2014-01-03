@@ -30,6 +30,7 @@ AppState = exports.AppState = BaseModel.extend({
 	initialize: function() {
 		serverState.get('persistence').on('heart', _.bind(this._onHeart, this));
 		this._updateStats();
+		this._updateCpu();
 
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
 	},
@@ -45,16 +46,13 @@ AppState = exports.AppState = BaseModel.extend({
 
 	_updateStats: function() {
 		var fpsHistory = this.get('fps');
-		var cpuHistory = this.get('cpu');
 		var memoryHistory = this.get('memory');
 
-		if (!fpsHistory || !cpuHistory || !memoryHistory) {
+		if (!fpsHistory || !memoryHistory) {
 			fpsHistory = [];
-			cpuHistory = [];
 			memoryHistory = [];
 			this.set({
 				fps: fpsHistory,
-				cpu: cpuHistory,
 				memory: memoryHistory
 			});
 		}
@@ -75,7 +73,6 @@ AppState = exports.AppState = BaseModel.extend({
 				this.set('uptime', 0);
 				this.set({
 					fps: null,
-					cpu: null,
 					memory: null
 				});
 
@@ -115,24 +112,28 @@ AppState = exports.AppState = BaseModel.extend({
 			while (memoryHistory.length > this._statHistory) {
 				memoryHistory.shift();
 			}
+		}, this));
+	},
 
-			// Get CPU usage.
-			child_process.exec('wmic path Win32_PerfFormattedData_PerfProc_Process where name=\'' + process.split('.')[0] + '\' get PercentProcessorTime', _.bind(function(error, stdout, stderr) {
-
-				/*
-				// wmic.exe output looks like this:
-				PercentProcessorTime
-				0
-				*/
-
-				var cpu = parseInt(stdout.split('\r\r\n')[1], 10);
-				cpuHistory.push(cpu);
-				while (cpuHistory.length > this._statHistory) {
-					cpuHistory.shift();
+	// Run typeperf to get total CPU usage -- haven't figured out how to get it per process.
+	_updateCpu: function() {
+		var spawn = child_process.spawn('typeperf', ['\\Processor(_Total)\\% Processor Time']);
+		spawn.stdout.on('data', _.bind(function(data) {
+			data = data.toString();
+			if (data && data.indexOf(',') === 0) {
+				var cpu = parseFloat(data.substr(2, data.length - 3));
+				if (!isNaN(cpu)) {
+					var cpuHistory = this.get('cpu');
+					if (!cpuHistory) {
+						cpuHistory = [];
+						this.set('cpu', cpuHistory);
+					}
+					cpuHistory.push(cpu);
+					while (cpuHistory.length > this._statHistory) {
+						cpuHistory.shift();
+					}
 				}
-
-				this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
-			}, this));
+			}
 		}, this));
 	},
 
