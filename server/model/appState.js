@@ -112,6 +112,8 @@ AppState = exports.AppState = BaseModel.extend({
 			while (memoryHistory.length > this._statHistory) {
 				memoryHistory.shift();
 			}
+
+			this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
 		}, this));
 	},
 
