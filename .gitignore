@@ -6,6 +6,7 @@ packages/
 bin/
 obj/
 logs/
+*.log
 node_modules
 *.sublime-workspace
 *.csproj.user
