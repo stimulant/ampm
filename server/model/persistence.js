@@ -77,8 +77,10 @@ exports.Persistence = BaseModel.extend({
     },
 
     _onConnection: function(socket) {
-        winston.info('Restart requested from console.');
-        socket.on('restart', _.bind(this.restartApp, this));
+        socket.on('restart', _.bind(function() {
+            winston.info('Restart requested from console.');
+            this.restartApp();
+        }, this));
     },
 
     _initSchedules: function() {
