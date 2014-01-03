@@ -1,19 +1,18 @@
 {
-	"folders":
-	[
-		{
-			"file_exclude_patterns":
-			[
-				"*.sublime-workspace"
-			],
-			"folder_exclude_patterns":
-			[
-				"client",
-				"content",
-				"*.tmp",
-				"node_modules"
-			],
-			"path": "."
-		}
-	]
+	"folders": [{
+		"file_exclude_patterns": [
+			"*.sublime-workspace",
+			".*",
+			"*.log",
+			"README.*"
+		],
+		"folder_exclude_patterns": [
+			"client",
+			"content",
+			"*.tmp",
+			"node_modules",
+			"logs"
+		],
+		"path": "."
+	}]
 }
