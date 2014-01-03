@@ -1,4 +1,3 @@
-config.json
 content/
 content.tmp/
 app/
@@ -7,6 +6,7 @@ packages/
 bin/
 obj/
 logs/
+node_modules
 *.sublime-workspace
 *.csproj.user
 

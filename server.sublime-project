@@ -13,7 +13,7 @@
 				"*.tmp",
 				"node_modules"
 			],
-			"path": "/E/GitHub/ampm"
+			"path": "."
 		}
 	]
 }

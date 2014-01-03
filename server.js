@@ -2,14 +2,19 @@ var path = require('path'); //http://nodejs.org/api/path.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 
-global.constants = {
-    configPath: './config.json'
-};
+process.chdir(path.dirname(process.mainModule.filename));
+
+global.configPath = './config.json';
+
+// args will be ['node', 'server.js', 'config.json']
+if (process.argv.length > 2) {
+    global.configPath = process.argv[2];
+}
 
 global.app = null;
 global.comm = {};
 global.loggers = {};
-global.config = JSON.parse(fs.readFileSync(constants.configPath));
+global.config = JSON.parse(fs.readFileSync(global.configPath));
 
 winston.info('Server starting up.');
 var ServerState = require('./model/serverState.js').ServerState;
