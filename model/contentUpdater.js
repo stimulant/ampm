@@ -38,6 +38,10 @@ exports.ContentUpdater = Backbone.Model.extend({
 
     // Download new content to the temp folder.
     download: function(callback) {
+        if (!this.get('remote')) {
+            return;
+        }
+
         this.set('needsUpdate', false);
         this._callback = callback;
         this._initDirectories(_.bind(function() {
