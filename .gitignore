@@ -3,8 +3,6 @@ content.tmp/
 app/
 app.tmp/
 packages/
-bin/
-obj/
 logs/
 *.log
 *.sublime-workspace
