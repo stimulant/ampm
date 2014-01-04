@@ -267,7 +267,9 @@ exports.Persistence = BaseModel.extend({
                 }
 
                 winston.info('App starting up.');
-                child_process.spawn(appPath, [JSON.stringify(config)]);
+                child_process.spawn(appPath, [JSON.stringify(config), {
+                    cwd: path.resolve(path.dirname(appPath))
+                }]);
                 this._resetRestartTimeout();
             }, this));
         }, this));
