@@ -257,7 +257,7 @@ exports.Persistence = BaseModel.extend({
             this._startupCallback = callback;
 
             // Start the app.
-            var appPath = path.join(serverState.get('appUpdater').get('local'), this.get('processName'));
+            var appPath = path.resolve(path.join(serverState.get('appUpdater').get('local'), this.get('processName')));
             fs.exists(appPath, _.bind(function(exists) {
                 if (!exists) {
                     this._isStartingUp = false;
@@ -267,9 +267,9 @@ exports.Persistence = BaseModel.extend({
                 }
 
                 winston.info('App starting up.');
-                child_process.spawn(appPath, [JSON.stringify(config), {
-                    cwd: path.resolve(path.dirname(appPath))
-                }]);
+                child_process.spawn(appPath, [JSON.stringify(config)], {
+                    cwd: path.dirname(appPath)
+                });
                 this._resetRestartTimeout();
             }, this));
         }, this));
