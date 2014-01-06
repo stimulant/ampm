@@ -23,6 +23,8 @@ serverState.start();
 winston.info('Server started.');
 
 /*
+THIS SHOULD TRIGGER A JENKINS BUILD
+
 Logging
     Offline Google Analytics -- save events when offline, send when online
 
