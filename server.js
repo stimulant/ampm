@@ -23,6 +23,12 @@ serverState.start();
 winston.info('Server started.');
 
 /*
+Content Updater
+    There is an "unzipping app" message even if the app isn't new
+    Backup current app/content to .old folders before beginning
+    "Rollback" button to bring back .old
+    Multiple remotes -- live and test data.
+
 Logging
     Offline Google Analytics -- save events when offline, send when online
 
