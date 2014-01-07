@@ -3,7 +3,7 @@
 		"file_exclude_patterns": [
 			"*.sublime-workspace",
 			"*.log",
-			"README.*"
+			"README.png"
 		],
 		"folder_exclude_patterns": [
 			"client",

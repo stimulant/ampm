@@ -31,6 +31,17 @@ exports.ServerState = BaseModel.extend({
         this.set('appState', new AppState(config.app));
         this.set('logging', new Logging(config.logging));
 
+        // Spew config for documentation.
+        var fullConfig = {
+            network: this.get('network').attributes,
+            contentUpdater: this.get('contentUpdater').attributes,
+            appUpdater: this.get('appUpdater').attributes,
+            persistence: this.get('persistence').attributes,
+            logging: this.get('logging').attributes
+        };
+
+        // console.log(JSON.stringify(fullConfig, null, '\t'));
+
         comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
