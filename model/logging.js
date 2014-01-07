@@ -25,7 +25,9 @@ exports.Logging = BaseModel.extend({
 			level: 'info'
 		},
 
-		eventLog: {},
+		eventLog: {
+			enabled: true
+		},
 
 		google: {
 			accountId: 'UA-46432303-2',
@@ -107,7 +109,7 @@ exports.Logging = BaseModel.extend({
 		}
 
 		// Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
-		if (loggers.console && this.get('eventLog')) {
+		if (loggers.console && this.get('eventLog').enabled) {
 			loggers.eventLog = new EventLog('ampm-server', 'ampm-server');
 			loggers.console.on('logging', _.bind(function(transport, level, msg, meta) {
 				if (transport.name == 'console') {
