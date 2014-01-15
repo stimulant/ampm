@@ -10,7 +10,8 @@
 			"content",
 			"*.tmp",
 			"node_modules",
-			"logs"
+			"logs",
+			"tools"
 		],
 		"path": "."
 	}]

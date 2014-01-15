@@ -1,0 +1,1 @@
+nodemon -q -e js,json ampm/server.js ../config_dev.json
