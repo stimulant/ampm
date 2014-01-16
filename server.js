@@ -15,12 +15,23 @@ if (process.argv.length > 2) {
 global.app = null;
 global.comm = {};
 global.loggers = {};
-global.config = fs.existsSync(global.configPath) ? JSON.parse(fs.readFileSync(global.configPath)) : {};
-winston.info('Server starting up.');
-var ServerState = require('./model/serverState.js').ServerState;
-global.serverState = new ServerState(config.server);
-serverState.start();
-winston.info('Server started.');
+
+function start() {
+    global.config = fs.existsSync(global.configPath) ? JSON.parse(fs.readFileSync(global.configPath)) : {};
+    console.log('Server starting up.');
+    var ServerState = require('./model/serverState.js').ServerState;
+    global.serverState = new ServerState(config.server);
+    serverState.start();
+    logger.info('Server started.');
+}
+
+start();
+
+if (global.configPath) {
+    fs.watch(global.configPath, {}, function(e, filename) {
+        serverState.get('persistence').shutdownApp(start);
+    });
+}
 
 /*
 Misc

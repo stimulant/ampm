@@ -72,8 +72,18 @@ exports.Logging = BaseModel.extend({
 		error: 'Error'
 	},
 
+	_eventLog: null,
+	_google: null,
+
 	initialize: function() {
-		winston.setLevels({
+
+		// Clean up old logger.
+		if (global.logger) {
+			logger.removeAllListeners('logging');
+		}
+		global.logger = new winston.Logger();
+
+		logger.setLevels({
 			info: 0,
 			warning: 1,
 			error: 2
@@ -87,8 +97,7 @@ exports.Logging = BaseModel.extend({
 
 		// Set up console logger.
 		if (this.get('console')) {
-			winston.remove(winston.transports.Console);
-			loggers.console = winston.add(winston.transports.Console, this.get('console'));
+			logger.add(winston.transports.Console, this.get('console'));
 		}
 
 		// Set up file logger.
@@ -99,50 +108,45 @@ exports.Logging = BaseModel.extend({
 				fs.mkdirSync(dir);
 			}
 
-			loggers.file = winston.add(winston.transports.DailyRotateFile, this.get('file'));
+			logger.add(winston.transports.DailyRotateFile, this.get('file'));
 		}
 
 		// Set up email.
 		if (this.get('mail')) {
 			this.get('mail').subject = this.get('mail').subject ? this.get('mail').subject.replace('{hostname}', os.hostname()) : os.hostname();
-			loggers.mail = winston.add(require('winston-mail').Mail, this.get('mail'));
+			logger.add(require('winston-mail').Mail, this.get('mail'));
 		}
 
+		// Set up loggly.
+		if (this.get('loggly')) {
+			logger.add(require('winston-loggly').Loggly, this.get('loggly'));
+		}
+
+
 		// Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
-		if (loggers.console && this.get('eventLog').enabled) {
+		if (this.get('eventLog').enabled) {
 			try {
-				loggers.eventLog = new EventLog('ampm-server', 'ampm-server');
-				loggers.console.on('logging', _.bind(function(transport, level, msg, meta) {
+				this._eventLog = new EventLog('ampm-server', 'ampm-server');
+				logger.on('logging', _.bind(function(transport, level, msg, meta) {
 					if (transport.name == 'console') {
-						loggers.eventLog.log(msg, this._winstonLevelToWindowsLevel[level]);
+						this._eventLog.log(msg, this._winstonLevelToWindowsLevel[level]);
 					}
 				}, this));
 			} catch (e) {
-				winston.error("Couldn't initialize event logging -- run as admin first.");
+				logger.error("Couldn't initialize event logging -- run as admin first.");
 			}
 		}
 
 		// Set up Google Analytics. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
-		if (loggers.console && this.get('google')) {
-			this.set('eventCache', []);
-			loggers.google = ua(this.get('google').accountId, this.get('google').userId);
-			/*
-			// This is proving to not be very useful -- probably just want GA for actual events.
-			loggers.console.on('logging', _.bind(function(transport, level, msg, meta) {
-				loggers.google.event('log', msg, level).send();
-			}, this));
-			*/
-		}
-
-		// Set up loggly.
-		if (loggers.console && this.get('loggly')) {
-			winston.add(require('winston-loggly').Loggly, this.get('loggly'));
+		if (this.get('google')) {
+			this._google = ua(this.get('google').accountId, this.get('google').userId);
 		}
 
 		// Set up the cache, which is just a history of log messages.
-		if (loggers.console && this.get('cacheAmount')) {
+		if (this.get('cacheAmount')) {
 			this.set('logCache', []);
-			loggers.console.on('logging', _.bind(function(transport, level, msg, meta) {
+			this.set('eventCache', []);
+			logger.on('logging', _.bind(function(transport, level, msg, meta) {
 				if (transport.name == 'console') {
 					var cache = this.get('logCache');
 					cache.push({
@@ -161,16 +165,16 @@ exports.Logging = BaseModel.extend({
 			// Log on request from the app.
 			socket.on('log', _.bind(function(data) {
 				data.level = this._appLevelToWinstonLevel[data.level];
-				if (winston && winston[data.level]) {
-					winston[data.level](data.message);
+				if (logger && logger[data.level]) {
+					logger[data.level](data.message);
 				}
 			}, this));
 
 			// Track events on request from the app.
 			socket.on('event', _.bind(function(data) {
-				loggers.google.event(data.Category, data.Action, data.Label, data.Value, _.bind(function(error) {
+				this._google.event(data.Category, data.Action, data.Label, data.Value, _.bind(function(error) {
 					if (error) {
-						winston.warn('Error with Google Analytics', error);
+						logger.warn('Error with Google Analytics', error);
 						return;
 					}
 

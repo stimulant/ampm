@@ -55,7 +55,7 @@ exports.ContentUpdater = Backbone.Model.extend({
                     this._callback(code > 8 ? code : 0);
                     if (code > 8) {
                         // Something bad happened.
-                        winston.error('Robocopy failed with code ' + code);
+                        logger.error('Robocopy failed with code ' + code);
                     }
                 }, this));
             }
@@ -175,7 +175,7 @@ exports.ContentUpdater = Backbone.Model.extend({
 
     // Load the file into memory and create its temp output directory.
     _downloadFile: function(contentFile) {
-        winston.info('Downloading ' + contentFile.get('url'));
+        logger.info('Downloading ' + contentFile.get('url'));
 
         // Request the file from the network.
         progress(request({
@@ -228,7 +228,7 @@ exports.ContentUpdater = Backbone.Model.extend({
             return file.get('progress') < 1;
         }).length;
         var style = contentFile.get('totalBytes') ? 'loaded' : 'cached';
-        winston.info(contentFile.get('url') + ' ' + style + ', ' + filesToGo + ' to go');
+        logger.info(contentFile.get('url') + ' ' + style + ', ' + filesToGo + ' to go');
 
         if (!filesToGo) {
             this.set('downloaded', moment());
@@ -261,7 +261,7 @@ exports.ContentUpdater = Backbone.Model.extend({
             return;
         }
 
-        winston.error(message, error);
+        logger.error(message, error);
         if (this._callback) {
             this._callback(error);
         }
@@ -293,20 +293,20 @@ exports.ContentUpdater = Backbone.Model.extend({
         }
 
         var copy = child_process.spawn('robocopy', args);
-        winston.info('robocopy: robocopy ' + args.join(' '));
+        logger.info('robocopy: robocopy ' + args.join(' '));
 
         copy.stdout.on('data', _.bind(function(data) {
             var lines = data.toString().split('\r\n');
             _.each(lines, function(line) {
                 line = line.trim();
                 if (line) {
-                    winston.info('robocopy: ' + line);
+                    logger.info('robocopy: ' + line);
                 }
             });
         }, this));
 
         copy.stderr.on('data', _.bind(function(data) {
-            winston.error('robocopy: ' + data.toString());
+            logger.error('robocopy: ' + data.toString());
         }, this));
 
         copy.on('close', _.bind(function(code) {

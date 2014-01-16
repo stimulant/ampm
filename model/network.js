@@ -80,7 +80,7 @@ exports.Network = BaseModel.extend({
 			try {
 				data = JSON.parse(data);
 			} catch (error) {
-				winston.warning('Bad OSC message from app.', error);
+				logger.warning('Bad OSC message from app.', error);
 			}
 		}
 

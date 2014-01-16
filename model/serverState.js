@@ -58,7 +58,7 @@ exports.ServerState = BaseModel.extend({
             contentDownloaded = true;
             this._onDownloaded(contentDownloaded, appDownloaded);
             if (!error) {
-                winston.info('Content download complete! ' + this.get('contentUpdater').get('downloaded').toString());
+                logger.info('Content download complete! ' + this.get('contentUpdater').get('downloaded').toString());
             }
         }, this));
 
@@ -67,7 +67,7 @@ exports.ServerState = BaseModel.extend({
             appDownloaded = true;
             this._onDownloaded(contentDownloaded, appDownloaded);
             if (!error) {
-                winston.info('App download complete! ' + this.get('appUpdater').get('downloaded').toString());
+                logger.info('App download complete! ' + this.get('appUpdater').get('downloaded').toString());
             }
         }, this));
     },
@@ -92,7 +92,7 @@ exports.ServerState = BaseModel.extend({
                 contentUpdated = true;
                 this._onUpdated(contentUpdated, appUpdated);
                 if (!error) {
-                    winston.info('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
+                    logger.info('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
                 }
             }, this));
 
@@ -101,7 +101,7 @@ exports.ServerState = BaseModel.extend({
                 appUpdated = true;
                 this._onUpdated(contentUpdated, appUpdated);
                 if (!error) {
-                    winston.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
+                    logger.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
                 }
             }, this));
         }, this));

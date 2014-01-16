@@ -59,7 +59,7 @@ exports.AppUpdater = ContentUpdater.extend({
 						this._callback(code > 8 ? code : 0);
 						if (code > 8) {
 							// Something bad happened.
-							winston.error('Robocopy failed with code ' + code);
+							logger.error('Robocopy failed with code ' + code);
 						}
 					}, this));
 			}
@@ -76,7 +76,7 @@ exports.AppUpdater = ContentUpdater.extend({
 		}
 
 		// Unzip the file.
-		winston.info('Unzipping app.');
+		logger.info('Unzipping app.');
 		fs.createReadStream(
 			file.get('filePath'))
 			.pipe(unzip.Extract({

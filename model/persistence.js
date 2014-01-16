@@ -77,7 +77,7 @@ exports.Persistence = BaseModel.extend({
 
     _onConnection: function(socket) {
         socket.on('restart', _.bind(function() {
-            winston.info('Restart requested from console.');
+            logger.info('Restart requested from console.');
             this.restartApp();
         }, this));
     },
@@ -94,7 +94,7 @@ exports.Persistence = BaseModel.extend({
             }
 
             this._shutdownInterval = later.setInterval(_.bind(function() {
-                winston.info('Shutdown time has arrived. ' + new Date());
+                logger.info('Shutdown time has arrived. ' + new Date());
                 this.set('restartCount', 0);
                 this.shutdownApp();
             }, this), this._shutdownSchedule);
@@ -108,7 +108,7 @@ exports.Persistence = BaseModel.extend({
             }
 
             this._startupInterval = later.setInterval(_.bind(function() {
-                winston.info('Startup time has arrived. ' + new Date());
+                logger.info('Startup time has arrived. ' + new Date());
                 this.set('restartCount', 0);
                 this.startApp();
             }, this), this._startupSchedule);
@@ -122,7 +122,7 @@ exports.Persistence = BaseModel.extend({
             }
 
             this._updateInterval = later.setInterval(_.bind(function() {
-                winston.info('Update time has arrived. ' + new Date());
+                logger.info('Update time has arrived. ' + new Date());
                 this.set('restartCount', 0);
                 serverState.updateContent();
             }, this), this._updateSchedule);
@@ -144,7 +144,7 @@ exports.Persistence = BaseModel.extend({
         if (!this._lastHeart) {
             this._isStartingUp = false;
             this._firstHeart = Date.now();
-            winston.info('App started.');
+            logger.info('App started.');
             if (this._startupCallback) {
                 this._startupCallback();
                 this._startupCallback = null;
@@ -165,7 +165,7 @@ exports.Persistence = BaseModel.extend({
     _onRestartTimeout: function() {
         var restartCount = this.get('restartCount');
         restartCount++;
-        winston.error('App went away.', restartCount);
+        logger.error('App went away.', restartCount);
         this.trigger('crash');
 
         if (restartCount >= this.get('restartMachineAfter')) {
@@ -233,7 +233,7 @@ exports.Persistence = BaseModel.extend({
                         }
 
                         clearInterval(check);
-                        winston.info('App shut down by force.');
+                        logger.info('App shut down by force.');
                         this._isShuttingDown = false;
                         if (callback) {
                             callback();
@@ -271,12 +271,12 @@ exports.Persistence = BaseModel.extend({
             fs.exists(appPath, _.bind(function(exists) {
                 if (!exists) {
                     this._isStartingUp = false;
-                    winston.error('Application not found.');
+                    logger.error('Application not found.');
                     serverState.updateContent();
                     return;
                 }
 
-                winston.info('App starting up.');
+                logger.info('App starting up.');
                 child_process.spawn(appPath, [JSON.stringify(config)], {
                     cwd: path.dirname(appPath)
                 });
@@ -290,7 +290,7 @@ exports.Persistence = BaseModel.extend({
     },
 
     _restartMachine: function() {
-        winston.info('Already restarted app ' + this.get('restartMachineAfter') + ' times, rebooting machine.');
+        logger.info('Already restarted app ' + this.get('restartMachineAfter') + ' times, rebooting machine.');
 
         // Restart but wait a bit to log things.
         // /t 0 - shutdown now
