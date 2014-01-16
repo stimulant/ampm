@@ -16,7 +16,7 @@ var View = Backbone.View.extend({
 		message.uptime = moment.duration(message.uptime, 'milliseconds').format('dd:hh:mm:ss');
 		message.fps = message.fps ? message.fps[message.fps.length - 1] : '';
 		message.cpu = message.cpu ? message.cpu[message.cpu.length - 1] : '';
-		message.memory = message.memory ? humanize.filesize(message.memory[message.memory.length - 1]) : '';
+		message.memory = message.memory && message.memory.length ? humanize.filesize(message.memory[message.memory.length - 1]) : '';
 		message.logList = '';
 		_.each(message.logs, function(log) {
 			message.logList += log.level + ': ' + log.msg + '\n';

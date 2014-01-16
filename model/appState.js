@@ -57,8 +57,22 @@ AppState = exports.AppState = BaseModel.extend({
 			});
 		}
 
+		// Update FPS.
+		var fps = 1000 / (this._tickSum / this._maxTicks);
+		fps *= 100;
+		fps = Math.round(fps);
+		fps /= 100;
+		fpsHistory.push(fps);
+		while (fpsHistory.length > this._statHistory) {
+			fpsHistory.shift();
+		}
+
 		clearTimeout(this._updateStatsTimeout);
 		var process = serverState.get('persistence').get('processName').toUpperCase();
+		if (!process) {
+			this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
+			return;
+		}
 
 		// Is the app running?
 		child_process.exec('tasklist /FI "IMAGENAME eq ' + process + '" /FO LIST', _.bind(function(error, stdout, stderr) {
@@ -86,16 +100,6 @@ AppState = exports.AppState = BaseModel.extend({
 			}
 
 			this.set('uptime', isRunning ? Date.now() - this._startupTime : 0);
-
-			// Update FPS.
-			var fps = 1000 / (this._tickSum / this._maxTicks);
-			fps *= 100;
-			fps = Math.round(fps);
-			fps /= 100;
-			fpsHistory.push(fps);
-			while (fpsHistory.length > this._statHistory) {
-				fpsHistory.shift();
-			}
 
 			/*
 			// tasklist.exe output looks like this:

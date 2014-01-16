@@ -13,7 +13,7 @@ var BaseModel = require('./baseModel.js').BaseModel;
 exports.Persistence = BaseModel.extend({
     defaults: {
         // The name of the executable.
-        processName: 'client.exe',
+        processName: '',
         // Restart the app if there's no heartbeat for this much time.
         restartAppAfter: 5000,
         // After this many app restarts, give up ans restart the whole machine.
@@ -184,6 +184,11 @@ exports.Persistence = BaseModel.extend({
             return;
         }
 
+        if (!this.get('processName')) {
+            callback(false);
+            return;
+        }
+
         var process = this.get('processName').toUpperCase();
         child_process.exec('tasklist /FI "IMAGENAME eq ' + process + '"', _.bind(function(error, stdout, stderr) {
             var isRunning = stdout.toUpperCase().indexOf(process) != -1;
@@ -213,6 +218,11 @@ exports.Persistence = BaseModel.extend({
             // Kill the app.
             clearTimeout(this._restartTimeout);
             var process = this.get('processName').toUpperCase();
+            if (!process) {
+                callback();
+                return;
+            }
+
             child_process.exec('taskkill /IM ' + process + ' /T /F', _.bind(function(error, stdout, stderr) {
 
                 // Check on an interval to see if it's dead.
@@ -235,7 +245,7 @@ exports.Persistence = BaseModel.extend({
     },
 
     startApp: function(callback) {
-        if (this._isStartingUp || !this._shouldBeRunning()) {
+        if (this._isStartingUp || !this._shouldBeRunning() || !this.get('processName')) {
             return;
         }
 

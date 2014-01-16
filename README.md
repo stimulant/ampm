@@ -44,7 +44,7 @@ Below are all the defaults for the various modules. Your JSON file only needs to
 
 // Settings for the persistence manager.
 "persistence": {
-        "processName": "client.exe", // The name of the executable file for the client app.
+        "processName": "", // The name of the executable file for the client app.
         "restartAppAfter": 5000, // Restart the app this many milliseconds of no heartbeat messages.
         "restartMachineAfter": Infinity, // Restart the machine after this many app restarts.
         "shutdownSchedule": "0 0 * * 1-5", // Shut down the app on this schedule -- see cronmaker.com for the format.

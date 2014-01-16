@@ -16,7 +16,6 @@ global.app = null;
 global.comm = {};
 global.loggers = {};
 global.config = fs.existsSync(global.configPath) ? JSON.parse(fs.readFileSync(global.configPath)) : {};
-
 winston.info('Server starting up.');
 var ServerState = require('./model/serverState.js').ServerState;
 global.serverState = new ServerState(config.server);

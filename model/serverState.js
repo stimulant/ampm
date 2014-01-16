@@ -50,8 +50,6 @@ exports.ServerState = BaseModel.extend({
     },
 
     updateContent: function() {
-        winston.info('Beginning update.');
-
         var contentDownloaded = false;
         var appDownloaded = false;
 
