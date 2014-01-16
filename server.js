@@ -25,12 +25,14 @@ winston.info('Server started.');
 
 /*
 Misc
+    Shutdown/startup buttons
     There is an "unzipping app" message even if the app isn't new
     Change restartAppAfter to seconds
     Make startup schedule do restarts
     Provide a way to turn off logs -- current solution doesn't actually work
     Offline Google Analytics -- save events when offline, send when online
     Add a tag property for loggly config to differentiate installs.
+    Restart when config changes
 
 Content Updater
     Backup current app/content to .old folders before beginning
