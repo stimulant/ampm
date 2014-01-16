@@ -5,7 +5,7 @@
     "private": true,
     "repository": {
         "type": "svn",
-        "url": "https://github.com/stimulant/ampm.git/trunk"
+        "url": "https://github.com/stimulant/ampm.git"
     },
     "main": "server.js",
     "dependencies": {

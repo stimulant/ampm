@@ -4,7 +4,8 @@ var winston = require('winston'); // Logging. https://github.com/flatiron/winsto
 
 process.chdir(path.dirname(process.mainModule.filename));
 
-global.configPath = './config.json';
+// TEMP while this is fixed: https://github.com/remy/nodemon/issues/264
+global.configPath = '..\\ampm-test\\WPF-test\\config.json';
 
 // args will be ['node', 'server.js', 'config.json']
 if (process.argv.length > 2) {
@@ -14,7 +15,7 @@ if (process.argv.length > 2) {
 global.app = null;
 global.comm = {};
 global.loggers = {};
-global.config = JSON.parse(fs.readFileSync(global.configPath));
+global.config = fs.existsSync(global.configPath) ? JSON.parse(fs.readFileSync(global.configPath)) : {};
 
 winston.info('Server starting up.');
 var ServerState = require('./model/serverState.js').ServerState;

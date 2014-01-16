@@ -110,12 +110,16 @@ exports.Logging = BaseModel.extend({
 
 		// Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
 		if (loggers.console && this.get('eventLog').enabled) {
-			loggers.eventLog = new EventLog('ampm-server', 'ampm-server');
-			loggers.console.on('logging', _.bind(function(transport, level, msg, meta) {
-				if (transport.name == 'console') {
-					loggers.eventLog.log(msg, this._winstonLevelToWindowsLevel[level]);
-				}
-			}, this));
+			try {
+				loggers.eventLog = new EventLog('ampm-server', 'ampm-server');
+				loggers.console.on('logging', _.bind(function(transport, level, msg, meta) {
+					if (transport.name == 'console') {
+						loggers.eventLog.log(msg, this._winstonLevelToWindowsLevel[level]);
+					}
+				}, this));
+			} catch (e) {
+				winston.error("Couldn't initialize event logging -- run as admin first.");
+			}
 		}
 
 		// Set up Google Analytics. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
