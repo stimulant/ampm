@@ -23,6 +23,11 @@ exports.Network = BaseModel.extend({
 	},
 
 	initialize: function() {
+		if (comm.webServer) {
+			// TODO: Figure out how to shut down servers so that you can change ports by reloading config.
+			return;
+		}
+
 		// Set up web server for console.
 		global.app = express();
 		comm.webServer = http.createServer(app).listen(this.get('socketToConsolePort'));

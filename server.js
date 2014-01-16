@@ -14,7 +14,7 @@ if (process.argv.length > 2) {
 
 global.app = null;
 global.comm = {};
-global.loggers = {};
+global.restarting = false;
 
 function start() {
     global.config = fs.existsSync(global.configPath) ? JSON.parse(fs.readFileSync(global.configPath)) : {};
@@ -23,12 +23,18 @@ function start() {
     global.serverState = new ServerState(config.server);
     serverState.start();
     logger.info('Server started.');
+    restarting = false;
 }
 
 start();
 
+// Restart when config file changes.
 if (global.configPath) {
     fs.watch(global.configPath, {}, function(e, filename) {
+        if (restarting) {
+            return;
+        }
+        restarting = true;
         serverState.get('persistence').shutdownApp(start);
     });
 }
@@ -42,7 +48,6 @@ Misc
     Provide a way to turn off logs -- current solution doesn't actually work
     Offline Google Analytics -- save events when offline, send when online
     Add a tag property for loggly config to differentiate installs.
-    Restart when config changes
 
 Content Updater
     Backup current app/content to .old folders before beginning
