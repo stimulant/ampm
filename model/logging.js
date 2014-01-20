@@ -1,7 +1,7 @@
 var os = require('os'); // http://nodejs.org/api/os.html
 var path = require('path'); //http://nodejs.org/api/path.html
 
-var _ = require('underscore'); // Utilities. http://underscorejs.org/
+var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs

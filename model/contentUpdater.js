@@ -1,6 +1,6 @@
 var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
 var path = require('path'); // File path processing. http://nodejs.org/api/path.html
-var _ = require('underscore'); // Utilities. http://underscorejs.org/
+var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var moment = require('moment'); // Date processing. http://momentjs.com/
 var request = require('request'); // Simpler HTTP. https://github.com/mikeal/request

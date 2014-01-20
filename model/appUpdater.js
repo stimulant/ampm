@@ -1,5 +1,5 @@
 var path = require('path'); // File path processing. http://nodejs.org/api/path.html
-var _ = require('underscore'); // Utilities. http://underscorejs.org/
+var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var unzip = require('unzip'); // Extract zip files. https://github.com/nearinfinity/node-unzip
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston

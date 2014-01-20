@@ -1,4 +1,4 @@
-var _ = require('underscore'); // Utilities. http://underscorejs.org/
+var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 
 // Swiped from here: https://blog.andyet.com/2011/feb/15/re-using-backbonejs-models-on-the-server-with-node/

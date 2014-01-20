@@ -1,4 +1,4 @@
-var _ = require('underscore'); // Utilities. http://underscorejs.org/
+var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var moment = require('moment'); // Date processing. http://momentjs.com/
 var child_process = require('child_process'); // http://nodejs.org/api/child_process.html

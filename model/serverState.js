@@ -1,4 +1,4 @@
-var _ = require('underscore'); // Utilities. http://underscorejs.org/
+var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 

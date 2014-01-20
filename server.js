@@ -38,7 +38,6 @@ if (global.configPath) {
 
 /*
 Misc
-    Start with no config
     Provide a way to turn off logs -- current solution doesn't actually work
     Offline Google Analytics -- save events when offline, send when online
     Press a key in console window to bring up dashboard
