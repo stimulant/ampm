@@ -24,12 +24,24 @@ exports.ServerState = BaseModel.extend({
     initialize: function() {},
 
     start: function() {
-        this.set('network', new Network().configure(config.network));
-        this.set('contentUpdater', new ContentUpdater().configure(config.contentUpdater));
-        this.set('appUpdater', new AppUpdater().configure(config.appUpdater));
-        this.set('persistence', new Persistence().configure(config.persistence));
-        this.set('appState', new AppState().configure(config.app));
-        this.set('logging', new Logging().configure(config.logging));
+        this.set('network', new Network({
+            config: config.network
+        }));
+        this.set('contentUpdater', new ContentUpdater({
+            config: config.contentUpdater
+        }));
+        this.set('appUpdater', new AppUpdater({
+            config: config.appUpdater
+        }));
+        this.set('persistence', new Persistence({
+            config: config.persistence
+        }));
+        this.set('appState', new AppState({
+            config: config.app
+        }));
+        this.set('logging', new Logging({
+            config: config.logging
+        }));
 
         // Spew config for documentation.
         var fullConfig = {

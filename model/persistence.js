@@ -72,6 +72,7 @@ exports.Persistence = BaseModel.extend({
         } else {
             this.shutdownApp();
         }
+
         comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 

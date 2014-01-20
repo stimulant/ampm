@@ -23,6 +23,7 @@
         "socket.io": "0.9.16",
         "socket.io-client": "0.9.16",
         "underscore": "1.5.2",
+        "lodash": "2.4.1",
         "unzip": "0.1.9",
         "universal-analytics": "0.3.0",
         "windows-eventlog": "1.0.1",

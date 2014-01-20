@@ -4,14 +4,17 @@ var Backbone = require('backbone'); // Data model utilities. http://backbonejs.o
 // Swiped from here: https://blog.andyet.com/2011/feb/15/re-using-backbonejs-models-on-the-server-with-node/
 var BaseModel = Backbone.Model.extend({
 
-    // Merge a config object with model properties.
-    configure: function(config) {
-        if (!config) {
-            return this;
+    // Merge the config property of the initial args with the defaults.
+    constructor: function(args) {
+        if (!args || !args['config']) {
+            Backbone.Model.apply(this, arguments);
+            return;
         }
 
-        _.merge(this.attributes, config);
-        return this;
+        var config = args['config'];
+        delete args['config'];
+        _.merge(this.defaults, config);
+        Backbone.Model.apply(this, arguments);
     },
 
     // builds and return a simple object ready to be JSON stringified

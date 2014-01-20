@@ -13,12 +13,14 @@ var BaseModel = require('./baseModel.js').BaseModel;
 exports.Logging = BaseModel.extend({
 	defaults: {
 		console: {
+			enabled: true,
 			colorize: true,
 			timestamp: true,
 			level: 'info'
 		},
 
 		file: {
+			enabled: true,
 			filename: 'logs/server.log',
 			maxsize: 1024 * 1024, // 1MB
 			json: false,
@@ -30,17 +32,20 @@ exports.Logging = BaseModel.extend({
 		},
 
 		google: {
+			enabled: true,
 			accountId: 'UA-46432303-2',
 			userId: '3e582629-7aad-4aa3-90f2-9f7cb3f89597'
 		},
 
 		loggly: {
+			enabled: true,
 			subdomain: 'stimulant', // https://stimulant.loggly.com/dashboards
 			inputToken: 'b8eeee6e-12f4-4f2f-b6b4-62f087ad795e',
 			json: true
 		},
 
 		mail: {
+			enabled: true,
 			host: 'mail.content.stimulant.io',
 			ssl: false,
 			username: 'ampm@content.stimulant.io',
@@ -51,11 +56,14 @@ exports.Logging = BaseModel.extend({
 			to: 'josh@stimulant.io'
 		},
 
+		// How many log/event messages to show on the console.
+		cacheAmount: 20,
+
 		// Cache of the last n log messages, sent to console.
 		logCache: null,
+
 		// Cache of the last n GA events, sent to console.
 		eventCache: null,
-		cacheAmount: 20,
 	},
 
 	// Mappings from MS.Diagnostics.Tracing.EventLevel to the Winston levels.
@@ -81,6 +89,7 @@ exports.Logging = BaseModel.extend({
 		if (global.logger) {
 			logger.removeAllListeners('logging');
 		}
+
 		global.logger = new winston.Logger();
 
 		logger.setLevels({
@@ -96,12 +105,12 @@ exports.Logging = BaseModel.extend({
 		});
 
 		// Set up console logger.
-		if (this.get('console')) {
+		if (this.get('console').enabled) {
 			logger.add(winston.transports.Console, this.get('console'));
 		}
 
 		// Set up file logger.
-		if (this.get('file')) {
+		if (this.get('file').enabled) {
 			// Create the log file folder.
 			var dir = path.dirname(this.get('file').filename);
 			if (!fs.existsSync(dir)) {
@@ -112,16 +121,15 @@ exports.Logging = BaseModel.extend({
 		}
 
 		// Set up email.
-		if (this.get('mail')) {
+		if (this.get('mail').enabled) {
 			this.get('mail').subject = this.get('mail').subject ? this.get('mail').subject.replace('{hostname}', os.hostname()) : os.hostname();
 			logger.add(require('winston-mail').Mail, this.get('mail'));
 		}
 
 		// Set up loggly.
-		if (this.get('loggly')) {
+		if (this.get('loggly').enabled) {
 			logger.add(require('winston-loggly').Loggly, this.get('loggly'));
 		}
-
 
 		// Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
 		if (this.get('eventLog').enabled) {
@@ -138,7 +146,7 @@ exports.Logging = BaseModel.extend({
 		}
 
 		// Set up Google Analytics. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
-		if (this.get('google')) {
+		if (this.get('google').enabled) {
 			this._google = ua(this.get('google').accountId, this.get('google').userId);
 		}
 

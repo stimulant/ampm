@@ -57,6 +57,7 @@ Below are all the defaults for the various modules. Your JSON file only needs to
 
 		// Settings for the file logger.
         "file": {
+                "enabled": true, // false to turn off
                 "filename": "logs/server.log", // Path to the log file, relative to server.js.
                 "maxsize": 1048576, // The max size of the log file before rolling over (1MB default)
                 "json": false, // Whether to log in JSON format.
@@ -65,6 +66,7 @@ Below are all the defaults for the various modules. Your JSON file only needs to
 
         // Settings for the console logger.
         "console": {
+                "enabled": true, // false to turn off
                 "colorize": true, // Colors are fun.
                 "timestamp": true, // Include timestamps.
                 "level": "info" // The logging level to write: info, warning, error.
@@ -77,12 +79,14 @@ Below are all the defaults for the various modules. Your JSON file only needs to
 
         // Settings for Google Analytics.
         "google": {
+                "enabled": true, // false to turn off
                 "accountId": "UA-46432303-2", // The property ID -- this should be unique per project.
                 "userId": "3e582629-7aad-4aa3-90f2-9f7cb3f89597" // The user ID -- this should always be the same.
         },
 
         // Settings for loggly.com.
         "loggly": {
+                "enabled": true, // false to turn off
                 "subdomain": "stimulant", // The account name. https://stimulant.loggly.com/dashboards
                 "inputToken": "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The API token.
                 "json": true, // Whether to log as JSON -- this should be true.
@@ -91,6 +95,7 @@ Below are all the defaults for the various modules. Your JSON file only needs to
 
         // Settings for the email logger.
         "mail": {
+                "enabled": true, // false to turn off
                 "host": "mail.content.stimulant.io", // The SMTP server to use.
                 "ssl": false, // Whether to use SSL.
                 "username": "ampm@content.stimulant.io", // The account to log in with.
