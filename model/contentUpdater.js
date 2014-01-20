@@ -10,9 +10,10 @@ var rimraf = require('rimraf'); // Recursive directory delete. https://github.co
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var ncp = require('ncp').ncp; // Recursive directory copy. https://npmjs.org/package/ncp
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
+var BaseModel = require('./baseModel.js').BaseModel;
 
 // Update content for the application, as well as the application itself.
-exports.ContentUpdater = Backbone.Model.extend({
+exports.ContentUpdater = BaseModel.extend({
 
     defaults: {
         // When the content was last updated.
