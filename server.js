@@ -4,18 +4,17 @@ var winston = require('winston'); // Logging. https://github.com/flatiron/winsto
 
 process.chdir(path.dirname(process.mainModule.filename));
 
-global.configPath = '';
-
 // args will be ['node', 'server.js', 'config.json']
+configFile = '';
 if (process.argv.length > 2) {
-    global.configPath = process.argv[2];
+    configFile = process.argv[2];
 }
 
 global.app = null;
 global.comm = {};
 
 function start() {
-    global.config = global.configPath && fs.existsSync(global.configPath) ? JSON.parse(fs.readFileSync(global.configPath)) : {};
+    global.config = configFile && fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile)) : {};
     console.log('Server starting up.');
     var ServerState = require('./model/serverState.js').ServerState;
     global.serverState = new ServerState(config.server);
@@ -26,9 +25,9 @@ function start() {
 start();
 
 // Restart when config file changes.
-if (global.configPath) {
+if (configFile) {
     var restartTimeout = -1;
-    fs.watch(global.configPath, {}, function(e, filename) {
+    fs.watch(configFile, {}, function(e, filename) {
         clearTimeout(restartTimeout);
         restartTimeout = setTimeout(function() {
             serverState.get('persistence').shutdownApp(start);
@@ -44,6 +43,8 @@ Misc
     Make startup schedule do restarts
     Add a tag property for loggly config to differentiate installs.
     There is an "unzipping app" message even if the app isn't new
+    Handle bad paths better?
+    Handle non-admin better?
 
 Content Updater
     Backup current app/content to .old folders before beginning

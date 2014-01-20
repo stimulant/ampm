@@ -41,7 +41,8 @@ exports.Logging = BaseModel.extend({
 			enabled: true,
 			subdomain: 'stimulant', // https://stimulant.loggly.com/dashboards
 			inputToken: 'b8eeee6e-12f4-4f2f-b6b4-62f087ad795e',
-			json: true
+			json: true,
+			tags: 'ampm'
 		},
 
 		mail: {
