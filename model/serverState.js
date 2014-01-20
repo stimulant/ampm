@@ -36,11 +36,11 @@ exports.ServerState = BaseModel.extend({
         this.set('persistence', new Persistence({
             config: config.persistence
         }));
-        this.set('appState', new AppState({
-            config: config.app
-        }));
         this.set('logging', new Logging({
             config: config.logging
+        }));
+        this.set('appState', new AppState({
+            config: config.app
         }));
 
         // Spew config for documentation.

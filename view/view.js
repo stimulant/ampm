@@ -1,8 +1,10 @@
 var View = Backbone.View.extend({
 
 	events: {
-		'click #update': '_onUpdateClicked',
-		'click #restart': '_onRestartClicked'
+		'click #shutdown': '_onShutdownClicked',
+		'click #start': '_onStartClicked',
+		'click #restart': '_onRestartClicked',
+		'click #update': '_onUpdateClicked'
 	},
 
 	_socket: null,
@@ -29,13 +31,26 @@ var View = Backbone.View.extend({
 
 		var template = _.template($('#info-template').html(), message);
 		$('#info').html(template);
+
+		$('#shutdown').toggle(message.isRunning);
+		$('#start').toggle(!message.isRunning);
+		$('#restart').toggle(message.isRunning);
+		$('#update').toggle(message.canUpdate);
 	},
 
-	_onUpdateClicked: function() {
-		this._socket.emit('updateContent');
+	_onShutdownClicked: function() {
+		this._socket.emit('shutdown');
+	},
+
+	_onStartClicked: function() {
+		this._socket.emit('start');
 	},
 
 	_onRestartClicked: function() {
 		this._socket.emit('restart');
+	},
+
+	_onUpdateClicked: function() {
+		this._socket.emit('updateContent');
 	}
 });

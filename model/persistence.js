@@ -20,16 +20,6 @@ exports.Persistence = BaseModel.extend({
         restartMachineAfter: Infinity,
         // How many times the app has been restarted.
         restartCount: 0,
-
-        /*
-        // http://www.generateit.net/cron-job/
-        minute  0-59    The exact minute that the command sequence executes
-        hour    0-23    The hour of the day that the command sequence executes
-        day     1-31    The day of the month that the command sequence executes
-        month   1-12    The month of the year that the command sequence executes
-        weekday 0-6     The day of the week that the command sequence executes. Sunday=0, Monday = 1, Tuesday = 2, and so forth.
-        */
-
         // Shut down the app according to this schedule.
         shutdownSchedule: null,
         // Start up the app according to this schedule.
@@ -84,6 +74,16 @@ exports.Persistence = BaseModel.extend({
         socket.on('restart', _.bind(function() {
             logger.info('Restart requested from console.');
             this.restartApp();
+        }, this));
+
+        socket.on('shutdown', _.bind(function() {
+            logger.info('Shutdown requested from console.');
+            this.shutdownApp();
+        }, this));
+
+        socket.on('start', _.bind(function() {
+            logger.info('Startup requested from console.');
+            this.startApp();
         }, this));
     },
 

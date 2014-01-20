@@ -14,6 +14,7 @@ AppState = exports.AppState = BaseModel.extend({
 		fps: null,
 		cpu: null,
 		memory: null,
+		canUpdate: false
 	},
 
 	// How often to update stats.
@@ -28,19 +29,26 @@ AppState = exports.AppState = BaseModel.extend({
 	_startupTime: 0,
 
 	initialize: function() {
+		this.set('canUpdate', ((serverState.get('contentUpdater').get('remote') && true) || (serverState.get('appUpdater').get('remote') && true)) === true);
 		serverState.get('persistence').on('heart', _.bind(this._onHeart, this));
 		this._updateStats();
 		this._updateCpu();
-
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
 	},
 
 	_updateConsole: function() {
+		if (serverState.get('appState') != this) {
+			// This can happen if the settings file is changed and the object is recreated.
+			return;
+		}
+
 		var message = _.clone(this.attributes);
 		message.restartCount = serverState.get('persistence').get('restartCount');
 		message.logs = serverState.get('logging').get('logCache');
 		message.events = serverState.get('logging').get('eventCache');
+		message.canUpdate = this.get('canUpdate');
 		comm.socketToConsole.sockets.emit('appState', message);
+
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
 	},
 
