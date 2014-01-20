@@ -15,7 +15,7 @@ exports.Persistence = BaseModel.extend({
         // The name of the executable.
         processName: '',
         // Restart the app if there's no heartbeat for this much time.
-        restartAppAfter: 5000,
+        restartAppAfter: 5,
         // After this many app restarts, give up ans restart the whole machine.
         restartMachineAfter: Infinity,
         // How many times the app has been restarted.
@@ -43,7 +43,7 @@ exports.Persistence = BaseModel.extend({
     // The most recent heartbeat, in ms since epoch.
     _lastHeart: null,
 
-    // The timeout which restarts the app if no heartbeat is received in restartAppAfter ms.
+    // The timeout which restarts the app if no heartbeat is received in restartAppAfter seconds.
     _restartTimeout: null,
     // Flag indicating a shutdown was requested but not yet completed.
     _isShuttingDown: false,
@@ -159,7 +159,7 @@ exports.Persistence = BaseModel.extend({
     _resetRestartTimeout: function() {
         clearTimeout(this._restartTimeout);
         if (!this._isShuttingDown) {
-            this._restartTimeout = setTimeout(_.bind(this._onRestartTimeout, this), this.get('restartAppAfter'));
+            this._restartTimeout = setTimeout(_.bind(this._onRestartTimeout, this), this.get('restartAppAfter') * 1000);
         }
     },
 

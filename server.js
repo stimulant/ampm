@@ -41,7 +41,6 @@ Misc
     Press a key in console window to bring up dashboard
     Press a key in app to bring up dashboard
     Shutdown/startup buttons
-    Change restartAppAfter to seconds
     Make startup schedule do restarts
     Add a tag property for loggly config to differentiate installs.
     There is an "unzipping app" message even if the app isn't new

@@ -189,6 +189,7 @@ exports.Logging = BaseModel.extend({
 
 					if (error.code === 'ENOTFOUND') {
 						// Couldn't connect -- replace the queue and try next time.
+						// https://github.com/peaksandpies/universal-analytics/issues/12
 						this._google._queue = queue;
 					} else {
 						// Something else bad happened.
