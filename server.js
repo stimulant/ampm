@@ -40,7 +40,6 @@ Misc
     Press a key in console window to bring up dashboard
     Press a key in app to bring up dashboard
     Shutdown/startup buttons
-    There is an "unzipping app" message even if the app isn't new
     Handle bad paths better?
     Handle non-admin better?
 
