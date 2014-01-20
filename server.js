@@ -41,13 +41,16 @@ if (global.configPath) {
 
 /*
 Misc
-    Shutdown/startup buttons
-    There is an "unzipping app" message even if the app isn't new
-    Change restartAppAfter to seconds
-    Make startup schedule do restarts
     Provide a way to turn off logs -- current solution doesn't actually work
     Offline Google Analytics -- save events when offline, send when online
+    Press a key in console window to bring up dashboard
+    Press a key in app to bring up dashboard
+    Shutdown/startup buttons
+    Change restartAppAfter to seconds
+    Make startup schedule do restarts
     Add a tag property for loggly config to differentiate installs.
+    Simplify config -- add "config" property to models and recursively copy from that to attributes
+    There is an "unzipping app" message even if the app isn't new
 
 Content Updater
     Backup current app/content to .old folders before beginning
