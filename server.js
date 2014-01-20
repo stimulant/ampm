@@ -13,7 +13,6 @@ if (process.argv.length > 2) {
 
 global.app = null;
 global.comm = {};
-global.restarting = false;
 
 function start() {
     global.config = global.configPath && fs.existsSync(global.configPath) ? JSON.parse(fs.readFileSync(global.configPath)) : {};
@@ -22,19 +21,18 @@ function start() {
     global.serverState = new ServerState(config.server);
     serverState.start();
     logger.info('Server started.');
-    restarting = false;
 }
 
 start();
 
 // Restart when config file changes.
 if (global.configPath) {
+    var restartTimeout = -1;
     fs.watch(global.configPath, {}, function(e, filename) {
-        if (restarting) {
-            return;
-        }
-        restarting = true;
-        serverState.get('persistence').shutdownApp(start);
+        clearTimeout(restartTimeout);
+        restartTimeout = setTimeout(function() {
+            serverState.get('persistence').shutdownApp(start);
+        }, 1000);
     });
 }
 
