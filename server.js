@@ -4,8 +4,7 @@ var winston = require('winston'); // Logging. https://github.com/flatiron/winsto
 
 process.chdir(path.dirname(process.mainModule.filename));
 
-// TEMP while this is fixed: https://github.com/remy/nodemon/issues/264
-global.configPath = '..\\ampm-test\\WPF-test\\config.json';
+global.configPath = '';
 
 // args will be ['node', 'server.js', 'config.json']
 if (process.argv.length > 2) {
@@ -17,7 +16,7 @@ global.comm = {};
 global.restarting = false;
 
 function start() {
-    global.config = fs.existsSync(global.configPath) ? JSON.parse(fs.readFileSync(global.configPath)) : {};
+    global.config = global.configPath && fs.existsSync(global.configPath) ? JSON.parse(fs.readFileSync(global.configPath)) : {};
     console.log('Server starting up.');
     var ServerState = require('./model/serverState.js').ServerState;
     global.serverState = new ServerState(config.server);
@@ -41,6 +40,7 @@ if (global.configPath) {
 
 /*
 Misc
+    Start with no config
     Provide a way to turn off logs -- current solution doesn't actually work
     Offline Google Analytics -- save events when offline, send when online
     Press a key in console window to bring up dashboard
