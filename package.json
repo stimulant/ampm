@@ -1,35 +1,35 @@
 {
-    "name": "stimulant-app-manager",
-    "description": "watcher/updater",
-    "version": "0.0.1",
-    "private": true,
-    "repository": {
-        "type": "svn",
-        "url": "https://github.com/stimulant/ampm.git"
-    },
-    "main": "server.js",
-    "dependencies": {
-        "backbone": "1.1.0",
-        "express": "3.4.4",
-        "later": "1.1.6",
-        "moment": "2.4.0",
-        "ncp": "0.4.2",
-        "node-fs": "0.1.7",
-        "node-osc": "0.2.1",
-        "nodemon": "0.7.10",
-        "request": "2.27.0",
-        "request-progress": "0.3.1",
-        "rimraf": "2.2.2",
-        "socket.io": "0.9.16",
-        "socket.io-client": "0.9.16",
-        "underscore": "1.5.2",
-        "lodash": "2.4.1",
-        "unzip": "0.1.9",
-        "universal-analytics": "0.3.0",
-        "windows-eventlog": "1.0.1",
-        "winston": "0.7.2",
-        "winston-loggly": "1.0.1",
-        "winston-mail": "0.2.7",
-        "xregexp": "2.0.0"
-    }
+  "name": "stimulant-app-manager",
+  "description": "watcher/updater",
+  "version": "0.0.2",
+  "private": true,
+  "repository": {
+    "type": "svn",
+    "url": "https://github.com/stimulant/ampm.git"
+  },
+  "main": "server.js",
+  "dependencies": {
+    "backbone": "~1.1.0",
+    "express": "~3.4.8",
+    "later": "~1.1.6",
+    "moment": "~2.5.0",
+    "ncp": "~0.5.0",
+    "node-fs": "~0.1.7",
+    "node-osc": "~0.2.1",
+    "nodemon": "~1.0.12",
+    "request": "~2.33.0",
+    "request-progress": "~0.3.1",
+    "rimraf": "~2.2.6",
+    "socket.io": "~0.9.16",
+    "socket.io-client": "~0.9.16",
+    "underscore": "~1.5.2",
+    "lodash": "~2.4.1",
+    "unzip": "~0.1.9",
+    "universal-analytics": "~0.3.2",
+    "windows-eventlog": "~1.0.1",
+    "winston": "~0.7.2",
+    "winston-loggly": "~1.0.1",
+    "winston-mail": "~0.2.7",
+    "xregexp": "~2.0.0"
+  }
 }
