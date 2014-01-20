@@ -40,8 +40,6 @@ Misc
     Press a key in console window to bring up dashboard
     Press a key in app to bring up dashboard
     Shutdown/startup buttons
-    Make startup schedule do restarts
-    Add a tag property for loggly config to differentiate installs.
     There is an "unzipping app" message even if the app isn't new
     Handle bad paths better?
     Handle non-admin better?

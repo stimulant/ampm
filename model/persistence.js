@@ -31,11 +31,13 @@ exports.Persistence = BaseModel.extend({
         */
 
         // Shut down the app according to this schedule.
-        shutdownSchedule: "0 0 * * 1-5", // Midnight, M-F
+        shutdownSchedule: null,
         // Start up the app according to this schedule.
-        startupSchedule: "0 8 * * 1-5", // 8a, M-F
+        startupSchedule: null,
         // Update the content and the app according to this schedule.
-        updateSchedule: "0 1 * * 1-5" // 1a, M-F
+        updateSchedule: null,
+        // Restart the app according to this schedule.
+        restartSchedule: null
     },
 
     // The first heartbeat since startup, in ms since epoch.
@@ -52,7 +54,6 @@ exports.Persistence = BaseModel.extend({
     // A callback which is passed to startApp(), fired when it's started.
     _startupCallback: null,
 
-
     // The timeout which shuts down the app on the appointed schedule.
     _shutdownSchedule: null,
     _shutDownInterval: null,
@@ -62,6 +63,9 @@ exports.Persistence = BaseModel.extend({
     // The timeout which triggers the content updater on the appointed schedule.
     _updateSchedule: null,
     _updateInterval: null,
+    // The timeout which restarts the app on the appointed schedule.
+    _restartSchedule: null,
+    _restartInterval: null,
 
     initialize: function() {
         comm.oscFromApp.on('heart', _.bind(this._onHeart, this));
@@ -113,6 +117,20 @@ exports.Persistence = BaseModel.extend({
                 this.set('restartCount', 0);
                 this.startApp();
             }, this), this._startupSchedule);
+        }
+
+        // Start up on schedule.
+        if (this.get('restartSchedule')) {
+            this._restartSchedule = later.parse.cron(this.get('restartSchedule'));
+            if (this._restartInterval) {
+                this._restartInterval.clear();
+            }
+
+            this._restartInterval = later.setInterval(_.bind(function() {
+                logger.info('Restart time has arrived. ' + new Date());
+                this.set('restartCount', 0);
+                this.restartApp();
+            }, this), this._restartSchedule);
         }
 
         // Update content on schedule.
