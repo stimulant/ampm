@@ -38,7 +38,6 @@ if (global.configPath) {
 
 /*
 Misc
-    Offline Google Analytics -- save events when offline, send when online
     Press a key in console window to bring up dashboard
     Press a key in app to bring up dashboard
     Shutdown/startup buttons

@@ -180,24 +180,21 @@ exports.Logging = BaseModel.extend({
 
 			// Track events on request from the app.
 			socket.on('event', _.bind(function(data) {
-				this._google.event(data.Category, data.Action, data.Label, data.Value, _.bind(function(error) {
-					if (error) {
-						logger.warn('Error with Google Analytics', error);
+				this._google.event(data.Category, data.Action, data.Label, data.Value);
+				var queue = _.clone(this._google._queue);
+				this._google.send(_.bind(function(error) {
+					if (!error) {
 						return;
 					}
 
-					// Cache events for the console.
-					var cache = this.get('eventCache');
-					cache.push({
-						category: data.Category,
-						action: data.Action,
-						label: data.Label,
-						value: data.Value
-					});
-					if (cache.length > this.get('cacheAmount')) {
-						cache.splice(0, cache.length - this.get('cacheAmount'));
+					if (error.code === 'ENOTFOUND') {
+						// Couldn't connect -- replace the queue and try next time.
+						this._google._queue = queue;
+					} else {
+						// Something else bad happened.
+						logger.warning('Error with Google Analytics', error);
 					}
-				}, this)).send();
+				}, this));
 			}, this));
 		}, this));
 	}
