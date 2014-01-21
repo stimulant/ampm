@@ -49,6 +49,7 @@ process.stdin.on('data', function() {
 
 /*
 Misc
+    Longer wait for heartbeat on first startup -- seperate setting?
     Press a key in app to bring up dashboard
     Handle bad paths better?
     Handle non-admin better?
