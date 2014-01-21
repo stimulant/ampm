@@ -85,12 +85,6 @@ exports.Logging = BaseModel.extend({
 	_google: null,
 
 	initialize: function() {
-
-		// Clean up old logger.
-		if (global.logger) {
-			logger.removeAllListeners('logging');
-		}
-
 		global.logger = new winston.Logger();
 
 		logger.setLevels({
@@ -199,5 +193,11 @@ exports.Logging = BaseModel.extend({
 				}, this));
 			}, this));
 		}, this));
+	},
+
+	clean: function() {
+		if (global.logger) {
+			logger.removeAllListeners('logging');
+		}
 	}
 });

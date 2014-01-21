@@ -57,6 +57,15 @@ exports.ServerState = BaseModel.extend({
         comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
+    clean: function() {
+        this.get('network').clean();
+        this.get('contentUpdater').clean();
+        this.get('appUpdater').clean();
+        this.get('persistence').clean();
+        this.get('logging').clean();
+        this.get('appState').clean();
+    },
+
     _onConnection: function(socket) {
         socket.on('updateContent', _.bind(this.updateContent, this));
     },

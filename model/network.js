@@ -23,11 +23,6 @@ exports.Network = BaseModel.extend({
 	},
 
 	initialize: function() {
-		if (comm.webServer) {
-			// TODO: Figure out how to shut down servers so that you can change ports by reloading config.
-			return;
-		}
-
 		// Set up web server for console.
 		global.app = express();
 		comm.webServer = http.createServer(app).listen(this.get('socketToConsolePort'));
@@ -52,6 +47,12 @@ exports.Network = BaseModel.extend({
 		// Set up socket connection to app.
 		comm.socketToApp = ioServer.listen(this.get('socketToAppPort'))
 			.set('log level', this.get('socketLogLevel'));
+	},
+
+	clean: function() {
+		comm.webServer.close();
+		comm.socketToApp.server.close();
+		comm.oscFromApp.removeAllListeners();
 	},
 
 	// Generic handler to decode and re-post OSC messages as native events.

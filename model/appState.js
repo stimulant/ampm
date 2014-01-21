@@ -30,25 +30,26 @@ AppState = exports.AppState = BaseModel.extend({
 
 	initialize: function() {
 		this.set('canUpdate', ((serverState.get('contentUpdater').get('remote') && true) || (serverState.get('appUpdater').get('remote') && true)) === true);
-		serverState.get('persistence').on('heart', _.bind(this._onHeart, this));
+		serverState.get('persistence').on('heart', this._onHeart, this);
 		this._updateStats();
 		this._updateCpu();
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
 	},
 
-	_updateConsole: function() {
-		if (serverState.get('appState') != this) {
-			// This can happen if the settings file is changed and the object is recreated.
-			return;
-		}
+	clean: function() {
+		clearTimeout(this._updateConsoleTimeout);
+		clearTimeout(this._updateStatsTimeout);
+		this._typeperf.kill();
+		serverState.get('persistence').off(null, null, this);
+	},
 
+	_updateConsole: function() {
 		var message = _.clone(this.attributes);
 		message.restartCount = serverState.get('persistence').get('restartCount');
 		message.logs = serverState.get('logging').get('logCache');
 		message.events = serverState.get('logging').get('eventCache');
 		message.canUpdate = this.get('canUpdate');
 		comm.socketToConsole.sockets.emit('appState', message);
-
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
 	},
 
@@ -131,8 +132,9 @@ AppState = exports.AppState = BaseModel.extend({
 
 	// Run typeperf to get total CPU usage -- haven't figured out how to get it per process.
 	_updateCpu: function() {
-		var spawn = child_process.spawn('typeperf', ['\\Processor(_Total)\\% Processor Time']);
-		spawn.stdout.on('data', _.bind(function(data) {
+		this._typeperf = child_process.spawn('typeperf', ['\\Processor(_Total)\\% Processor Time']);
+		this._typeperf.stdout.on('data', _.bind(function(data) {
+
 			data = data.toString();
 			if (data && data.indexOf(',') === 0) {
 				var cpu = parseFloat(data.substr(2, data.length - 3));

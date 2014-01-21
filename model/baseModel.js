@@ -17,6 +17,10 @@ var BaseModel = Backbone.Model.extend({
         Backbone.Model.apply(this, arguments);
     },
 
+    clean: function() {
+
+    },
+
     // builds and return a simple object ready to be JSON stringified
     xport: function(opt) {
         var result = {},

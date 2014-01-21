@@ -70,6 +70,13 @@ exports.Persistence = BaseModel.extend({
         comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
+    clean: function() {
+        clearInterval(this._shutdownInterval);
+        clearInterval(this._startupInterval);
+        clearInterval(this._updateInterval);
+        clearInterval(this._restartInterval);
+    },
+
     _onConnection: function(socket) {
         socket.on('restart', _.bind(function() {
             logger.info('Restart requested from console.');
