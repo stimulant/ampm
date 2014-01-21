@@ -1,6 +1,8 @@
 var path = require('path'); //http://nodejs.org/api/path.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
+var _open = require('open'); // Open URLs. https://github.com/pwnall/node-open
+
 var ServerState = require('./model/serverState.js').ServerState;
 
 process.chdir(path.dirname(process.mainModule.filename));
@@ -24,7 +26,7 @@ function start() {
 
     global.serverState = new ServerState(config.server);
     serverState.start();
-    logger.info('Server started.');
+    logger.info('Server started. Press enter to open web console.');
 }
 
 start();
@@ -39,6 +41,12 @@ if (configFile) {
         }, 1000);
     });
 }
+
+process.stdin.setEncoding('utf8');
+process.stdin.resume();
+process.stdin.on('data', function() {
+    _open('http://localhost:' + serverState.get('network').get('socketToConsolePort'));
+});
 
 /*
 Misc
