@@ -53,6 +53,7 @@ exports.Network = BaseModel.extend({
 		comm.webServer.close();
 		comm.socketToApp.server.close();
 		comm.oscFromApp.removeAllListeners();
+		comm.oscFromApp.kill();
 	},
 
 	// Generic handler to decode and re-post OSC messages as native events.

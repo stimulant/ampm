@@ -17,6 +17,7 @@ var BaseModel = Backbone.Model.extend({
         Backbone.Model.apply(this, arguments);
     },
 
+    // Clean up any resources allocated -- timeouts, intervals, sockets, listeners...
     clean: function() {
 
     },
