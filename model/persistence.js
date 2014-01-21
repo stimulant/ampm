@@ -14,8 +14,10 @@ exports.Persistence = BaseModel.extend({
     defaults: {
         // The name of the executable.
         processName: '',
+        // Restart the app if it doesn't start up in this much time.
+        startupTimeout: 10,
         // Restart the app if there's no heartbeat for this much time.
-        restartAppAfter: 5,
+        heartbeatTimeout: 5,
         // After this many app restarts, give up ans restart the whole machine.
         restartMachineAfter: Infinity,
         // How many times the app has been restarted.
@@ -35,7 +37,7 @@ exports.Persistence = BaseModel.extend({
     // The most recent heartbeat, in ms since epoch.
     _lastHeart: null,
 
-    // The timeout which restarts the app if no heartbeat is received in restartAppAfter seconds.
+    // The timeout which restarts the app if no heartbeat is received in heartbeatTimeout seconds.
     _restartTimeout: null,
     // Flag indicating a shutdown was requested but not yet completed.
     _isShuttingDown: false,
@@ -71,6 +73,7 @@ exports.Persistence = BaseModel.extend({
     },
 
     clean: function() {
+        clearTimeout(this._restartTimeout);
         clearInterval(this._shutdownInterval);
         clearInterval(this._startupInterval);
         clearInterval(this._updateInterval);
@@ -166,7 +169,7 @@ exports.Persistence = BaseModel.extend({
     },
 
     _onHeart: function(message) {
-        this._resetRestartTimeout();
+        this._resetRestartTimeout(this.get('heartbeatTimeout'));
         if (!this._lastHeart) {
             this._isStartingUp = false;
             this._firstHeart = Date.now();
@@ -181,10 +184,10 @@ exports.Persistence = BaseModel.extend({
         this.trigger('heart');
     },
 
-    _resetRestartTimeout: function() {
+    _resetRestartTimeout: function(time) {
         clearTimeout(this._restartTimeout);
         if (!this._isShuttingDown) {
-            this._restartTimeout = setTimeout(_.bind(this._onRestartTimeout, this), this.get('restartAppAfter') * 1000);
+            this._restartTimeout = setTimeout(_.bind(this._onRestartTimeout, this), time * 1000);
         }
     },
 
@@ -306,7 +309,7 @@ exports.Persistence = BaseModel.extend({
                 child_process.spawn(appPath, [JSON.stringify(config)], {
                     cwd: path.dirname(appPath)
                 });
-                this._resetRestartTimeout();
+                this._resetRestartTimeout(this.get('startupTimeout'));
             }, this));
         }, this));
     },
