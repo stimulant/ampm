@@ -49,7 +49,6 @@ process.stdin.on('data', function() {
 
 /*
 Misc
-    Press a key in console window to bring up dashboard
     Press a key in app to bring up dashboard
     Handle bad paths better?
     Handle non-admin better?
