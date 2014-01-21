@@ -16,7 +16,6 @@
     "ncp": "~0.5.0",
     "node-fs": "~0.1.7",
     "node-osc": "~0.2.1",
-    "nodemon": "~1.0.12",
     "open": "~0.0.4",
     "request": "~2.33.0",
     "request-progress": "~0.3.1",
