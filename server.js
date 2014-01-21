@@ -42,8 +42,7 @@ if (configFile) {
     });
 }
 
-process.stdin.setEncoding('utf8');
-process.stdin.resume();
+// Press enter to open web console.
 process.stdin.on('data', function() {
     _open('http://localhost:' + serverState.get('network').get('socketToConsolePort'));
 });

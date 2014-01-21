@@ -15,6 +15,8 @@ var View = Backbone.View.extend({
 	},
 
 	_onAppState: function(message) {
+		$(document.body).show();
+
 		message.uptime = moment.duration(message.uptime, 'milliseconds').format('dd:hh:mm:ss');
 		message.fps = message.fps ? message.fps[message.fps.length - 1] : '';
 		message.cpu = message.cpu ? message.cpu[message.cpu.length - 1] : '';
