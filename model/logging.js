@@ -6,7 +6,7 @@ var Backbone = require('backbone'); // Data model utilities. http://backbonejs.o
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var ua = require('universal-analytics'); // Google Analytics. https://npmjs.org/package/universal-analytics
-var EventLog = require('windows-eventlog').EventLog; // Windows Event Log. http://jfromaniello.github.io/windowseventlogjs/
+// var EventLog = require('windows-eventlog').EventLog; // Windows Event Log. http://jfromaniello.github.io/windowseventlogjs/
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
@@ -128,6 +128,7 @@ exports.Logging = BaseModel.extend({
 
 		// Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
 		if (this.get('eventLog').enabled) {
+			/*
 			try {
 				this._eventLog = new EventLog('ampm-server', 'ampm-server');
 				logger.on('logging', _.bind(function(transport, level, msg, meta) {
@@ -138,6 +139,7 @@ exports.Logging = BaseModel.extend({
 			} catch (e) {
 				logger.error("Couldn't initialize event logging -- run as admin first.");
 			}
+			*/
 		}
 
 		// Set up Google Analytics. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
