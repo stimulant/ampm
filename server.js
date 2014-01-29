@@ -50,6 +50,7 @@ process.stdin.on('data', function() {
 
 /*
 Misc
+    Persistent console for windows event logging, instead of a new process each time?
     Handle bad paths better?
     Handle non-admin better?
 
