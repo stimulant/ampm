@@ -63,7 +63,7 @@ Below are all the defaults for the various modules. Your JSON file only needs to
         "filename": "logs/server.log", // Path to the log file, relative to server.js.
         "maxsize": 1048576, // The max size of the log file before rolling over (1MB default)
         "json": false, // Whether to log in JSON format.
-        "level": "info" // The logging level to write: info, warning, error.
+        "level": "info" // The logging level to write: info, warn, error.
     },
 
     // Settings for the console logger.
@@ -71,7 +71,7 @@ Below are all the defaults for the various modules. Your JSON file only needs to
         "enabled": true, // false to turn off
         "colorize": true, // Colors are fun.
         "timestamp": true, // Include timestamps.
-        "level": "info" // The logging level to write: info, warning, error.
+        "level": "info" // The logging level to write: info, warn, error.
     },
 
     // Settings for the Windows event logger.
@@ -104,7 +104,7 @@ Below are all the defaults for the various modules. Your JSON file only needs to
         "from": "ampm@content.stimulant.io", // Where the emails should appear to be from.
         "password": "JPv5U9N6", // The password to log in with.
         "subject": "ERROR: {hostname}", // The subject of the emails. "{hostname}" is replaced by the output of os.hostname().
-        "level": "error" // The logging level to write: info, warning, error.
+        "level": "error" // The logging level to write: info, warn, error.
         "to": "josh@stimulant.io" // Where the emails should go.
     },
 

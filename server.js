@@ -26,7 +26,8 @@ function start() {
 
     global.serverState = new ServerState(config.server);
     serverState.start();
-    logger.info('Server started. Press enter to open web console.');
+    logger.info('Server started.');
+    console.log('Press enter to open web console.');
 }
 
 start();

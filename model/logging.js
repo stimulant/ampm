@@ -1,12 +1,13 @@
 var os = require('os'); // http://nodejs.org/api/os.html
 var path = require('path'); //http://nodejs.org/api/path.html
+var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
 
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var ua = require('universal-analytics'); // Google Analytics. https://npmjs.org/package/universal-analytics
-// var EventLog = require('windows-eventlog').EventLog; // Windows Event Log. http://jfromaniello.github.io/windowseventlogjs/
+var wincmd = require('node-windows'); // Windows utilities. https://github.com/coreybutler/node-windows
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
@@ -28,7 +29,8 @@ exports.Logging = BaseModel.extend({
 		},
 
 		eventLog: {
-			enabled: true
+			enabled: true,
+			eventSource: 'ampmserver'
 		},
 
 		google: {
@@ -67,12 +69,8 @@ exports.Logging = BaseModel.extend({
 		eventCache: null,
 	},
 
-	// Mappings from MS.Diagnostics.Tracing.EventLevel to the Winston levels.
-	_appLevelToWinstonLevel: {
-		Informational: 'info',
-		Warning: 'warning',
-		Error: 'error'
-	},
+	// Whether the windows event source has been initialized.
+	_eventSourceReady: false,
 
 	// Mappings from the Winston levels to what Event Viewer wants.
 	_winstonLevelToWindowsLevel: {
@@ -81,7 +79,13 @@ exports.Logging = BaseModel.extend({
 		error: 'Error'
 	},
 
-	_eventLog: null,
+	// Mappings from MS.Diagnostics.Tracing.EventLevel to the Winston levels.
+	_appLevelToWinstonLevel: {
+		Informational: 'info',
+		Warning: 'warn',
+		Error: 'error'
+	},
+
 	_google: null,
 
 	initialize: function() {
@@ -89,13 +93,13 @@ exports.Logging = BaseModel.extend({
 
 		logger.setLevels({
 			info: 0,
-			warning: 1,
+			warn: 1,
 			error: 2
 		});
 
 		winston.addColors({
 			info: 'green',
-			warning: 'yellow',
+			warn: 'yellow',
 			error: 'red'
 		});
 
@@ -128,18 +132,13 @@ exports.Logging = BaseModel.extend({
 
 		// Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
 		if (this.get('eventLog').enabled) {
-			/*
-			try {
-				this._eventLog = new EventLog('ampm-server', 'ampm-server');
-				logger.on('logging', _.bind(function(transport, level, msg, meta) {
-					if (transport.name == 'console') {
-						this._eventLog.log(msg, this._winstonLevelToWindowsLevel[level]);
-					}
-				}, this));
-			} catch (e) {
-				logger.error("Couldn't initialize event logging -- run as admin first.");
-			}
-			*/
+			this.initEventLog();
+			logger.on('logging', _.bind(function(transport, level, msg, meta) {
+				if (transport.name == 'console') {
+					level = this._winstonLevelToWindowsLevel[level];
+					this.eventLog(level, msg, meta);
+				}
+			}, this));
 		}
 
 		// Set up Google Analytics. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
@@ -190,7 +189,7 @@ exports.Logging = BaseModel.extend({
 						this._google._queue = queue;
 					} else {
 						// Something else bad happened.
-						logger.warning('Error with Google Analytics', error);
+						logger.warn('Error with Google Analytics', error);
 					}
 				}, this));
 			}, this));
@@ -201,5 +200,44 @@ exports.Logging = BaseModel.extend({
 		if (global.logger) {
 			logger.removeAllListeners('logging');
 		}
+	},
+
+	// Register a Windows event source.
+	initEventLog: function(callback) {
+		var source = this.get('eventLog').eventSource;
+		var key = 'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentcontrolSet\\Services\\EventLog\\Application\\' + source;
+		child_process.exec('REG QUERY ' + key, _.bind(function(error, stdout, stderr) {
+			if (!error) {
+				this._eventSourceReady = true;
+				return;
+			}
+
+			var cmd = 'EVENTCREATE /L APPLICATION /T Information /SO "' + source + '" /ID 1000 /D "Set up event source."';
+			wincmd.elevate(cmd, null, _.bind(function(error, stdout, stderr) {
+				if (callback) {
+					callback(error, stdout, stderr);
+				}
+			}, this));
+		}, this));
+	},
+
+	// Log a message to the Windows event log.
+	eventLog: function(level, msg, meta, callback) {
+		if (!this._eventSourceReady || !msg) {
+			return;
+		}
+
+		msg = msg.trim();
+		if (!msg) {
+			return;
+		}
+
+		var source = this.get('eventLog').eventSource;
+		var cmd = 'EVENTCREATE /L APPLICATION /T ' + level + ' /SO "' + source + '" /ID 1000 /D "' + msg + '"';
+		child_process.exec(cmd, _.bind(function(error, stdout, stderr) {
+			if (callback) {
+				callback(error, stdout, stderr);
+			}
+		}, this));
 	}
 });

@@ -26,7 +26,7 @@
     "lodash": "~2.4.1",
     "unzip": "~0.1.9",
     "universal-analytics": "~0.3.2",
-    "windows-eventlog": "~1.0.1",
+    "node-windows": "~0.1.5",
     "winston": "~0.7.2",
     "winston-loggly": "~1.0.1",
     "winston-mail": "~0.2.7",
