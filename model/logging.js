@@ -132,11 +132,11 @@ exports.Logging = BaseModel.extend({
 
 		// Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
 		if (this.get('eventLog').enabled) {
-			this.initEventLog();
+			this.registerEventSource();
 			logger.on('logging', _.bind(function(transport, level, msg, meta) {
 				if (transport.name == 'console') {
 					level = this._winstonLevelToWindowsLevel[level];
-					this.eventLog(level, msg, meta);
+					this.writeEventLog(level, msg, meta);
 				}
 			}, this));
 		}
@@ -203,7 +203,7 @@ exports.Logging = BaseModel.extend({
 	},
 
 	// Register a Windows event source.
-	initEventLog: function(callback) {
+	registerEventSource: function(callback) {
 		var source = this.get('eventLog').eventSource;
 		var key = 'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentcontrolSet\\Services\\EventLog\\Application\\' + source;
 		child_process.exec('REG QUERY ' + key, _.bind(function(error, stdout, stderr) {
@@ -214,6 +214,10 @@ exports.Logging = BaseModel.extend({
 
 			var cmd = 'EVENTCREATE /L APPLICATION /T Information /SO "' + source + '" /ID 1000 /D "Set up event source."';
 			wincmd.elevate(cmd, null, _.bind(function(error, stdout, stderr) {
+				if (!error) {
+					this._eventSourceReady = true;
+				}
+
 				if (callback) {
 					callback(error, stdout, stderr);
 				}
@@ -222,22 +226,23 @@ exports.Logging = BaseModel.extend({
 	},
 
 	// Log a message to the Windows event log.
-	eventLog: function(level, msg, meta, callback) {
-		if (!this._eventSourceReady || !msg) {
+	writeEventLog: function(level, msg, meta, callback) {
+		if (!this._eventSourceReady || !msg || !level) {
 			return;
 		}
 
 		msg = msg.trim();
-		if (!msg) {
+		level = level.trim();
+		if (!msg || !level) {
 			return;
+		}
+
+		if (meta) {
+			msg += ' ' + JSON.stringify(meta);
 		}
 
 		var source = this.get('eventLog').eventSource;
 		var cmd = 'EVENTCREATE /L APPLICATION /T ' + level + ' /SO "' + source + '" /ID 1000 /D "' + msg + '"';
-		child_process.exec(cmd, _.bind(function(error, stdout, stderr) {
-			if (callback) {
-				callback(error, stdout, stderr);
-			}
-		}, this));
+		child_process.exec(cmd, callback);
 	}
 });
