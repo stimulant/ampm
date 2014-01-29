@@ -10,7 +10,7 @@ var View = Backbone.View.extend({
 	_socket: null,
 
 	initialize: function() {
-		this._socket = io.connect('http://localhost:3000');
+		this._socket = io.connect();
 		this._socket.on('appState', _.bind(this._onAppState, this));
 	},
 
