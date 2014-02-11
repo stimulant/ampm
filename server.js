@@ -53,6 +53,7 @@ Misc
     Persistent console for windows event logging, instead of a new process each time?
     Handle bad paths better?
     Handle non-admin better?
+    Shutdown machine on a schedule
 
 Content Updater
     Backup current app/content to .old folders before beginning

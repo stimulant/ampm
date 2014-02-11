@@ -92,7 +92,8 @@ Below are all the defaults for the various modules. Your JSON file only needs to
         "subdomain": "stimulant", // The account name. https://stimulant.loggly.com/dashboards
         "inputToken": "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The API token.
         "json": true, // Whether to log as JSON -- this should be true.
-        "token": "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e" // The um, other token.
+        "token": "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The um, other token.
+        "tags": "ampm" // A tag to differentiate app logs from one another in loggly.
     },
 
     // Settings for the email logger.
