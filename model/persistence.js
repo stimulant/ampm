@@ -24,6 +24,8 @@ exports.Persistence = BaseModel.extend({
         restartCount: 0,
         // Shut down the app according to this schedule.
         shutdownSchedule: null,
+        // Shut down the machine according to this schedule.
+        shutdownPcSchedule: null,
         // Start up the app according to this schedule.
         startupSchedule: null,
         // Update the content and the app according to this schedule.
@@ -49,6 +51,9 @@ exports.Persistence = BaseModel.extend({
     // The timeout which shuts down the app on the appointed schedule.
     _shutdownSchedule: null,
     _shutDownInterval: null,
+    // The timeout which shuts down the PC on the appointed schedule.
+    _shutdownPcSchedule: null,
+    _shutDownPcInterval: null,
     // The timeout which starts up the app on the appointed schedule.
     _startupSchedule: null,
     _startupInterval: null,
@@ -75,6 +80,7 @@ exports.Persistence = BaseModel.extend({
     clean: function() {
         clearTimeout(this._restartTimeout);
         clearInterval(this._shutdownInterval);
+        clearInterval(this._shutdownPcInterval);
         clearInterval(this._startupInterval);
         clearInterval(this._updateInterval);
         clearInterval(this._restartInterval);
@@ -123,6 +129,20 @@ exports.Persistence = BaseModel.extend({
                 this.set('restartCount', 0);
                 this.shutdownApp();
             }, this), this._shutdownSchedule);
+        }
+
+        // Shutdown on schedule.
+        if (this.get('shutdownPcSchedule')) {
+            this._shutdownPcSchedule = later.parse.cron(this.get('shutdownPcSchedule'));
+            if (this._shutdownPcInterval) {
+                this._shutdownPcInterval.clear();
+            }
+
+            this._shutdownPcInterval = later.setInterval(_.bind(function() {
+                logger.info('Shutdown time has arrived. ' + new Date());
+                this.set('restartCount', 0);
+                this.shutdownMachine();
+            }, this), this._shutdownPcSchedule);
         }
 
         // Start up on schedule.

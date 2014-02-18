@@ -47,6 +47,7 @@ Below are all the defaults for the various modules. Your JSON file only needs to
     "heartbeatTimeout": 5, // Restart the app this many seconds of no heartbeat messages.
     "restartMachineAfter": Infinity, // Restart the machine after this many app restarts.
     "shutdownSchedule": null, // Shut down the app on this schedule -- see cronmaker.com for the format.
+    "shutdownPcSchedule": null, // Shut down the PC on this schedule -- see cronmaker.com for the format.
     "startupSchedule": null, // Start up the app on this schedule -- see cronmaker.com for the format.
     "updateSchedule": null, // Update the content and app on this schedule -- see cronmaker.com for the format.
     "restartSchedule": null // Restart the app on this schedule -- see cronmaker.com for the format.
