@@ -81,14 +81,24 @@ exports.Persistence = BaseModel.extend({
     },
 
     _onConnection: function(socket) {
-        socket.on('restart', _.bind(function() {
+        socket.on('restart-app', _.bind(function() {
             logger.info('Restart requested from console.');
             this.restartApp();
         }, this));
 
-        socket.on('shutdown', _.bind(function() {
+        socket.on('shutdown-app', _.bind(function() {
             logger.info('Shutdown requested from console.');
             this.shutdownApp();
+        }, this));
+
+        socket.on('restart-pc', _.bind(function() {
+            logger.info('Reboot requested from console.');
+            this.restartMachine();
+        }, this));
+
+        socket.on('shutdown-pc', _.bind(function() {
+            logger.info('Shutdown requested from console.');
+            this.shutdownMachine();
         }, this));
 
         socket.on('start', _.bind(function() {
@@ -198,7 +208,8 @@ exports.Persistence = BaseModel.extend({
         this.trigger('crash');
 
         if (restartCount >= this.get('restartMachineAfter')) {
-            this._restartMachine();
+            logger.info('Already restarted app ' + this.get('restartMachineAfter') + ' times, rebooting machine.');
+            this.restartMachine();
             return;
         }
 
@@ -318,13 +329,32 @@ exports.Persistence = BaseModel.extend({
         this.shutdownApp(_.bind(this.startApp, this));
     },
 
-    _restartMachine: function() {
-        logger.info('Already restarted app ' + this.get('restartMachineAfter') + ' times, rebooting machine.');
+    shutdownMachine: function() {
+        console.log('uuuuu');
+        if (this._isShuttingDown) {
+            return;
+        }
+        this._isShuttingDown = true;
+
+        // Shutdown but wait a bit to log things.
+        // -S - shutdown local machine
+        // -C - shutdown message
+        // -T 0 - shutdown now
+        // -F - don't wait for anything to shut down gracefully
+        setTimeout(child_process.exec('shutdown -S -T 0 -F -C "ampm shutdown"'), 3000);
+    },
+
+    restartMachine: function() {
+        if (this._isShuttingDown) {
+            return;
+        }
+        this._isShuttingDown = true;
 
         // Restart but wait a bit to log things.
-        // /t 0 - shutdown now
-        // /r - restart
-        // /f - don't wait for anything to shut down gracefully
-        setTimeout(child_process.exec('shutdown /T 0 /R /F'), 3000);
+        // -R - restart
+        // -C - shutdown message
+        // -T 0 - shutdown now
+        // -F - don't wait for anything to shut down gracefully
+        setTimeout(child_process.exec('shutdown -R -T 0 -F -C "ampm restart"'), 3000);
     }
 });

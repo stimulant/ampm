@@ -1,9 +1,11 @@
 var View = Backbone.View.extend({
 
 	events: {
-		'click #shutdown': '_onShutdownClicked',
+		'click #shutdown-app': '_onShutdownAppClicked',
+		'click #restart-app': '_onRestartAppClicked',
+		'click #shutdown-pc': '_onShutdownPcClicked',
+		'click #restart-pc': '_onRestartPcClicked',
 		'click #start': '_onStartClicked',
-		'click #restart': '_onRestartClicked',
 		'click #update': '_onUpdateClicked'
 	},
 
@@ -34,26 +36,38 @@ var View = Backbone.View.extend({
 		var template = _.template($('#info-template').html(), message);
 		$('#info').html(template);
 
-		$('#shutdown').toggle(message.isRunning);
+		$('#shutdown-app').toggle(message.isRunning);
 		$('#start').toggle(!message.isRunning);
-		$('#restart').toggle(message.isRunning);
+		$('#restart-app').toggle(message.isRunning);
 		$('#update').toggle(message.canUpdate);
 	},
 
-	_onShutdownClicked: function() {
+	_onShutdownAppClicked: function() {
 		if (window.confirm('Are you sure you want to shut down the app? It will not restart automatically.')) {
-			this._socket.emit('shutdown');
+			this._socket.emit('shutdown-app');
+		}
+	},
+
+	_onRestartAppClicked: function() {
+		if (window.confirm('Are you sure you want to shut down and restart the app?')) {
+			this._socket.emit('restart-app');
+		}
+	},
+
+	_onShutdownPcClicked: function() {
+		if (window.confirm('Are you sure you want to shut down the computer? It will not restart automatically.')) {
+			this._socket.emit('shutdown-pc');
+		}
+	},
+
+	_onRestartPcClicked: function() {
+		if (window.confirm('Are you sure you want to shut down and restart the computer?')) {
+			this._socket.emit('restart-pc');
 		}
 	},
 
 	_onStartClicked: function() {
 		this._socket.emit('start');
-	},
-
-	_onRestartClicked: function() {
-		if (window.confirm('Are you sure you want to shut down and restart the app?')) {
-			this._socket.emit('restart');
-		}
 	},
 
 	_onUpdateClicked: function() {
