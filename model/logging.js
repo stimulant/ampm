@@ -238,7 +238,10 @@ exports.Logging = BaseModel.extend({
 		}
 
 		if (meta) {
-			msg += ' ' + JSON.stringify(meta);
+			meta = JSON.stringify(meta);
+			if (meta != '{}') {
+				msg += ' ' + meta;
+			}
 		}
 
 		var source = this.get('eventLog').eventSource;
