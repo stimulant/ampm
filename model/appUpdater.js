@@ -21,6 +21,8 @@ exports.AppUpdater = ContentUpdater.extend({
 	}),
 
 	initialize: function() {
+		ContentUpdater.prototype.initialize.apply(this, arguments);
+
 		var filename = path.basename(this.get('remote'));
 		var file = new ContentFile({
 			url: this.get('remote'),

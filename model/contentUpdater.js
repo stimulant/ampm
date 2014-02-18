@@ -37,6 +37,11 @@ exports.ContentUpdater = BaseModel.extend({
     // A callback to call when updating is complete.
     _callback: null,
 
+    initialize: function() {
+        this.set('local', path.join(this.get('local'), '/'));
+        this.set('temp', path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.tmp', '/'));
+    },
+
     // Download new content to the temp folder.
     download: function(callback) {
         if (!this.get('remote')) {

@@ -30,16 +30,14 @@ Below are all the defaults for the various modules. Your JSON file only needs to
 "contentUpdater": {
     "remote": null, // The path to fetch new content from. If this is a URL, ampm will look for an XML file and parse it
                     // for additional URLs to fetch. If it's a local/network path, it will use robocopy to fetch a directory.
-    "local": "content/", // The local path to deployed content, relative to server.js.
-    "temp": "content.tmp/", // The local path to the temp download folder, relative to server.js.
+    "local": "content/" // The local path to deployed content, relative to server.js.
 },
 
 // URLs and paths for the application updater.
 "appUpdater": {
     "remote": null, // The path to fetch a new application binary from. This should be a single zip file. If it's a URL, ampm
                     // will download it. If it's a local/network path, it will use robocopy.
-    "local": "app.tmp/", // The local path to deployed content, relative to server.js.
-    "temp": "app.tmp/", // The local path to the temp download folder, relative to server.js.
+    "local": "app/" // The local path to deployed content, relative to server.js.
 },
 
 // Settings for the persistence manager.
