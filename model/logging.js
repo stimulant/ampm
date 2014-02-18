@@ -86,7 +86,11 @@ exports.Logging = BaseModel.extend({
 		Error: 'error'
 	},
 
+	// The Google Analytics client.
 	_google: null,
+
+	// A console window used for the event viewer logger.
+	_eventSourceConsole: null,
 
 	initialize: function() {
 		global.logger = new winston.Logger();
@@ -200,6 +204,10 @@ exports.Logging = BaseModel.extend({
 		if (global.logger) {
 			logger.removeAllListeners('logging');
 		}
+
+		if (this._eventSourceConsole) {
+			this._eventSourceConsole.stdin.end();
+		}
 	},
 
 	// Register a Windows event source.
@@ -208,6 +216,7 @@ exports.Logging = BaseModel.extend({
 		var key = 'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentcontrolSet\\Services\\EventLog\\Application\\' + source;
 		child_process.exec('REG QUERY ' + key, _.bind(function(error, stdout, stderr) {
 			if (!error) {
+				this._eventSourceConsole = child_process.spawn('cmd.exe');
 				this._eventSourceReady = true;
 				return;
 			}
@@ -215,6 +224,7 @@ exports.Logging = BaseModel.extend({
 			var cmd = 'EVENTCREATE /L APPLICATION /T Information /SO "' + source + '" /ID 1000 /D "Set up event source."';
 			wincmd.elevate(cmd, null, _.bind(function(error, stdout, stderr) {
 				if (!error) {
+					this._eventSourceConsole = child_process.spawn('cmd.exe');
 					this._eventSourceReady = true;
 				}
 
@@ -246,6 +256,6 @@ exports.Logging = BaseModel.extend({
 
 		var source = this.get('eventLog').eventSource;
 		var cmd = 'EVENTCREATE /L APPLICATION /T ' + level + ' /SO "' + source + '" /ID 1000 /D "' + msg + '"';
-		child_process.exec(cmd, callback);
+		this._eventSourceConsole.stdin.write(cmd + '\n');
 	}
 });
