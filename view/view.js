@@ -41,7 +41,9 @@ var View = Backbone.View.extend({
 	},
 
 	_onShutdownClicked: function() {
-		this._socket.emit('shutdown');
+		if (window.confirm('Are you sure you want to shut down the app? It will not restart automatically.')) {
+			this._socket.emit('shutdown');
+		}
 	},
 
 	_onStartClicked: function() {
@@ -49,7 +51,9 @@ var View = Backbone.View.extend({
 	},
 
 	_onRestartClicked: function() {
-		this._socket.emit('restart');
+		if (window.confirm('Are you sure you want to shut down and restart the app?')) {
+			this._socket.emit('restart');
+		}
 	},
 
 	_onUpdateClicked: function() {
