@@ -27,7 +27,10 @@ exports.ContentUpdater = BaseModel.extend({
         local: 'content/',
 
         // The temp path for content.
-        temp: 'content.tmp/',
+        temp: null,
+
+        // The path for content backups.
+        backup: null,
 
         // A collection of file objects that are being processed.
         files: null,
@@ -39,8 +42,13 @@ exports.ContentUpdater = BaseModel.extend({
 
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
+
+        // Normalize slashes at the end of paths.
         this.set('local', path.join(this.get('local'), '/'));
-        this.set('temp', path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.tmp', '/'));
+
+        // Set up temp and backup directories.
+        this.set('temp', path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.temp', '/'));
+        this.set('backup', path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.backup', '/'));
     },
 
     // Download new content to the temp folder.
@@ -52,6 +60,7 @@ exports.ContentUpdater = BaseModel.extend({
         this.set('needsUpdate', false);
         this._callback = callback;
         this._initDirectories(_.bind(function() {
+
             if (this.get('remote').indexOf('http') === 0) {
                 // We're going to pull down an XML file from the web and parse it for other files.
                 request(this.get('remote'), _.bind(this._processContentRoot, this));
@@ -247,9 +256,17 @@ exports.ContentUpdater = BaseModel.extend({
     update: function(callback) {
         this._callback = callback;
         // Recursive copy from temp to target.
-        ncp(this.get('temp'), this.get('local'), _.bind(function(error) {
-            this._handleError('Error copying from temp folder.', error);
-            this._completed();
+        ncp(this.get('local'), this.get('backup'), _.bind(function(error) {
+            this._handleError('Error copying to backup folder.', error);
+            if (error) {
+                this._completed();
+                return;
+            }
+
+            ncp(this.get('temp'), this.get('local'), _.bind(function(error) {
+                this._handleError('Error copying from temp folder.', error);
+                this._completed();
+            }, this));
         }, this));
     },
 
@@ -281,7 +298,7 @@ exports.ContentUpdater = BaseModel.extend({
             sourceDir,
             targetDir,
             file,
-        '/e', // Copies subdirectories. Note that this option includes empty directories.
+            '/e', // Copies subdirectories. Note that this option includes empty directories.
             '/v', // Produces verbose output, and shows all skipped files.
             '/np', // Specifies that the progress of the copying operation (the number of files or directories copied so far) will not be displayed.
             '/njs', // Specifies that there is no job summary.
