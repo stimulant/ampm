@@ -23,6 +23,8 @@ exports.Network = BaseModel.extend({
 	},
 
 	initialize: function() {
+		BaseModel.prototype.initialize.apply(this);
+
 		// Set up web server for console.
 		global.app = express();
 		comm.webServer = http.createServer(app).listen(this.get('socketToConsolePort'));
@@ -54,6 +56,7 @@ exports.Network = BaseModel.extend({
 		comm.socketToApp.server.close();
 		comm.oscFromApp.removeAllListeners();
 		comm.oscFromApp.kill();
+		BaseModel.prototype.clean.apply(this);
 	},
 
 	// Generic handler to decode and re-post OSC messages as native events.

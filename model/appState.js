@@ -29,6 +29,7 @@ AppState = exports.AppState = BaseModel.extend({
 	_startupTime: 0,
 
 	initialize: function() {
+		BaseModel.prototype.initialize.apply(this);
 		this.set('canUpdate', ((serverState.get('contentUpdater').get('remote') && true) || (serverState.get('appUpdater').get('remote') && true)) === true);
 		serverState.get('persistence').on('heart', this._onHeart, this);
 		this._updateStats();
@@ -41,6 +42,7 @@ AppState = exports.AppState = BaseModel.extend({
 		clearTimeout(this._updateStatsTimeout);
 		this._typeperf.kill();
 		serverState.get('persistence').off(null, null, this);
+		BaseModel.prototype.clean.apply(this);
 	},
 
 	_updateConsole: function() {

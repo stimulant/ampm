@@ -65,6 +65,7 @@ exports.Persistence = BaseModel.extend({
     _restartInterval: null,
 
     initialize: function() {
+        BaseModel.prototype.initialize.apply(this);
         comm.oscFromApp.on('heart', _.bind(this._onHeart, this));
 
         this._initSchedules();
@@ -84,6 +85,7 @@ exports.Persistence = BaseModel.extend({
         clearInterval(this._startupInterval);
         clearInterval(this._updateInterval);
         clearInterval(this._restartInterval);
+        BaseModel.prototype.clean.apply(this);
     },
 
     _onConnection: function(socket) {
@@ -350,7 +352,6 @@ exports.Persistence = BaseModel.extend({
     },
 
     shutdownMachine: function() {
-        console.log('uuuuu');
         if (this._isShuttingDown) {
             return;
         }

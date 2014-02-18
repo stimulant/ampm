@@ -93,6 +93,7 @@ exports.Logging = BaseModel.extend({
 	_eventSourceConsole: null,
 
 	initialize: function() {
+		BaseModel.prototype.initialize.apply(this);
 		global.logger = new winston.Logger();
 
 		logger.setLevels({
@@ -208,6 +209,8 @@ exports.Logging = BaseModel.extend({
 		if (this._eventSourceConsole) {
 			this._eventSourceConsole.stdin.end();
 		}
+
+		BaseModel.prototype.clean.apply(this);
 	},
 
 	// Register a Windows event source.

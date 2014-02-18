@@ -21,8 +21,6 @@ exports.ServerState = BaseModel.extend({
         network: null
     },
 
-    initialize: function() {},
-
     start: function() {
         this.set('network', new Network({
             config: config.network
@@ -64,6 +62,7 @@ exports.ServerState = BaseModel.extend({
         this.get('persistence').clean();
         this.get('logging').clean();
         this.get('appState').clean();
+        BaseModel.prototype.clean.apply(this);
     },
 
     _onConnection: function(socket) {

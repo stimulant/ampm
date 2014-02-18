@@ -38,6 +38,7 @@ exports.ContentUpdater = BaseModel.extend({
     _callback: null,
 
     initialize: function() {
+        BaseModel.prototype.initialize.apply(this);
         this.set('local', path.join(this.get('local'), '/'));
         this.set('temp', path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.tmp', '/'));
     },
@@ -280,7 +281,7 @@ exports.ContentUpdater = BaseModel.extend({
             sourceDir,
             targetDir,
             file,
-            '/e', // Copies subdirectories. Note that this option includes empty directories.
+        '/e', // Copies subdirectories. Note that this option includes empty directories.
             '/v', // Produces verbose output, and shows all skipped files.
             '/np', // Specifies that the progress of the copying operation (the number of files or directories copied so far) will not be displayed.
             '/njs', // Specifies that there is no job summary.

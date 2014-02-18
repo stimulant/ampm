@@ -4,22 +4,30 @@ var Backbone = require('backbone'); // Data model utilities. http://backbonejs.o
 // Swiped from here: https://blog.andyet.com/2011/feb/15/re-using-backbonejs-models-on-the-server-with-node/
 var BaseModel = Backbone.Model.extend({
 
-    // Merge the config property of the initial args with the defaults.
-    constructor: function(args) {
-        if (!args || !args['config']) {
-            Backbone.Model.apply(this, arguments);
+    // Map the properties of the config object to the model properties.
+    // Should be called as the first line of the initialize method of any subclass.
+    initialize: function() {
+        var config = this.get('config');
+        if (!config) {
             return;
         }
 
-        var config = args['config'];
-        delete args['config'];
-        _.merge(this.defaults, config);
-        Backbone.Model.apply(this, arguments);
+        for (var i in config) {
+            if (_.isString(config[i])) {
+                this.set(i, config[i]);
+            } else {
+                this.set(i, _.clone(this.get(i)));
+                for (var j in config[i]) {
+                    this.get(i)[j] = config[i][j];
+                }
+            }
+        }
     },
 
-    // Clean up any resources allocated -- timeouts, intervals, sockets, listeners...
+    // Reset to default and clean up any resources allocated: timeouts, intervals, sockets, listeners...
+    // Should be called as the last line of the clean method of any subclass.
     clean: function() {
-
+        this.clear().set(this.defaults);
     },
 
     // builds and return a simple object ready to be JSON stringified
