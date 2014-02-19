@@ -255,6 +255,11 @@ exports.ContentUpdater = BaseModel.extend({
     // Copy files to their final destination when all files are loaded.
     update: function(callback) {
         this._callback = callback;
+        if (!this.get('needsUpdate')) {
+            this._completed();
+            return;
+        }
+
         // Recursive copy from temp to target.
         ncp(this.get('local'), this.get('backup'), _.bind(function(error) {
             this._handleError('Error copying to backup folder.', error);
@@ -264,6 +269,7 @@ exports.ContentUpdater = BaseModel.extend({
             }
 
             ncp(this.get('temp'), this.get('local'), _.bind(function(error) {
+                console.log(this._appUpdater, ' copied');
                 this._handleError('Error copying from temp folder.', error);
                 this._completed();
             }, this));

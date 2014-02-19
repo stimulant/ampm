@@ -17,8 +17,10 @@ exports.AppUpdater = ContentUpdater.extend({
 		local: 'app/',
 
 		// The temp path for the app.
-		temp: 'app.tmp/'
+		temp: null
 	}),
+
+	_appUpdater: true,
 
 	initialize: function() {
 		ContentUpdater.prototype.initialize.apply(this, arguments);

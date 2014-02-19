@@ -97,38 +97,34 @@ exports.ServerState = BaseModel.extend({
             return;
         }
 
-        if (!this.get('contentUpdater').get('needsUpdate') && !this.get('appUpdater').get('needsUpdate')) {
+        // New stuff was downloaded, so shut down the app and process the downloaded files.
+        var contentUpdated = !this.get('contentUpdater').get('needsUpdate');
+        var appUpdated = !this.get('appUpdater').get('needsUpdate');
+        if (contentUpdated && appUpdated) {
             return;
         }
 
-        // New stuff was downloaded, so shut down the app and process the downloaded files.
-        var contentUpdated = false;
-        var appUpdated = false;
-
         this.get('persistence').shutdownApp(_.bind(function() {
-
             // Copy content files from the temp folder.
             this.get('contentUpdater').update(_.bind(function(error) {
-                contentUpdated = true;
-                this._onUpdated(contentUpdated, appUpdated);
                 if (!error) {
                     logger.info('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
                 }
-            }, this));
 
-            // Copy the app from the temp folder, and unzip it.
-            this.get('appUpdater').update(_.bind(function(error) {
-                appUpdated = true;
-                this._onUpdated(contentUpdated, appUpdated);
-                if (!error) {
-                    logger.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
-                }
+                // Copy the app from the temp folder, and unzip it.
+                this.get('appUpdater').update(_.bind(function(error) {
+                    if (!error) {
+                        logger.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
+                    }
+                    this._onUpdated(contentUpdated, appUpdated);
+                }, this));
             }, this));
         }, this));
     },
 
     // Once the download has been processed, restart the app.
     _onUpdated: function(contentUpdated, appUpdated) {
+        console.log(contentUpdated, appUpdated);
         if (!contentUpdated || !appUpdated) {
             return;
         }

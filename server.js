@@ -1,7 +1,6 @@
 var path = require('path'); //http://nodejs.org/api/path.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
-var _open = require('open'); // Open URLs. https://github.com/pwnall/node-open
 var os = require('os'); // http://nodejs.org/api/os.html
 
 var ServerState = require('./model/serverState.js').ServerState;
@@ -28,7 +27,7 @@ function start() {
     global.serverState = new ServerState(config.server);
     serverState.start();
     logger.info('Server started.');
-    console.log('http://' + os.hostname() + ':' + serverState.get('network').get('socketToConsolePort'));
+    console.log('Console is at: http://' + os.hostname() + ':' + serverState.get('network').get('socketToConsolePort'));
 }
 
 start();
