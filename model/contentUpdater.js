@@ -261,6 +261,7 @@ exports.ContentUpdater = BaseModel.extend({
         }
 
         // Recursive copy from temp to target.
+        logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup'));
         ncp(this.get('local'), this.get('backup'), _.bind(function(error) {
             this._handleError('Error copying to backup folder.', error);
             if (error) {
@@ -268,8 +269,8 @@ exports.ContentUpdater = BaseModel.extend({
                 return;
             }
 
+            logger.info('Deploying from ' + this.get('temp') + ' to ' + this.get('local'));
             ncp(this.get('temp'), this.get('local'), _.bind(function(error) {
-                console.log(this._appUpdater, ' copied');
                 this._handleError('Error copying from temp folder.', error);
                 this._completed();
             }, this));

@@ -116,19 +116,10 @@ exports.ServerState = BaseModel.extend({
                     if (!error) {
                         logger.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
                     }
-                    this._onUpdated(contentUpdated, appUpdated);
+
+                    this.get('persistence').restartApp();
                 }, this));
             }, this));
         }, this));
     },
-
-    // Once the download has been processed, restart the app.
-    _onUpdated: function(contentUpdated, appUpdated) {
-        console.log(contentUpdated, appUpdated);
-        if (!contentUpdated || !appUpdated) {
-            return;
-        }
-
-        this.get('persistence').restartApp();
-    }
 });
