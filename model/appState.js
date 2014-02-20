@@ -14,7 +14,8 @@ AppState = exports.AppState = BaseModel.extend({
 		fps: null,
 		cpu: null,
 		memory: null,
-		canUpdate: false
+		canUpdate: false,
+		isUpdating: false
 	},
 
 	// How often to update stats.
@@ -51,6 +52,7 @@ AppState = exports.AppState = BaseModel.extend({
 		message.logs = serverState.get('logging').get('logCache');
 		message.events = serverState.get('logging').get('eventCache');
 		message.canUpdate = this.get('canUpdate');
+		message.isUpdating = serverState.get('contentUpdater').get('isUpdating') || serverState.get('appUpdater').get('isUpdating');
 		comm.socketToConsole.sockets.emit('appState', message);
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
 	},
@@ -146,6 +148,7 @@ AppState = exports.AppState = BaseModel.extend({
 						cpuHistory = [];
 						this.set('cpu', cpuHistory);
 					}
+
 					cpuHistory.push(cpu);
 					while (cpuHistory.length > this._statHistory) {
 						cpuHistory.shift();

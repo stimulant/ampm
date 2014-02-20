@@ -20,8 +20,6 @@ exports.AppUpdater = ContentUpdater.extend({
 		temp: null
 	}),
 
-	_appUpdater: true,
-
 	initialize: function() {
 		ContentUpdater.prototype.initialize.apply(this, arguments);
 
@@ -71,6 +69,11 @@ exports.AppUpdater = ContentUpdater.extend({
 	},
 
 	_completed: function() {
+		if (!this.get('needsUpdate')) {
+			ContentUpdater.prototype._completed.call(this);
+			return;
+		}
+
 		var file = this.get('files').at(0);
 
 		// Not a zip file, so bail.

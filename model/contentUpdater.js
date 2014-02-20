@@ -35,6 +35,7 @@ exports.ContentUpdater = BaseModel.extend({
         // A collection of file objects that are being processed.
         files: null,
         needsUpdate: false,
+        isUpdating: false
     },
 
     // A callback to call when updating is complete.
@@ -58,6 +59,7 @@ exports.ContentUpdater = BaseModel.extend({
         }
 
         this.set('needsUpdate', false);
+        this.set('isUpdating', true);
         this._callback = callback;
         this._initDirectories(_.bind(function() {
 
@@ -247,6 +249,7 @@ exports.ContentUpdater = BaseModel.extend({
         logger.info(contentFile.get('url') + ' ' + style + ', ' + filesToGo + ' to go');
 
         if (!filesToGo) {
+            this.set('isUpdating', false);
             this.set('downloaded', moment());
             this._callback();
         }
@@ -254,6 +257,7 @@ exports.ContentUpdater = BaseModel.extend({
 
     // Copy files to their final destination when all files are loaded.
     update: function(callback) {
+        this.set('isUpdating', true);
         this._callback = callback;
         if (!this.get('needsUpdate')) {
             this._completed();
@@ -280,6 +284,7 @@ exports.ContentUpdater = BaseModel.extend({
     // Notify on completion.
     _completed: function() {
         this.set('updated', moment());
+        this.set('isUpdating', false);
         this.trigger('complete');
         if (this._callback) {
             this._callback();

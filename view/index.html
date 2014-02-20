@@ -20,11 +20,12 @@
     </script>
     <script type="text/template" id="info-template"> 
         <p>isRunning: <%- isRunning %>
+        <br/>isUpdating: <%- isUpdating %>
         <br/>uptime: <%- uptime %>
         <br/>restartCount: <%- restartCount %>
         <br/>fps: <%- fps %>
         <br/>cpu: <%- cpu %>
-        <br/>memory: <%- memory %></p>
+        <br/>memory: <%- memory %></button>
         <hr/>
         <pre><%- logList %></pre>
         <hr/>
@@ -32,13 +33,20 @@
     </script>
 </head>
 <body style="display:none">
-    <p id="shutdown-app"><button>Shut Down App</button></p>
-    <p id="start"><button>Start App</button></p>
-    <p id="restart-app"><button>Restart App</button></p>
-    <p id="update"><button>Update Content and App</button></p>
-    <p id="shutdown-pc"><button>Shut Down Computer</button></p>
-    <p id="restart-pc"><button>Restart Computer</button></p>
-    <div id="info">
+
+    <div id="buttons-app">
+        <button id="shutdown-app">Shut Down App</button>
+        <button id="start">Start App</button>
+        <button id="restart-app">Restart App</button>
+        <button id="update">Update Content and App</button>
     </div>
+
+    <div id="buttons-pc">
+        <button id="shutdown-pc">Shut Down Computer</button>
+        <button id="restart-pc">Restart Computer</button>
+    </div>
+
+    <div id="info"></div>
+
 </body>
 </html>

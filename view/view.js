@@ -36,6 +36,7 @@ var View = Backbone.View.extend({
 		var template = _.template($('#info-template').html(), message);
 		$('#info').html(template);
 
+		$('#buttons-app').toggle(!message.isUpdating);
 		$('#shutdown-app').toggle(message.isRunning);
 		$('#start').toggle(!message.isRunning);
 		$('#restart-app').toggle(message.isRunning);
