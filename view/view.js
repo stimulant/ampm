@@ -38,12 +38,17 @@ var View = Backbone.View.extend({
 		var template = _.template($('#info-template').html(), message);
 		$('#info').html(template);
 
-		$('#buttons-app').toggle(!message.isUpdating);
+		$('#buttons-app, #buttons-source').toggle(!message.isUpdating);
 		$('#shutdown-app').toggle(message.isRunning);
 		$('#start').toggle(!message.isRunning);
 		$('#restart-app').toggle(message.isRunning);
 		$('#update').toggle(message.canUpdate);
 		$('#rollback').toggle(message.canRollBack);
+
+		$('#buttons-source button').each(_.bind(function(i, el) {
+			el = $(el);
+			el.toggle(el.data().source != message.contentSource);
+		}, this));
 	},
 
 	_onConfig: function(message) {
@@ -66,16 +71,16 @@ var View = Backbone.View.extend({
 		}
 
 		// If there are multiple sources, set up buttons for them.
-		$('#buttons-update').empty();
+		$('#buttons-source').empty();
 		_.each(sources, function(value, index, collection) {
 			var data = {
 				source: value
 			};
 			var btn = $(_.template($('#update-button-template').html(), data));
 			btn.data(data);
-			$('#buttons-update').append(btn);
+			$('#buttons-source').append(btn);
 			btn.click(_.bind(function(e) {
-				this._onUpdateClicked(e, $(e.target).data().source);
+				this._onSetSourceClicked(e, $(e.target).data().source);
 			}, this));
 		}, this);
 	},
@@ -108,8 +113,12 @@ var View = Backbone.View.extend({
 		this._socket.emit('start');
 	},
 
-	_onUpdateClicked: function(event, source) {
-		this._socket.emit('updateContent', source);
+	_onSetSourceClicked: function(event, source) {
+		this._socket.emit('setSource', source);
+	},
+
+	_onUpdateClicked: function() {
+		this._socket.emit('updateContent');
 	},
 
 	_onRollBackClicked: function() {

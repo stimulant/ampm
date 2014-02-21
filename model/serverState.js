@@ -1,6 +1,7 @@
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
+var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 
 var BaseModel = require('./baseModel.js').BaseModel;
 var Network = require('./network.js').Network;
@@ -68,13 +69,51 @@ exports.ServerState = BaseModel.extend({
     },
 
     _onConnection: function(socket) {
+        socket.on('setSource', _.bind(this.setSource, this));
         socket.on('updateContent', _.bind(this.updateContent, this));
         socket.on('rollBack', _.bind(this.rollBackContent, this));
     },
 
-    updateContent: function(source) {
+    setSource: function(source) {
+        if (source == savedState.contentSource) {
+            return;
+        }
+
+        saveState('contentSource', source);
+
+        var contentChecked = false;
+        var appChecked = false;
         var contentDownloaded = false;
         var appDownloaded = false;
+
+        fs.exists(this.get('contentUpdater').get('temp')[source], _.bind(function(exists) {
+            contentChecked = true;
+            contentDownloaded = exists;
+            this._deploySource(contentChecked, appChecked, contentDownloaded, appDownloaded);
+        }, this));
+
+        fs.exists(this.get('appUpdater').get('temp')[source], _.bind(function(exists) {
+            appChecked = true;
+            appDownloaded = exists;
+            this._deploySource(contentChecked, appChecked, contentDownloaded, appDownloaded);
+        }, this));
+    },
+
+    _deploySource: function(contentChecked, appChecked, contentDownloaded, appDownloaded) {
+        if (appChecked && contentChecked) {
+            if (contentDownloaded && appDownloaded) {
+                this._onDownloaded(contentDownloaded, appDownloaded, true);
+            } else {
+                this.updateContent();
+            }
+        }
+    },
+
+    updateContent: function() {
+        var contentDownloaded = false;
+        var appDownloaded = false;
+
+        source = savedState.contentSource;
 
         if (source) {
             logger.info('Updating from ' + source);
@@ -99,27 +138,29 @@ exports.ServerState = BaseModel.extend({
         }, this));
     },
 
-    _onDownloaded: function(contentDownloaded, appDownloaded) {
+    _onDownloaded: function(contentDownloaded, appDownloaded, force) {
         if (!contentDownloaded || !appDownloaded) {
             return;
         }
 
         // New stuff was downloaded, so shut down the app and process the downloaded files.
-        var contentUpdated = !this.get('contentUpdater').get('needsUpdate');
-        var appUpdated = !this.get('appUpdater').get('needsUpdate');
-        if (contentUpdated && appUpdated) {
-            return;
+        if (!force) {
+            var contentUpdated = !this.get('contentUpdater').get('needsUpdate');
+            var appUpdated = !this.get('appUpdater').get('needsUpdate');
+            if (contentUpdated && appUpdated) {
+                return;
+            }
         }
 
         this.get('persistence').shutdownApp(_.bind(function() {
             // Copy content files from the temp folder.
-            this.get('contentUpdater').deploy(_.bind(function(error) {
+            this.get('contentUpdater').deploy(force, _.bind(function(error) {
                 if (!error) {
                     logger.info('Content deploy complete! ' + this.get('contentUpdater').get('updated').toString());
                 }
 
                 // Copy the app from the temp folder, and unzip it.
-                this.get('appUpdater').deploy(_.bind(function(error) {
+                this.get('appUpdater').deploy(force, _.bind(function(error) {
                     if (!error) {
                         logger.info('App deploy complete! ' + this.get('appUpdater').get('updated').toString());
                     }

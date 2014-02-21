@@ -90,20 +90,15 @@ exports.ContentUpdater = BaseModel.extend({
     download: function(source, callback) {
         var remote = this.get('remote');
 
-        if (!source) {
-            source = savedState.contentSource;
-        }
-
         remote = remote[source];
         this._callback = callback;
-        this.set('needsUpdate', source != savedState.contentSource);
-        saveState('contentSource', source);
 
         if (!remote) {
             this._callback();
             return;
         }
 
+        this.set('needsUpdate', false);
         this.set('isUpdating', true);
 
         this._doDownload(source);
@@ -307,30 +302,41 @@ exports.ContentUpdater = BaseModel.extend({
     },
 
     // Copy files to their final destination when all files are loaded.
-    deploy: function(callback) {
+    deploy: function(force, callback) {
         var source = savedState.contentSource;
         this.set('isUpdating', true);
         this._callback = callback;
-        if (!this.get('needsUpdate')) {
+        if (!force && !this.get('needsUpdate')) {
             this._completed();
             return;
         }
 
-        // Recursive copy from temp to target.
-        logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup')[source]);
-        ncp(this.get('local'), this.get('backup')[source], _.bind(function(error) {
-            this._handleError('Error copying to backup folder.', error);
-            if (error) {
-                this._completed();
-                return;
-            }
-
+        deployFromTemp = _.bind(function() {
             logger.info('Deploying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
             ncp(this.get('temp')[source], this.get('local'), _.bind(function(error) {
                 this._handleError('Error copying from temp folder.', error);
                 this._completed();
             }, this));
-        }, this));
+        }, this);
+
+        backupThenDeploy = _.bind(function() {
+            logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup')[source]);
+            ncp(this.get('local'), this.get('backup')[source], _.bind(function(error) {
+                this._handleError('Error copying to backup folder.', error);
+                if (error) {
+                    this._completed();
+                    return;
+                }
+
+                tempToLocal();
+            }, this));
+        }, this);
+
+        if (force) {
+            deployFromTemp();
+        } else {
+            backupThenDeploy();
+        }
     },
 
     // Notify on completion.
@@ -408,7 +414,7 @@ exports.ContentUpdater = BaseModel.extend({
 
     // Roll back content -- copy it from the backup folder to the temp folder, and then to live.
     rollBack: function(callback) {
-        var source = savedState.defaultSource;
+        var source = savedState.contentSource;
         if (!this.get('canRollBack')) {
             callback(false);
         }
