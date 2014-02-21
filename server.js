@@ -4,6 +4,7 @@ var winston = require('winston'); // Logging. https://github.com/flatiron/winsto
 var os = require('os'); // http://nodejs.org/api/os.html
 
 var ServerState = require('./model/serverState.js').ServerState;
+var stateFile = 'state.json';
 
 process.chdir(path.dirname(process.mainModule.filename));
 
@@ -16,8 +17,20 @@ if (process.argv.length > 2) {
 global.app = null;
 global.comm = {};
 
+
+global.saveState = function(key, value) {
+    if (savedState[key] === value) {
+        return;
+    }
+
+    savedState[key] = value;
+    fs.writeFile(stateFile, JSON.stringify(savedState, null, '\t'));
+};
+
 function start() {
     global.config = configFile && fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile)) : {};
+    global.savedState = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile)) : {};
+
     console.log('Server starting up.');
 
     if (global['serverState']) {

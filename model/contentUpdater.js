@@ -44,9 +44,6 @@ exports.ContentUpdater = BaseModel.extend({
         canRollBack: false
     },
 
-    // The default source to update from.
-    _defaultSource: null,
-
     // A callback to call when updating is complete.
     _callback: null,
 
@@ -66,9 +63,10 @@ exports.ContentUpdater = BaseModel.extend({
         // Set up the temp and backup paths.
         var temp = {};
         var backup = {};
+        var defaultSource = savedState.defaultSource;
         for (var source in this.get('remote')) {
-            if (!this._defaultSource) {
-                this._defaultSource = source;
+            if (!defaultSource) {
+                defaultSource = source;
             }
 
             temp[source] = path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.' + source + '.temp', '/');
@@ -78,7 +76,12 @@ exports.ContentUpdater = BaseModel.extend({
         this.set('temp', temp);
         this.set('backup', backup);
 
-        fs.exists(this.get('backup')[this._defaultSource], _.bind(function(exists) {
+        // Save the initial default source.
+        if (!savedState.contentSource) {
+            global.saveState('contentSource', defaultSource);
+        }
+
+        fs.exists(this.get('backup')[defaultSource], _.bind(function(exists) {
             this.set('canRollBack', exists);
         }, this));
     },
@@ -88,16 +91,13 @@ exports.ContentUpdater = BaseModel.extend({
         var remote = this.get('remote');
 
         if (!source) {
-            source = this._defaultSource;
+            source = savedState.contentSource;
         }
 
-        if (source && _.isObject(remote)) {
-            remote = remote[source];
-        }
-
+        remote = remote[source];
         this._callback = callback;
-        this.set('needsUpdate', source != this._defaultSource);
-        this._defaultSource = source;
+        this.set('needsUpdate', source != savedState.contentSource);
+        saveState('contentSource', source);
 
         if (!remote) {
             this._callback();
@@ -162,7 +162,7 @@ exports.ContentUpdater = BaseModel.extend({
         this._handleError('Error loading root XML.', error);
 
         // Write the root XML file.
-        fs.writeFile(this.get('temp')['source'] + 'content.xml', body, _.bind(function(error) {
+        fs.writeFile(this.get('temp')[source] + 'content.xml', body, _.bind(function(error) {
             this._handleError('Error writing root XML.', error);
             this.set('files', new exports.ContentFiles());
 
@@ -308,7 +308,7 @@ exports.ContentUpdater = BaseModel.extend({
 
     // Copy files to their final destination when all files are loaded.
     deploy: function(callback) {
-        var source = this._defaultSource;
+        var source = savedState.contentSource;
         this.set('isUpdating', true);
         this._callback = callback;
         if (!this.get('needsUpdate')) {
@@ -408,7 +408,7 @@ exports.ContentUpdater = BaseModel.extend({
 
     // Roll back content -- copy it from the backup folder to the temp folder, and then to live.
     rollBack: function(callback) {
-        var source = this._defaultSource;
+        var source = savedState.defaultSource;
         if (!this.get('canRollBack')) {
             callback(false);
         }

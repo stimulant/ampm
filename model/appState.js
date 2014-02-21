@@ -1,3 +1,5 @@
+var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
+
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var moment = require('moment'); // Date processing. http://momentjs.com/
@@ -15,7 +17,8 @@ AppState = exports.AppState = BaseModel.extend({
 		cpu: null,
 		memory: null,
 		canUpdate: false,
-		isUpdating: false
+		isUpdating: false,
+		savedState: null,
 	},
 
 	// How often to update stats.
