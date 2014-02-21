@@ -17,7 +17,6 @@ if (process.argv.length > 2) {
 global.app = null;
 global.comm = {};
 
-
 global.saveState = function(key, value) {
     if (savedState[key] === value) {
         return;
