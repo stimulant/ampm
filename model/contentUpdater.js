@@ -64,9 +64,14 @@ exports.ContentUpdater = BaseModel.extend({
         var temp = {};
         var backup = {};
         var defaultSource = savedState.contentSource;
+        if (!this.get('remote')[defaultSource]) {
+            defaultSource = null;
+        }
+
         for (var source in this.get('remote')) {
             if (!defaultSource) {
                 defaultSource = source;
+                global.saveState('contentSource', defaultSource);
             }
 
             temp[source] = path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.' + source + '.temp', '/');
@@ -75,12 +80,6 @@ exports.ContentUpdater = BaseModel.extend({
 
         this.set('temp', temp);
         this.set('backup', backup);
-
-        // Save the initial default source.
-        if (!savedState.contentSource) {
-            global.saveState('contentSource', defaultSource);
-            global.saveState('lastContentSource', defaultSource);
-        }
 
         fs.exists(this.get('backup')[defaultSource], _.bind(function(exists) {
             this.set('canRollBack', exists);
@@ -305,7 +304,6 @@ exports.ContentUpdater = BaseModel.extend({
     // Copy files to their final destination when all files are loaded.
     deploy: function(force, callback) {
         var source = savedState.contentSource;
-        var lastSource = savedState.lastContentSource;
         this.set('isUpdating', true);
         this._callback = callback;
         if (!force && !this.get('needsUpdate')) {
@@ -322,7 +320,7 @@ exports.ContentUpdater = BaseModel.extend({
         }, this);
 
         backupThenDeploy = _.bind(function() {
-            logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup')[lastSource]);
+            logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup')[source]);
             ncp(this.get('local'), this.get('backup')[source], _.bind(function(error) {
                 this._handleError('Error copying to backup folder.', error);
                 if (error) {
@@ -345,7 +343,6 @@ exports.ContentUpdater = BaseModel.extend({
     _completed: function() {
         this.set('updated', moment());
         this.set('isUpdating', false);
-        this.saveState('lastContentSource', savedState.contentSource);
         this.trigger('complete');
         if (this._callback) {
             this._callback();

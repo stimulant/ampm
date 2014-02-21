@@ -18,15 +18,14 @@ global.app = null;
 global.comm = {};
 
 // Save a value to the serialized state file.
-var writeTimeout = 0;
 global.saveState = function(key, value) {
     if (savedState[key] === value) {
         return;
     }
 
     savedState[key] = value;
-    clearTimeout(writeTimeout);
-    writeTimeout = setTimeout(function() {
+    clearTimeout(saveState.writeTimeout);
+    saveState.writeTimeout = setTimeout(function() {
         fs.writeFile(stateFile, JSON.stringify(savedState, null, '\t'));
     }, 1000);
 };
