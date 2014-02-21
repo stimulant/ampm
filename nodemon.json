@@ -9,6 +9,6 @@
     "app",
     "content"
   ],
-  "verbose": false,
+  "quiet": true,
   "ext": "js json"
 }
