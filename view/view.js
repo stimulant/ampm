@@ -51,16 +51,12 @@ var View = Backbone.View.extend({
 		// Compile the list of content sources.
 		var sources = [];
 		var source = '';
-		if (_.isObject(message.appUpdater.remote)) {
-			for (source in message.appUpdater.remote) {
-				sources.push(source);
-			}
+		for (source in message.appUpdater.remote) {
+			sources.push(source);
 		}
 
-		if (_.isObject(message.contentUpdater.remote)) {
-			for (source in message.contentUpdater.remote) {
-				sources.push(source);
-			}
+		for (source in message.contentUpdater.remote) {
+			sources.push(source);
 		}
 
 		sources = _.unique(sources);

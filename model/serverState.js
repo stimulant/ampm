@@ -113,15 +113,15 @@ exports.ServerState = BaseModel.extend({
 
         this.get('persistence').shutdownApp(_.bind(function() {
             // Copy content files from the temp folder.
-            this.get('contentUpdater').update(_.bind(function(error) {
+            this.get('contentUpdater').deploy(_.bind(function(error) {
                 if (!error) {
-                    logger.info('Content update complete! ' + this.get('contentUpdater').get('updated').toString());
+                    logger.info('Content deploy complete! ' + this.get('contentUpdater').get('updated').toString());
                 }
 
                 // Copy the app from the temp folder, and unzip it.
-                this.get('appUpdater').update(_.bind(function(error) {
+                this.get('appUpdater').deploy(_.bind(function(error) {
                     if (!error) {
-                        logger.info('App update complete! ' + this.get('appUpdater').get('updated').toString());
+                        logger.info('App deploy complete! ' + this.get('appUpdater').get('updated').toString());
                     }
 
                     this.get('persistence').restartApp();

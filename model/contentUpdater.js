@@ -53,21 +53,32 @@ exports.ContentUpdater = BaseModel.extend({
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
 
-        if (_.isObject(this.get('remote'))) {
-            for (var i in this.get('remote')) {
-                this._defaultSource = i;
-                break;
-            }
-        }
-
         // Normalize slashes at the end of paths.
         this.set('local', path.join(this.get('local'), '/'));
 
-        // Set up temp and backup directories.
-        this.set('temp', path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.temp', '/'));
-        this.set('backup', path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.backup', '/'));
+        // Even if there's only one remote configured, make it an object so it's standard.
+        if (!_.isObject(this.get('remote'))) {
+            this.set('remote', {
+                remote: this.get('remote')
+            });
+        }
 
-        fs.exists(this.get('backup'), _.bind(function(exists) {
+        // Set up the temp and backup paths.
+        var temp = {};
+        var backup = {};
+        for (var source in this.get('remote')) {
+            if (!this._defaultSource) {
+                this._defaultSource = source;
+            }
+
+            temp[source] = path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.' + source + '.temp', '/');
+            backup[source] = path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.' + source + '.backup', '/');
+        }
+
+        this.set('temp', temp);
+        this.set('backup', backup);
+
+        fs.exists(this.get('backup')[this._defaultSource], _.bind(function(exists) {
             this.set('canRollBack', exists);
         }, this));
     },
@@ -84,8 +95,8 @@ exports.ContentUpdater = BaseModel.extend({
             remote = remote[source];
         }
 
-        this.set('needsUpdate', false);
         this._callback = callback;
+        this.set('needsUpdate', source != this._defaultSource);
         this._defaultSource = source;
 
         if (!remote) {
@@ -95,18 +106,20 @@ exports.ContentUpdater = BaseModel.extend({
 
         this.set('isUpdating', true);
 
-        this._doDownload(remote);
+        this._doDownload(source);
     },
 
-    _doDownload: function(remote) {
-        this._initDirectories(_.bind(function() {
-
+    _doDownload: function(source) {
+        this._initDirectories(source, _.bind(function() {
+            var remote = this.get('remote')[source];
             if (remote.indexOf('http') === 0) {
                 // We're going to pull down an XML file from the web and parse it for other files.
-                request(remote, _.bind(this._processContentRoot, this));
+                request(remote, _.bind(function(error, response, body) {
+                    this._processContentRoot(source, error, response, body);
+                }, this));
             } else {
                 // We're going to just robocopy from another folder instead.
-                this._robocopy(remote, path.resolve(this.get('temp')), null, _.bind(function(code) {
+                this._robocopy(remote, path.resolve(this.get('temp')[source]), null, _.bind(function(code) {
                     this.set('needsUpdate', code > 0 && code <= 8);
                     this._callback(code > 8 ? code : 0);
                     if (code > 8) {
@@ -119,9 +132,9 @@ exports.ContentUpdater = BaseModel.extend({
     },
 
     // Set up the temp and output directories.
-    _initDirectories: function(callback) {
+    _initDirectories: function(source, callback) {
         // Make the temp directory.
-        fs.mkdir(this.get('temp'), 0777, true, _.bind(function(error) {
+        fs.mkdir(this.get('temp')[source], 0777, true, _.bind(function(error) {
             this._handleError('Error creating temp directory.', error);
 
             fs.exists(this.get('local'), _.bind(function(exists) {
@@ -140,7 +153,7 @@ exports.ContentUpdater = BaseModel.extend({
     },
 
     // Process the XML file to extract files to load.
-    _processContentRoot: function(error, response, body) {
+    _processContentRoot: function(source, error, response, body) {
         if (response.statusCode != 200) {
             this._handleError('Error loading root XML -- bad password?');
             return;
@@ -149,7 +162,7 @@ exports.ContentUpdater = BaseModel.extend({
         this._handleError('Error loading root XML.', error);
 
         // Write the root XML file.
-        fs.writeFile(this.get('temp') + 'content.xml', body, _.bind(function(error) {
+        fs.writeFile(this.get('temp')['source'] + 'content.xml', body, _.bind(function(error) {
             this._handleError('Error writing root XML.', error);
             this.set('files', new exports.ContentFiles());
 
@@ -188,7 +201,7 @@ exports.ContentUpdater = BaseModel.extend({
                 var file = new exports.ContentFile({
                     url: url,
                     filePath: this.get('local') + relativePath,
-                    tempPath: this.get('temp') + relativePath
+                    tempPath: this.get('temp')[source] + relativePath
                 });
 
                 file.on('loaded', this._onFileLoaded, this);
@@ -294,7 +307,8 @@ exports.ContentUpdater = BaseModel.extend({
     },
 
     // Copy files to their final destination when all files are loaded.
-    update: function(callback) {
+    deploy: function(callback) {
+        var source = this._defaultSource;
         this.set('isUpdating', true);
         this._callback = callback;
         if (!this.get('needsUpdate')) {
@@ -303,16 +317,16 @@ exports.ContentUpdater = BaseModel.extend({
         }
 
         // Recursive copy from temp to target.
-        logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup'));
-        ncp(this.get('local'), this.get('backup'), _.bind(function(error) {
+        logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup')[source]);
+        ncp(this.get('local'), this.get('backup')[source], _.bind(function(error) {
             this._handleError('Error copying to backup folder.', error);
             if (error) {
                 this._completed();
                 return;
             }
 
-            logger.info('Deploying from ' + this.get('temp') + ' to ' + this.get('local'));
-            ncp(this.get('temp'), this.get('local'), _.bind(function(error) {
+            logger.info('Deploying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
+            ncp(this.get('temp')[source], this.get('local'), _.bind(function(error) {
                 this._handleError('Error copying from temp folder.', error);
                 this._completed();
             }, this));
@@ -394,16 +408,19 @@ exports.ContentUpdater = BaseModel.extend({
 
     // Roll back content -- copy it from the backup folder to the temp folder, and then to live.
     rollBack: function(callback) {
+        var source = this._defaultSource;
         if (!this.get('canRollBack')) {
             callback(false);
         }
 
         this.set('isUpdating', true);
-        logger.info('Rolling back, copying from ' + this.get('backup') + ' to ' + this.get('temp'));
-        ncp(this.get('backup'), this.get('temp'), _.bind(function(error) {
+        logger.info('Rolling back, copying from ' + this.get('backup')[source] + ' to ' + this.get('temp')[source]);
+
+        ncp(this.get('backup')[source], this.get('temp')[source], _.bind(function(error) {
             this._handleError('Error copying to temp folder.', error);
-            logger.info('Rolling back, copying from ' + this.get('temp') + ' to ' + this.get('local'));
-            ncp(this.get('temp'), this.get('local'), _.bind(function(error) {
+
+            logger.info('Rolling back, copying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
+            ncp(this.get('temp')[source], this.get('local'), _.bind(function(error) {
                 this._handleError('Error copying to deploy folder.', error);
                 this.set('isUpdating', false);
                 callback(!error);
