@@ -39,6 +39,7 @@ exports.AppUpdater = ContentUpdater.extend({
 	// Download the new app to the temp folder.
 	download: function(callback) {
 		if (!this.get('remote')) {
+			callback();
 			return;
 		}
 
@@ -68,37 +69,23 @@ exports.AppUpdater = ContentUpdater.extend({
 		}, this));
 	},
 
-	_completed: function() {
-		if (!this.get('needsUpdate')) {
-			ContentUpdater.prototype._completed.call(this);
-			return;
-		}
-
-		var file = this.get('files').at(0);
-
+	// Unzip any zip files.
+	_onFileLoaded: function(contentFile) {
 		// Not a zip file, so bail.
-		if (path.extname(file.get('url')).toUpperCase() != '.ZIP') {
-			ContentUpdater.prototype._completed.call(this);
+		if (path.extname(contentFile.get('url')).toUpperCase() != '.ZIP') {
+			ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
 			return;
 		}
 
 		// Unzip the file.
-		logger.info('Unzipping app.');
+		logger.info('Unzipping app. ' + contentFile.get('tempPath'));
 		fs.createReadStream(
-			file.get('filePath'))
+			contentFile.get('tempPath'))
 			.pipe(unzip.Extract({
-				path: path.dirname(file.get('filePath'))
+				path: path.dirname(contentFile.get('tempPath'))
 			})).on('finish', _.bind(function(error) {
 				this._handleError('Error unzipping app.', error);
-				if (error) {
-					ContentUpdater.prototype._completed.call(this);
-					return;
-				}
-
-				// Delete the zip file.
-				fs.unlink(file.get('filePath'), _.bind(function() {
-					ContentUpdater.prototype._completed.call(this);
-				}, this));
+				ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
 			}, this));
 	}
 });

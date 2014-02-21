@@ -34,8 +34,15 @@ exports.ContentUpdater = BaseModel.extend({
 
         // A collection of file objects that are being processed.
         files: null,
+
+        // After a download is initiated, indicates whether anything new was discovered.
         needsUpdate: false,
-        isUpdating: false
+
+        // Indicates whether an update is currently in progress.
+        isUpdating: false,
+
+        // Indicates whether there is a backup of content to roll back to.
+        canRollBack: false
     },
 
     // A callback to call when updating is complete.
@@ -50,6 +57,10 @@ exports.ContentUpdater = BaseModel.extend({
         // Set up temp and backup directories.
         this.set('temp', path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.temp', '/'));
         this.set('backup', path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.backup', '/'));
+
+        fs.exists(this.get('backup'), _.bind(function(exists) {
+            this.set('canRollBack', exists);
+        }, this));
     },
 
     // Download new content to the temp folder.
@@ -351,6 +362,25 @@ exports.ContentUpdater = BaseModel.extend({
             if (callback) {
                 callback(code);
             }
+        }, this));
+    },
+
+    // Roll back content -- copy it from the backup folder to the temp folder, and then to live.
+    rollBack: function(callback) {
+        if (!this.get('canRollBack')) {
+            callback(false);
+        }
+
+        this.set('isUpdating', true);
+        logger.info('Rolling back, copying from ' + this.get('backup') + ' to ' + this.get('temp'));
+        ncp(this.get('backup'), this.get('temp'), _.bind(function(error) {
+            this._handleError('Error copying to temp folder.', error);
+            logger.info('Rolling back, copying from ' + this.get('temp') + ' to ' + this.get('local'));
+            ncp(this.get('temp'), this.get('local'), _.bind(function(error) {
+                this._handleError('Error copying to deploy folder.', error);
+                this.set('isUpdating', false);
+                callback(!error);
+            }, this));
         }, this));
     }
 });

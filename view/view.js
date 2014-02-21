@@ -6,7 +6,8 @@ var View = Backbone.View.extend({
 		'click #shutdown-pc': '_onShutdownPcClicked',
 		'click #restart-pc': '_onRestartPcClicked',
 		'click #start': '_onStartClicked',
-		'click #update': '_onUpdateClicked'
+		'click #update': '_onUpdateClicked',
+		'click #rollBack': '_onRollBackClicked'
 	},
 
 	_socket: null,
@@ -41,6 +42,7 @@ var View = Backbone.View.extend({
 		$('#start').toggle(!message.isRunning);
 		$('#restart-app').toggle(message.isRunning);
 		$('#update').toggle(message.canUpdate);
+		$('#rollback').toggle(message.canRollBack);
 	},
 
 	_onShutdownAppClicked: function() {
@@ -73,5 +75,9 @@ var View = Backbone.View.extend({
 
 	_onUpdateClicked: function() {
 		this._socket.emit('updateContent');
+	},
+
+	_onRollBackClicked: function() {
+		this._socket.emit('rollBack');
 	}
 });

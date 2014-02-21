@@ -53,6 +53,7 @@ AppState = exports.AppState = BaseModel.extend({
 		message.events = serverState.get('logging').get('eventCache');
 		message.canUpdate = this.get('canUpdate');
 		message.isUpdating = serverState.get('contentUpdater').get('isUpdating') || serverState.get('appUpdater').get('isUpdating');
+		message.canRollBack = serverState.get('contentUpdater').get('canRollBack') || serverState.get('appUpdater').get('canRollBack');
 		comm.socketToConsole.sockets.emit('appState', message);
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
 	},

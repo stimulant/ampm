@@ -67,6 +67,7 @@ exports.ServerState = BaseModel.extend({
 
     _onConnection: function(socket) {
         socket.on('updateContent', _.bind(this.updateContent, this));
+        socket.on('rollBack', _.bind(this.rollBackContent, this));
     },
 
     updateContent: function() {
@@ -122,4 +123,16 @@ exports.ServerState = BaseModel.extend({
             }, this));
         }, this));
     },
+
+    // Shut down the app, roll back content, and restart it.
+    rollBackContent: function() {
+        this.get('persistence').shutdownApp(_.bind(function() {
+            this.get('contentUpdater').rollBack(_.bind(function() {
+                this.get('appUpdater').rollBack(_.bind(function() {
+                    logger.info('Rollback complete!');
+                    this.get('persistence').restartApp();
+                }, this));
+            }, this));
+        }, this));
+    }
 });
