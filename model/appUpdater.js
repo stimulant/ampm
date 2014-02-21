@@ -60,8 +60,14 @@ exports.AppUpdater = ContentUpdater.extend({
 
 	// Unzip any zip files.
 	_onFileLoaded: function(contentFile) {
-		// Not a zip file, so bail.
+		if (!contentFile.get('totalBytes')) {
+			// File was cached.
+			ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
+			return;
+		}
+
 		if (path.extname(contentFile.get('url')).toUpperCase() != '.ZIP') {
+			// Not a zip file.
 			ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
 			return;
 		}

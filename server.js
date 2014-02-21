@@ -17,6 +17,7 @@ if (process.argv.length > 2) {
 global.app = null;
 global.comm = {};
 
+// Save a value to the serialized state file.
 global.saveState = function(key, value) {
     if (savedState[key] === value) {
         return;
