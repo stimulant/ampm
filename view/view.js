@@ -15,6 +15,7 @@ var View = Backbone.View.extend({
 	initialize: function() {
 		this._socket = io.connect();
 		this._socket.on('appState', _.bind(this._onAppState, this));
+		this._socket.on('config', _.bind(this._onConfig, this));
 	},
 
 	_onAppState: function(message) {
@@ -45,6 +46,44 @@ var View = Backbone.View.extend({
 		$('#rollback').toggle(message.canRollBack);
 	},
 
+	_onConfig: function(message) {
+
+		// Compile the list of content sources.
+		var sources = [];
+		var source = '';
+		if (_.isObject(message.appUpdater.remote)) {
+			for (source in message.appUpdater.remote) {
+				sources.push(source);
+			}
+		}
+
+		if (_.isObject(message.contentUpdater.remote)) {
+			for (source in message.contentUpdater.remote) {
+				sources.push(source);
+			}
+		}
+
+		sources = _.unique(sources);
+
+		if (!sources.length) {
+			return;
+		}
+
+		// If there are multiple sources, set up buttons for them.
+		$('#buttons-update').empty();
+		_.each(sources, function(value, index, collection) {
+			var data = {
+				source: value
+			};
+			var btn = $(_.template($('#update-button-template').html(), data));
+			btn.data(data);
+			$('#buttons-update').append(btn);
+			btn.click(_.bind(function(e) {
+				this._onUpdateClicked(e, $(e.target).data().source);
+			}, this));
+		}, this);
+	},
+
 	_onShutdownAppClicked: function() {
 		if (window.confirm('Are you sure you want to shut down the app? It will not restart automatically.')) {
 			this._socket.emit('shutdown-app');
@@ -73,8 +112,8 @@ var View = Backbone.View.extend({
 		this._socket.emit('start');
 	},
 
-	_onUpdateClicked: function() {
-		this._socket.emit('updateContent');
+	_onUpdateClicked: function(event, source) {
+		this._socket.emit('updateContent', source);
 	},
 
 	_onRollBackClicked: function() {

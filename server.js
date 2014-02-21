@@ -25,7 +25,7 @@ function start() {
     }
 
     global.serverState = new ServerState(config.server);
-    serverState.start();
+    serverState.start(config);
     logger.info('Server started.');
     console.log('Console is at: http://' + os.hostname() + ':' + serverState.get('network').get('socketToConsolePort'));
 }

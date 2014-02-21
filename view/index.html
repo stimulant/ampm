@@ -32,15 +32,24 @@
         <hr/>
         <pre><%- eventList %></pre>
     </script>
+    <script type="text/template" id="update-button-template">
+        <button id="update-<%- source %>">Update Content and App from <%- source %></button>
+    </script>
 </head>
 <body style="display:none">
 
     <div id="buttons-app">
-        <button id="shutdown-app">Shut Down App</button>
-        <button id="start">Start App</button>
-        <button id="restart-app">Restart App</button>
-        <button id="update">Update Content and App</button>
-        <button id="rollBack">Roll Back Content and App</button>
+        <div id="buttons-startup">
+            <button id="shutdown-app">Shut Down App</button>
+            <button id="start">Start App</button>
+            <button id="restart-app">Restart App</button>
+        </div>
+        <div id="buttons-update">
+            <button id="update">Update Content and App</button>
+        </div>
+        <div id="buttons-rollBack">
+            <button id="rollBack">Roll Back Content and App</button>
+        </div>
     </div>
 
     <div id="buttons-pc">

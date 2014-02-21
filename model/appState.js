@@ -6,7 +6,7 @@ var XRegExp = require('xregexp').XRegExp; // Fancy regular expressions. http://x
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
-// Information about the app.
+// Information about the app, which is synced to the console.
 AppState = exports.AppState = BaseModel.extend({
 	defaults: {
 		isRunning: false,
@@ -36,6 +36,7 @@ AppState = exports.AppState = BaseModel.extend({
 		this._updateStats();
 		this._updateCpu();
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
+		comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
 	},
 
 	clean: function() {
@@ -44,6 +45,10 @@ AppState = exports.AppState = BaseModel.extend({
 		this._typeperf.kill();
 		serverState.get('persistence').off(null, null, this);
 		BaseModel.prototype.clean.apply(this);
+	},
+
+	_onConnection: function() {
+		comm.socketToConsole.sockets.emit('config', serverState.fullConfig());
 	},
 
 	_updateConsole: function() {

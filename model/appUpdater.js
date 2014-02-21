@@ -20,12 +20,12 @@ exports.AppUpdater = ContentUpdater.extend({
 		temp: null
 	}),
 
-	initialize: function() {
-		ContentUpdater.prototype.initialize.apply(this, arguments);
+	// Download the new app to the temp folder.
+	_doDownload: function(remote) {
 
-		var filename = path.basename(this.get('remote'));
+		var filename = path.basename(remote);
 		var file = new ContentFile({
-			url: this.get('remote'),
+			url: remote,
 			filePath: this.get('local') + filename,
 			tempPath: this.get('temp') + filename
 		});
@@ -34,29 +34,17 @@ exports.AppUpdater = ContentUpdater.extend({
 
 		this.set('files', new ContentFiles());
 		this.get('files').add(file);
-	},
-
-	// Download the new app to the temp folder.
-	download: function(callback) {
-		if (!this.get('remote')) {
-			callback();
-			return;
-		}
-
-		this._callback = callback;
-		this.initialize();
-		var file = this.get('files').at(0);
 
 		this._initDirectories(_.bind(function() {
-			if (this.get('remote').indexOf('http') === 0) {
+			if (remote.indexOf('http') === 0) {
 				// We're going to download a file from the web using the content updater logic.
 				this._processFile(file);
 			} else {
 				// We're just going to copy a local file.
 				this._robocopy(
-					path.dirname(this.get('remote')),
+					path.dirname(remote),
 					path.dirname(path.resolve(file.get('tempPath'))),
-					path.basename(this.get('remote')),
+					path.basename(remote),
 					_.bind(function(code) {
 						this.set('needsUpdate', code > 0 && code <= 8);
 						this._callback(code > 8 ? code : 0);

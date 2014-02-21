@@ -16,7 +16,7 @@ var BaseModel = Backbone.Model.extend({
             if (_.isString(config[i])) {
                 this.set(i, config[i]);
             } else {
-                this.set(i, _.clone(this.get(i)));
+                this.set(i, _.clone(this.get(i)) || {});
                 for (var j in config[i]) {
                     this.get(i)[j] = config[i][j];
                 }

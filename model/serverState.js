@@ -42,17 +42,19 @@ exports.ServerState = BaseModel.extend({
         }));
 
         // Spew config for documentation.
-        var fullConfig = {
+        // console.log(JSON.stringify(this.fullConfig(), null, '\t'));
+
+        comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
+    },
+
+    fullConfig: function() {
+        return {
             network: this.get('network').attributes,
             contentUpdater: this.get('contentUpdater').attributes,
             appUpdater: this.get('appUpdater').attributes,
             persistence: this.get('persistence').attributes,
             logging: this.get('logging').attributes
         };
-
-        // console.log(JSON.stringify(fullConfig, null, '\t'));
-
-        comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
     clean: function() {
@@ -70,25 +72,29 @@ exports.ServerState = BaseModel.extend({
         socket.on('rollBack', _.bind(this.rollBackContent, this));
     },
 
-    updateContent: function() {
+    updateContent: function(source) {
         var contentDownloaded = false;
         var appDownloaded = false;
 
+        if (source) {
+            logger.info('Updating from ' + source);
+        }
+
         // Download content update.
-        this.get('contentUpdater').download(_.bind(function(error) {
+        this.get('contentUpdater').download(source, _.bind(function(error) {
             contentDownloaded = true;
             this._onDownloaded(contentDownloaded, appDownloaded);
             if (!error) {
-                logger.info('Content download complete! ' + this.get('contentUpdater').get('downloaded').toString());
+                logger.info('Content download complete! ' + (this.get('contentUpdater').get('needsUpdate') ? '' : 'Nothing new was found.'));
             }
         }, this));
 
         // Download app update.
-        this.get('appUpdater').download(_.bind(function(error) {
+        this.get('appUpdater').download(source, _.bind(function(error) {
             appDownloaded = true;
             this._onDownloaded(contentDownloaded, appDownloaded);
             if (!error) {
-                logger.info('App download complete! ' + this.get('appUpdater').get('downloaded').toString());
+                logger.info('App download complete! ' + (this.get('appUpdater').get('needsUpdate') ? '' : 'Nothing new was found.'));
             }
         }, this));
     },

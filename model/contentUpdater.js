@@ -44,11 +44,21 @@ exports.ContentUpdater = BaseModel.extend({
         canRollBack: false
     },
 
+    // The default source to update from.
+    _defaultSource: null,
+
     // A callback to call when updating is complete.
     _callback: null,
 
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
+
+        if (_.isObject(this.get('remote'))) {
+            for (var i in this.get('remote')) {
+                this._defaultSource = i;
+                break;
+            }
+        }
 
         // Normalize slashes at the end of paths.
         this.set('local', path.join(this.get('local'), '/'));
@@ -63,22 +73,40 @@ exports.ContentUpdater = BaseModel.extend({
     },
 
     // Download new content to the temp folder.
-    download: function(callback) {
-        if (!this.get('remote')) {
-            return;
+    download: function(source, callback) {
+        var remote = this.get('remote');
+
+        if (!source) {
+            source = this._defaultSource;
+        }
+
+        if (source && _.isObject(remote)) {
+            remote = remote[source];
         }
 
         this.set('needsUpdate', false);
-        this.set('isUpdating', true);
         this._callback = callback;
+        this._defaultSource = source;
+
+        if (!remote) {
+            this._callback();
+            return;
+        }
+
+        this.set('isUpdating', true);
+
+        this._doDownload(remote);
+    },
+
+    _doDownload: function(remote) {
         this._initDirectories(_.bind(function() {
 
-            if (this.get('remote').indexOf('http') === 0) {
+            if (remote.indexOf('http') === 0) {
                 // We're going to pull down an XML file from the web and parse it for other files.
-                request(this.get('remote'), _.bind(this._processContentRoot, this));
+                request(remote, _.bind(this._processContentRoot, this));
             } else {
                 // We're going to just robocopy from another folder instead.
-                this._robocopy(this.get('remote'), path.resolve(this.get('temp')), null, _.bind(function(code) {
+                this._robocopy(remote, path.resolve(this.get('temp')), null, _.bind(function(code) {
                     this.set('needsUpdate', code > 0 && code <= 8);
                     this._callback(code > 8 ? code : 0);
                     if (code > 8) {
