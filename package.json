@@ -19,7 +19,6 @@
     "open": "*",
     "request": "*",
     "request-progress": "*",
-    "rimraf": "*",
     "socket.io": "*",
     "socket.io-client": "*",
     "underscore": "*",

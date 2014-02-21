@@ -6,7 +6,6 @@ var moment = require('moment'); // Date processing. http://momentjs.com/
 var request = require('request'); // Simpler HTTP. https://github.com/mikeal/request
 var progress = require('request-progress'); // Progress events on downloads. https://github.com/IndigoUnited/node-request-progress
 var XRegExp = require('xregexp').XRegExp; // Fancy regular expressions. http://xregexp.com/
-var rimraf = require('rimraf'); // Recursive directory delete. https://github.com/isaacs/rimraf
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var ncp = require('ncp').ncp; // Recursive directory copy. https://npmjs.org/package/ncp
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
