@@ -43,7 +43,7 @@ var View = Backbone.View.extend({
 		$('#start').toggle(!message.isRunning);
 		$('#restart-app').toggle(message.isRunning);
 		$('#update').toggle(message.canUpdate);
-		$('#rollback').toggle(message.canRollBack);
+		$('#rollBack').toggle(message.canRollBack);
 
 		$('#buttons-source button').each(_.bind(function(i, el) {
 			el = $(el);

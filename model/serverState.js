@@ -79,6 +79,7 @@ exports.ServerState = BaseModel.extend({
             return;
         }
 
+        var oldSource = savedState.contentSource;
         saveState('contentSource', source);
 
         var contentChecked = false;
@@ -89,20 +90,20 @@ exports.ServerState = BaseModel.extend({
         fs.exists(this.get('contentUpdater').get('temp')[source], _.bind(function(exists) {
             contentChecked = true;
             contentDownloaded = exists;
-            this._deploySource(contentChecked, appChecked, contentDownloaded, appDownloaded);
+            this._deploySource(contentChecked, appChecked, contentDownloaded, appDownloaded, oldSource);
         }, this));
 
         fs.exists(this.get('appUpdater').get('temp')[source], _.bind(function(exists) {
             appChecked = true;
             appDownloaded = exists;
-            this._deploySource(contentChecked, appChecked, contentDownloaded, appDownloaded);
+            this._deploySource(contentChecked, appChecked, contentDownloaded, appDownloaded, oldSource);
         }, this));
     },
 
-    _deploySource: function(contentChecked, appChecked, contentDownloaded, appDownloaded) {
+    _deploySource: function(contentChecked, appChecked, contentDownloaded, appDownloaded, oldSource) {
         if (appChecked && contentChecked) {
             if (contentDownloaded && appDownloaded) {
-                this._onDownloaded(contentDownloaded, appDownloaded, true);
+                this._onDownloaded(contentDownloaded, appDownloaded, oldSource);
             } else {
                 this.updateContent();
             }
@@ -138,13 +139,13 @@ exports.ServerState = BaseModel.extend({
         }, this));
     },
 
-    _onDownloaded: function(contentDownloaded, appDownloaded, force) {
+    _onDownloaded: function(contentDownloaded, appDownloaded, oldSource) {
         if (!contentDownloaded || !appDownloaded) {
             return;
         }
 
         // New stuff was downloaded, so shut down the app and process the downloaded files.
-        if (!force) {
+        if (!oldSource) {
             var contentUpdated = !this.get('contentUpdater').get('needsUpdate');
             var appUpdated = !this.get('appUpdater').get('needsUpdate');
             if (contentUpdated && appUpdated) {
@@ -154,13 +155,13 @@ exports.ServerState = BaseModel.extend({
 
         this.get('persistence').shutdownApp(_.bind(function() {
             // Copy content files from the temp folder.
-            this.get('contentUpdater').deploy(force, _.bind(function(error) {
+            this.get('contentUpdater').deploy(oldSource, _.bind(function(error) {
                 if (!error) {
                     logger.info('Content deploy complete! ' + this.get('contentUpdater').get('updated').toString());
                 }
 
                 // Copy the app from the temp folder, and unzip it.
-                this.get('appUpdater').deploy(force, _.bind(function(error) {
+                this.get('appUpdater').deploy(oldSource, _.bind(function(error) {
                     if (!error) {
                         logger.info('App deploy complete! ' + this.get('appUpdater').get('updated').toString());
                     }

@@ -63,7 +63,7 @@ exports.ContentUpdater = BaseModel.extend({
         // Set up the temp and backup paths.
         var temp = {};
         var backup = {};
-        var defaultSource = savedState.defaultSource;
+        var defaultSource = savedState.contentSource;
         for (var source in this.get('remote')) {
             if (!defaultSource) {
                 defaultSource = source;
@@ -79,6 +79,7 @@ exports.ContentUpdater = BaseModel.extend({
         // Save the initial default source.
         if (!savedState.contentSource) {
             global.saveState('contentSource', defaultSource);
+            global.saveState('lastContentSource', defaultSource);
         }
 
         fs.exists(this.get('backup')[defaultSource], _.bind(function(exists) {
@@ -304,6 +305,7 @@ exports.ContentUpdater = BaseModel.extend({
     // Copy files to their final destination when all files are loaded.
     deploy: function(force, callback) {
         var source = savedState.contentSource;
+        var lastSource = savedState.lastContentSource;
         this.set('isUpdating', true);
         this._callback = callback;
         if (!force && !this.get('needsUpdate')) {
@@ -320,7 +322,7 @@ exports.ContentUpdater = BaseModel.extend({
         }, this);
 
         backupThenDeploy = _.bind(function() {
-            logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup')[source]);
+            logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup')[lastSource]);
             ncp(this.get('local'), this.get('backup')[source], _.bind(function(error) {
                 this._handleError('Error copying to backup folder.', error);
                 if (error) {
@@ -328,7 +330,7 @@ exports.ContentUpdater = BaseModel.extend({
                     return;
                 }
 
-                tempToLocal();
+                deployFromTemp();
             }, this));
         }, this);
 
@@ -343,6 +345,7 @@ exports.ContentUpdater = BaseModel.extend({
     _completed: function() {
         this.set('updated', moment());
         this.set('isUpdating', false);
+        this.saveState('lastContentSource', savedState.contentSource);
         this.trigger('complete');
         if (this._callback) {
             this._callback();

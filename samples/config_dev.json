@@ -7,5 +7,9 @@
 		"remote": "http://mvi_video:funk0@content.stimulant.io/mvi_video/category/6"
 	},
 	"persistence": {},
-	"logging": {}
+	"logging": {
+		"email": {
+			"enabled": false
+		}
+	}
 }

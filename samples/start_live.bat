@@ -12,7 +12,10 @@ DEL ampm.zip
 RMDIR /S /Q tools
 
 :START
-node ampm/server.js ../config_live.json
+WHERE nodemon
+IF %ERRORLEVEL% NEQ 0 CALL npm install -g nodemon 
+cd ..\..\ampm
+nodemon server.js ../ampm-test/WPF-test/config_live.json
 EXIT
 
 :INSTALLNODE

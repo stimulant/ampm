@@ -1,1 +1,2 @@
-nodemon -q -e js,json ampm/server.js ../config_dev.json
+cd ..\..\ampm
+nodemon server.js ../ampm-test/WPF-test/config_dev.json
