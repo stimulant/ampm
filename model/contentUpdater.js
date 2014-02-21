@@ -345,7 +345,7 @@ exports.ContentUpdater = BaseModel.extend({
     _completed: function() {
         this.set('updated', moment());
         this.set('isUpdating', false);
-        this.saveState('lastContentSource', savedState.contentSource);
+        saveState('lastContentSource', savedState.contentSource);
         this.trigger('complete');
         if (this._callback) {
             this._callback();
