@@ -14,5 +14,12 @@
 			"tools"
 		],
 		"path": "."
+	}, {
+		"folder_exclude_patterns": [
+			"app*",
+			"content*",
+			"logs"
+		],
+		"path": "../ampm-test/WPF-test"
 	}]
 }
