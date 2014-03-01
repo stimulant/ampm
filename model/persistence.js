@@ -334,7 +334,9 @@ exports.Persistence = BaseModel.extend({
                 if (!exists) {
                     this._isStartingUp = false;
                     logger.error('Application not found.');
-                    serverState.updateContent();
+                    serverState.update(serverState.get('appUpdater'), _.bind(function() {
+                        this.restartApp();
+                    }, this));
                     return;
                 }
 

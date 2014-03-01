@@ -106,7 +106,7 @@ exports.ServerState = BaseModel.extend({
         }
     },
 
-    update: function(updater) {
+    update: function(updater, callback) {
         if (_.isString(updater)) {
             updater = this.get(updater + 'Updater');
         }
@@ -123,11 +123,11 @@ exports.ServerState = BaseModel.extend({
                 return;
             }
 
-            this.deploy(updater);
+            this.deploy(updater, false, callback);
         }, this));
     },
 
-    deploy: function(updater, force) {
+    deploy: function(updater, force, callback) {
         if (_.isString(updater)) {
             updater = this.get(updater + 'Updater');
         }
@@ -147,7 +147,7 @@ exports.ServerState = BaseModel.extend({
 
         // Just deploy.
         if (!this.get('appState').get('isRunning')) {
-            doDeploy();
+            doDeploy(callback);
             return;
         }
 
@@ -155,7 +155,7 @@ exports.ServerState = BaseModel.extend({
         this.get('persistence').shutdownApp(_.bind(function() {
             doDeploy(_.bind(function() {
                 this.get('persistence').restartApp();
-            }, this));
+            }, this), callback);
         }, this));
     },
 
