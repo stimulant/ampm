@@ -30,35 +30,11 @@ global.saveState = function(key, value) {
     }, 1000);
 };
 
-function start() {
-    global.config = configFile && fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile)) : {};
-    global.savedState = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile)) : {};
+global.config = configFile && fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile)) : {};
+global.savedState = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile)) : {};
 
-    console.log('Server starting up.');
-
-    if (global.serverState) {
-        global.serverState.clean();
-    }
-
-    global.serverState = new ServerState(config.server);
-    serverState.start(config);
-    logger.info('Server started.');
-    console.log('Console is at: http://' + os.hostname() + ':' + serverState.get('network').get('socketToConsolePort'));
-}
-
-start();
-
-// Restart when config file changes.
-if (configFile) {
-    var restartTimeout = -1;
-    fs.watch(configFile, {}, function(e, filename) {
-        clearTimeout(restartTimeout);
-        restartTimeout = setTimeout(function() {
-            if (serverState.get('appState').get('isRunning')) {
-                serverState.get('persistence').shutdownApp(start);
-            } else {
-                start();
-            }
-        }, 1000);
-    });
-}
+console.log('Server starting up.');
+global.serverState = new ServerState(config.server);
+serverState.start(config);
+logger.info('Server started.');
+console.log('Console is at: http://' + os.hostname() + ':' + serverState.get('network').get('socketToConsolePort'));

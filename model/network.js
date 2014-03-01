@@ -51,14 +51,6 @@ exports.Network = BaseModel.extend({
 			.set('log level', this.get('socketLogLevel'));
 	},
 
-	clean: function() {
-		comm.webServer.close();
-		comm.socketToApp.server.close();
-		comm.oscFromApp.removeAllListeners();
-		comm.oscFromApp.kill();
-		BaseModel.prototype.clean.apply(this);
-	},
-
 	// Generic handler to decode and re-post OSC messages as native events.
 	_handleOsc: function(transport, message, info) {
 		if (message.length == 1) {

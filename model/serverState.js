@@ -60,16 +60,6 @@ exports.ServerState = BaseModel.extend({
         };
     },
 
-    clean: function() {
-        this.get('network').clean();
-        this.get('contentUpdater').clean();
-        this.get('appUpdater').clean();
-        this.get('persistence').clean();
-        this.get('logging').clean();
-        this.get('appState').clean();
-        BaseModel.prototype.clean.apply(this);
-    },
-
     _onConnection: function(socket) {
         socket.on('setSource', _.bind(this.setSource, this));
         socket.on('update', _.bind(this.update, this));

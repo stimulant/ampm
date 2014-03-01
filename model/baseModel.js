@@ -24,12 +24,6 @@ var BaseModel = Backbone.Model.extend({
         }
     },
 
-    // Reset to default and clean up any resources allocated: timeouts, intervals, sockets, listeners...
-    // Should be called as the last line of the clean method of any subclass.
-    clean: function() {
-        this.clear().set(this.defaults);
-    },
-
     // builds and return a simple object ready to be JSON stringified
     xport: function(opt) {
         var result = {},

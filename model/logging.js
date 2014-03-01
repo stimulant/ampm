@@ -201,18 +201,6 @@ exports.Logging = BaseModel.extend({
 		}, this));
 	},
 
-	clean: function() {
-		if (global.logger) {
-			logger.removeAllListeners('logging');
-		}
-
-		if (this._eventSourceConsole) {
-			this._eventSourceConsole.stdin.end();
-		}
-
-		BaseModel.prototype.clean.apply(this);
-	},
-
 	// Register a Windows event source.
 	registerEventSource: function(callback) {
 		var source = this.get('eventLog').eventSource;

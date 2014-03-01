@@ -97,10 +97,6 @@ exports.ContentUpdater = BaseModel.extend({
         this.trigger('change:source');
     },
 
-    clean: function() {
-        this.off('change:source');
-    },
-
     // Download new content to the temp folder.
     download: function(callback) {
         this._callback = callback;

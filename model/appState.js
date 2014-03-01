@@ -42,14 +42,6 @@ AppState = exports.AppState = BaseModel.extend({
 		comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
 	},
 
-	clean: function() {
-		clearTimeout(this._updateConsoleTimeout);
-		clearTimeout(this._updateStatsTimeout);
-		this._typeperf.kill();
-		serverState.get('persistence').off(null, null, this);
-		BaseModel.prototype.clean.apply(this);
-	},
-
 	_onConnection: function() {
 		comm.socketToConsole.sockets.emit('config', serverState.fullConfig());
 	},
