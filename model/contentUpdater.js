@@ -9,6 +9,8 @@ var XRegExp = require('xregexp').XRegExp; // Fancy regular expressions. http://x
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var ncp = require('ncp').ncp; // Recursive directory copy. https://npmjs.org/package/ncp
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
+var rimraf = require('rimraf'); // Recursive directory delete. https://github.com/isaacs/rimraf
+
 var BaseModel = require('./baseModel.js').BaseModel;
 
 // Update content for the application, as well as the application itself.
@@ -66,6 +68,7 @@ exports.ContentUpdater = BaseModel.extend({
         var temp = {};
         var backup = {};
 
+
         // Retrieve the last saved source, if any.
         this.set('source', savedState['source-' + this.get('name')]);
         if (!this.get('remote')[this.get('source')]) {
@@ -75,7 +78,6 @@ exports.ContentUpdater = BaseModel.extend({
         for (var source in this.get('remote')) {
             if (!this.get('source')) {
                 this.set('source', source);
-                global.saveState('source-' + this.get('name'), this.get('source'));
             }
 
             temp[source] = path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.' + source + '.temp', '/');
@@ -85,14 +87,14 @@ exports.ContentUpdater = BaseModel.extend({
         this.set('temp', temp);
         this.set('backup', backup);
 
-        fs.exists(this.get('backup')[this.get('source')], _.bind(function(exists) {
-            this.set('canRollback', exists);
-        }, this));
-
         // When the source changes, save it to disk.
         this.on('change:source', _.bind(function() {
             global.saveState('source-' + this.get('name'), this.get('source'));
+            fs.exists(this.get('backup')[this.get('source')], _.bind(function(exists) {
+                this.set('canRollback', exists);
+            }, this));
         }, this));
+        this.trigger('change:source');
     },
 
     // Download new content to the temp folder.
@@ -329,6 +331,7 @@ exports.ContentUpdater = BaseModel.extend({
                     return;
                 }
 
+                this.set('canRollback', true);
                 deployFromTemp();
             }, this));
         }, this);
@@ -413,7 +416,7 @@ exports.ContentUpdater = BaseModel.extend({
 
     // Roll back content -- copy it from the backup folder to the temp folder, and then to live.
     rollBack: function(callback) {
-        var source = savedState.contentSource;
+        var source = this.get('source');
         if (!this.get('canRollback')) {
             callback(false);
         }
@@ -427,7 +430,11 @@ exports.ContentUpdater = BaseModel.extend({
             logger.info('Rolling back, copying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
             ncp(this.get('temp')[source], this.get('local'), _.bind(function(error) {
                 this._handleError('Error copying to deploy folder.', error);
-                this.set('isUpdating', false);
+                rimraf(this.get('backup')[source], _.bind(function(error) {
+                    this._handleError('Error deleting backup.', error);
+                    this.set('isUpdating', false);
+                    this.set('canRollback', false);
+                }, this));
                 callback(!error);
             }, this));
         }, this));
