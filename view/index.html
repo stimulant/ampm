@@ -1,110 +1,114 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>ampm</title>
+<title>ampm</title>
 
-    <script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/static/libs/lodash.min.js"></script>
-    <script src="/static/libs/underscore.string.js"></script>
-    <script src="/static/libs/backbone.js"></script>
-    <script src="/static/libs/moment.js"></script>
-    <script src="/static/libs/moment-duration-format.js"></script>
-    <script src="/static/libs/humanize.js"></script>
-    <script src="/static/view.js"></script>
+<script type="text/javascript" src="//code.jquery.com/jquery-2.1.0.min.js"></script>
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<script type="text/javascript" src="/static/libs/lodash.min.js"></script>
+<script type="text/javascript" src="/static/libs/underscore.string.js"></script>
+<script type="text/javascript" src="/static/libs/backbone.js"></script>
+<script type="text/javascript" src="/static/libs/moment.js"></script>
+<script type="text/javascript" src="/static/libs/moment-duration-format.js"></script>
+<script type="text/javascript" src="/static/libs/humanize.js"></script>
+<script type="text/javascript" src="/static/view.js"></script>
 
-    <script type="text/javascript">
+<script type="text/javascript">
 
-    $(document).ready(function() {
-        view = new View({el:document.body});
-    });
+$(document).ready(function() {
+    view = new View({el:document.body});
+});
 
-    </script>
+</script>
 
-    <script type="text/template" id="info-template"> 
+<style type="text/css">
+
+body
+{
+    font-family: sans-serif;
+    font-size: 12px;
+}
+
+.templates 
+{
+    display: none;
+}
+
+fieldset
+{
+    border: none;
+    background-color: white;
+    background-color: rgba(0, 0, 0, .2);
+}
+
+legend
+{
+    background: white;
+}
+
+</style>
+
+</head>
+<body style="display:none">
+
+<div class="templates">
+    <div id="info-template"> 
         <p>isRunning: <%- isRunning %>
         <br/>uptime: <%- uptime %>
         <br/>restartCount: <%- restartCount %>
         <br/>fps: <%- fps %>
         <br/>cpu: <%- cpu %>
-        <br/>memory: <%- memory %></button>
+        <br/>memory: <%- memory %></p>
         <hr/>
         <pre><%- logList %></pre>
         <hr/>
         <pre><%- eventList %></pre>
-    </script>
-    
-    <script type="text/template" id="update-button-template">
-        <button id="source-<%- source %>">set source to <%- source %></button>
-    </script>
-    
-    <style type="text/css">
+    </div>
 
-    body
-    {
-        font-family: sans-serif;
-        font-size: 12px;
-    }
+    <div id="update-button-template">
+        <button id="source">set source to <%- source %></button>
+    </div>
+</div>
 
-    fieldset
-    {
-        border: none;
-        background-color: white;
-        background-color: rgba(0, 0, 0, .2);
-    }
-
-    legend
-    {
-        background: white;
-    }
-
-    </style>
-</head>
-<body style="display:none">
-
-    <fieldset style="display:inline-block">
-        <legend id="controls">controls</legend>
-            <fieldset id="controls-app">
-                <legend>app</legend>
-                <button id="shutdown-app">shut down app</button>
-                <button id="start-app">start app</button>
-                <button id="restart-app">restart app</button>
-            </fieldset>
-            <fieldset>
-                <legend>computer</legend>
-                <div id="buttons-pc">
-                    <button id="shutdown-pc">shut down computer</button>
-                    <button id="restart-pc">restart computer</button>
-                </div>
-            </fieldset>
-            <fieldset id="controls-updaters">
-                <legend>updaters</legend>
-                <fieldset id="controls-updaters-content">
-                    <legend>content: <span class="current"></span></legend>
-                    <div class="sources">
-                        <button id="">set source to draft</button>
-                        <button id="">set source to live</button>
-                    </div>
-                    <div class="actions">
-                        <button id="update">update</button>
-                        <button id="rollback">rollback</button>
-                    </div>
-                </fieldset>
-                <fieldset id="controls-updaters-app">
-                    <legend>app: <span class="current"></span></legend>
-                    <div class="sources">
-                        <button id="">set source to draft</button>
-                        <button id="">set source to live</button>
-                    </div>
-                    <div class="actions">
-                        <button id="update">update</button>
-                        <button id="rollback">rollback</button>
-                    </div>
-            </fieldset>
+<fieldset style="display:inline-block">
+    <legend id="controls">controls</legend>
+    <fieldset id="controls-app">
+        <legend>app</legend>
+        <button id="shutdown-app">shut down app</button>
+        <button id="start-app">start app</button>
+        <button id="restart-app">restart app</button>
+    </fieldset>
+    <fieldset>
+        <legend>computer</legend>
+        <div id="buttons-pc">
+            <button id="shutdown-pc">shut down computer</button>
+            <button id="restart-pc">restart computer</button>
+        </div>
+    </fieldset>
+    <fieldset id="controls-updaters">
+        <legend>updaters</legend>
+        <fieldset id="controls-updaters-content">
+            <legend>content: <span class="current">&nbsp;</span></legend>
+            <div class="sources">
+            </div>
+            <div class="actions">
+                <button class="update">update</button>
+                <button class="rollback">rollback</button>
+            </div>
+        </fieldset>
+        <fieldset id="controls-updaters-app">
+            <legend>app: <span class="current">&nbsp;</span></legend>
+            <div class="sources">
+            </div>
+            <div class="actions">
+                <button class="update">update</button>
+                <button class="rollback">rollback</button>
+            </div>
         </fieldset>
     </fieldset>
+</fieldset>
 
-    <div id="info"></div>
+<div id="info"></div>
 
 </body>
 </html>

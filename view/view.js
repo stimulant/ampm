@@ -6,8 +6,8 @@ var View = Backbone.View.extend({
 		'click #shutdown-pc': '_onShutdownPcClicked',
 		'click #restart-pc': '_onRestartPcClicked',
 		'click #start-app': '_onStartClicked',
-		'click #update': '_onUpdateClicked',
-		'click #rollback': '_onRollbackClicked'
+		'click .update': '_onUpdateClicked',
+		'click .rollback': '_onRollbackClicked'
 	},
 
 	_socket: null,
@@ -35,8 +35,8 @@ var View = Backbone.View.extend({
 			message.eventList += JSON.stringify(e) + '\n';
 		});
 
-		var template = _.template($('#info-template').html(), message);
-		$('#info').html(template);
+		var template = _.unescape($('#info-template').html()).trim();
+		$('#info').html(_.template(template, message));
 
 		$('#controls-app, #controls-updaters').toggle(!message.isUpdating);
 		$('#shutdown-app').toggle(message.isRunning);
@@ -49,7 +49,7 @@ var View = Backbone.View.extend({
 	},
 
 	_updateUpdater: function(container, state) {
-		$('#rollback', container).toggle(state.canRollback);
+		$('.rollback', container).toggle(state.canRollback);
 		$('.current', container).html(state.source);
 		$('.sources button', container).each(_.bind(function(index, value) {
 			var button = $(value);
@@ -63,7 +63,7 @@ var View = Backbone.View.extend({
 	},
 
 	_makeSources: function(buttons, updater, sources) {
-		var sourceTemplate = $('#update-button-template').html();
+		var template = _.unescape($('#update-button-template').html()).trim();
 		var click = _.bind(function(e) {
 			var data = $(e.target).data();
 			this._onSetSourceClicked(e, data.updater, data.source);
@@ -75,7 +75,7 @@ var View = Backbone.View.extend({
 				updater: updater,
 				source: source
 			};
-			var button = $(_.template(sourceTemplate, data));
+			var button = $(_.template(template, data));
 			button.addClass(source);
 			button.data(data);
 			button.click(click);
