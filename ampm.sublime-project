@@ -11,7 +11,8 @@
 			"*.tmp",
 			"node_modules",
 			"logs",
-			"tools"
+			"tools",
+			"libs"
 		],
 		"path": "."
 	}, {
