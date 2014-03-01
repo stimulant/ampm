@@ -54,7 +54,11 @@ if (configFile) {
     fs.watch(configFile, {}, function(e, filename) {
         clearTimeout(restartTimeout);
         restartTimeout = setTimeout(function() {
-            serverState.get('persistence').shutdownApp(start);
+            if (serverState.get('appState').get('isRunning')) {
+                serverState.get('persistence').shutdownApp(start);
+            } else {
+                start();
+            }
         }, 1000);
     });
 }
