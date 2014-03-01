@@ -20,9 +20,6 @@
     </script>
     <script type="text/template" id="info-template"> 
         <p>isRunning: <%- isRunning %>
-        <br/>contentSource: <%- contentSource %>
-        <br/>isUpdating: <%- isUpdating %>
-        <br/>canRollBack: <%- canRollBack %>
         <br/>uptime: <%- uptime %>
         <br/>restartCount: <%- restartCount %>
         <br/>fps: <%- fps %>
@@ -34,29 +31,72 @@
         <pre><%- eventList %></pre>
     </script>
     <script type="text/template" id="update-button-template">
-        <button id="source-<%- source %>">Set source to &quot;<%- source %>&quot;</button>
+        <button id="source-<%- source %>">set source to <%- source %></button>
     </script>
+    <style type="text/css">
+
+    body
+    {
+        font-family: sans-serif;
+        font-size: 12px;
+    }
+
+    fieldset
+    {
+        border: none;
+        background-color: rgba(0, 0, 0, .2);
+    }
+
+    legend
+    {
+        background: white;
+    }
+
+    </style>
 </head>
 <body style="display:none">
 
-    <div id="buttons-app">
-        <div id="buttons-startup">
-            <button id="shutdown-app">Shut Down App</button>
-            <button id="start">Start App</button>
-            <button id="restart-app">Restart App</button>
-        </div>
-        <div id="buttons-source">
-        </div>
-        <div id="buttons-update">
-            <button id="update">Update Content and App</button>
-            <button id="rollBack">Roll Back Content and App</button>
-        </div>
-    </div>
-
-    <div id="buttons-pc">
-        <button id="shutdown-pc">Shut Down Computer</button>
-        <button id="restart-pc">Restart Computer</button>
-    </div>
+    <fieldset style="display:inline-block">
+        <legend id="controls">controls</legend>
+            <fieldset id="controls-app">
+                <legend>app</legend>
+                <button id="shutdown-app">Shut Down App</button>
+                <button id="start-app">Start App</button>
+                <button id="restart-app">Restart App</button>
+            </fieldset>
+            <fieldset>
+                <legend>computer</legend>
+                <div id="buttons-pc">
+                    <button id="shutdown-pc">Shut Down Computer</button>
+                    <button id="restart-pc">Restart Computer</button>
+                </div>
+            </fieldset>
+            <fieldset id="controls-updaters">
+                <legend>updaters</legend>
+                <fieldset id="controls-updaters-content">
+                    <legend>content: <span class="current"></span></legend>
+                    <div class="sources">
+                        <button id="">set source to draft</button>
+                        <button id="">set source to live</button>
+                    </div>
+                    <div class="actions">
+                        <button id="update">update</button>
+                        <button id="rollback">rollback</button>
+                    </div>
+                </fieldset>
+                <fieldset id="controls-updaters-app">
+                    <legend>app: <span class="current"></span></legend>
+                    <div class="sources">
+                        <button id="">set source to draft</button>
+                        <button id="">set source to live</button>
+                    </div>
+                    <div class="actions">
+                        <button id="update">update</button>
+                        <button id="rollback">rollback</button>
+                    </div>
+            </fieldset>
+        </fieldset>
+    </fieldset>
 
     <div id="info"></div>
 

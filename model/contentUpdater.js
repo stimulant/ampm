@@ -41,7 +41,7 @@ exports.ContentUpdater = BaseModel.extend({
         isUpdating: false,
 
         // Indicates whether there is a backup of content to roll back to.
-        canRollBack: false
+        canRollback: false
     },
 
     // A callback to call when updating is complete.
@@ -82,7 +82,7 @@ exports.ContentUpdater = BaseModel.extend({
         this.set('backup', backup);
 
         fs.exists(this.get('backup')[defaultSource], _.bind(function(exists) {
-            this.set('canRollBack', exists);
+            this.set('canRollback', exists);
         }, this));
     },
 
@@ -415,7 +415,7 @@ exports.ContentUpdater = BaseModel.extend({
     // Roll back content -- copy it from the backup folder to the temp folder, and then to live.
     rollBack: function(callback) {
         var source = savedState.contentSource;
-        if (!this.get('canRollBack')) {
+        if (!this.get('canRollback')) {
             callback(false);
         }
 

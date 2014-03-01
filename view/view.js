@@ -5,9 +5,9 @@ var View = Backbone.View.extend({
 		'click #restart-app': '_onRestartAppClicked',
 		'click #shutdown-pc': '_onShutdownPcClicked',
 		'click #restart-pc': '_onRestartPcClicked',
-		'click #start': '_onStartClicked',
+		'click #start-app': '_onStartClicked',
 		'click #update': '_onUpdateClicked',
-		'click #rollBack': '_onRollBackClicked'
+		'click #rollBack': '_onRollbackClicked'
 	},
 
 	_socket: null,
@@ -38,51 +38,49 @@ var View = Backbone.View.extend({
 		var template = _.template($('#info-template').html(), message);
 		$('#info').html(template);
 
-		$('#buttons-app, #buttons-source').toggle(!message.isUpdating);
+		$('#controls-app, #controls-updaters').toggle(!message.isUpdating);
 		$('#shutdown-app').toggle(message.isRunning);
-		$('#start').toggle(!message.isRunning);
+		$('#start-app').toggle(!message.isRunning);
 		$('#restart-app').toggle(message.isRunning);
-		$('#update').toggle(message.canUpdate);
-		$('#rollBack').toggle(message.canRollBack);
 
-		$('#buttons-source button').each(_.bind(function(i, el) {
-			el = $(el);
-			el.toggle(el.data().source != message.contentSource);
+		this._updateUpdater($('#controls-updaters-content'), message.updaters.content);
+		this._updateUpdater($('#controls-updaters-app'), message.updaters.app);
+	},
+
+	_updateUpdater: function(container, state) {
+		container.prop('disabled', state.isUpdating);
+		$('#rollback', container).toggle(state.canRollback);
+		$('.current', container).html(state.source);
+		$('.sources button', container).each(_.bind(function(index, value) {
+			var button = $(value);
+			button.toggle(!button.hasClass(state.source));
 		}, this));
 	},
 
 	_onConfig: function(message) {
+		this._makeSources($('#controls-updaters-content .sources'), 'content', message.contentUpdater.remote);
+		this._makeSources($('#controls-updaters-app .sources'), 'app', message.appUpdater.remote);
+	},
 
-		// Compile the list of content sources.
-		var sources = [];
-		var source = '';
-		for (source in message.appUpdater.remote) {
-			sources.push(source);
-		}
-
-		for (source in message.contentUpdater.remote) {
-			sources.push(source);
-		}
-
-		sources = _.unique(sources);
-
-		if (!sources.length) {
-			return;
-		}
-
-		// If there are multiple sources, set up buttons for them.
-		$('#buttons-source').empty();
-		_.each(sources, function(value, index, collection) {
-			var data = {
-				source: value
-			};
-			var btn = $(_.template($('#update-button-template').html(), data));
-			btn.data(data);
-			$('#buttons-source').append(btn);
-			btn.click(_.bind(function(e) {
-				this._onSetSourceClicked(e, $(e.target).data().source);
-			}, this));
+	_makeSources: function(buttons, updater, sources) {
+		var sourceTemplate = $('#update-button-template').html();
+		var click = _.bind(function(e) {
+			var data = $(e.target).data();
+			this._onSetSourceClicked(e, data.updater, data.source);
 		}, this);
+
+		buttons.empty();
+		for (var source in sources) {
+			var data = {
+				updater: updater,
+				source: source
+			};
+			var button = $(_.template(sourceTemplate, data));
+			button.addClass(source);
+			button.data(data);
+			button.click(click);
+			buttons.append(button);
+		}
 	},
 
 	_onShutdownAppClicked: function() {
@@ -113,15 +111,20 @@ var View = Backbone.View.extend({
 		this._socket.emit('start');
 	},
 
-	_onSetSourceClicked: function(event, source) {
-		this._socket.emit('setSource', source);
+	_onSetSourceClicked: function(event, updater, source) {
+		return;
+		this._socket.emit('setSource', updater, source);
 	},
 
-	_onUpdateClicked: function() {
-		this._socket.emit('updateContent');
+	_onUpdateClicked: function(event) {
+		return;
+		var updater = $(event.target).parents('fieldset').first().attr('id').indexOf('content') != -1 ? 'content' : 'app';
+		this._socket.emit('updateContent', updater);
 	},
 
-	_onRollBackClicked: function() {
-		this._socket.emit('rollBack');
+	_onRollbackClicked: function() {;
+		return;
+		var updater = $(event.target).parents('fieldset').first().attr('id').indexOf('content') != -1 ? 'content' : 'app';
+		this._socket.emit('rollBack', updater);
 	}
 });
