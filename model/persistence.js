@@ -185,7 +185,23 @@ exports.Persistence = BaseModel.extend({
             this._updateInterval = later.setInterval(_.bind(function() {
                 logger.info('Update time has arrived. ' + new Date());
                 this.set('restartCount', 0);
-                serverState.updateContent();
+
+                function doUpdate(callback) {
+                    serverState.update(serverState.get('appUpdater'), _.bind(function() {
+                        serverState.update(serverState.get('contentUpdater'), callback);
+                    }, this));
+                }
+
+                if (serverState.get('appState').get('isRunning')) {
+                    this.shutdownApp(_.bind(function() {
+                        doUpdate(_.bind(function() {
+                            this.restartApp();
+                        }, this));
+                    }, this));
+                } else {
+                    doUpdate();
+                }
+
             }, this), this._updateSchedule);
         }
     },

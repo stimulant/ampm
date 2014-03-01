@@ -120,6 +120,7 @@ exports.ServerState = BaseModel.extend({
 
             logger.info(updater.get('name') + ' download complete! ' + (updater.get('needsUpdate') ? '' : 'Nothing new was found.'));
             if (!updater.get('needsUpdate')) {
+                callback();
                 return;
             }
 
