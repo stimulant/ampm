@@ -1,8 +1,7 @@
 var path = require('path'); // File path processing. http://nodejs.org/api/path.html
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
-var unzip = require('unzip'); // Extract zip files. https://github.com/nearinfinity/node-unzip
-var winston = require('winston'); // Logging. https://github.com/flatiron/winston
+var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
 
 var cu = require('./contentUpdater.js');
 var ContentUpdater = cu.ContentUpdater;
@@ -74,13 +73,16 @@ exports.AppUpdater = ContentUpdater.extend({
 
 		// Unzip the file.
 		logger.info('Unzipping app. ' + contentFile.get('tempPath'));
-		fs.createReadStream(
-			contentFile.get('tempPath'))
-			.pipe(unzip.Extract({
-				path: path.dirname(contentFile.get('tempPath'))
-			})).on('finish', _.bind(function(error) {
-				this._handleError('Error unzipping app.', error);
-				ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
-			}, this));
+		var cmd = path.join(process.cwd(), 'tools/7z.exe');
+		cmd += ' x ';
+		cmd += '"' + path.resolve(contentFile.get('tempPath')) + '"';
+		cmd += ' o';
+		cmd += '"' + path.dirname(path.resolve(contentFile.get('tempPath'))) + '"';
+		console.log(cmd);
+		return;
+		child_process.exec(cmd, _.bind(function(error, stdout, stderr) {
+			this._handleError('Error unzipping app.', error);
+			ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
+		}, this));
 	}
 });

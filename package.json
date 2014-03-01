@@ -24,7 +24,6 @@
     "socket.io-client": "*",
     "underscore": "*",
     "lodash": "*",
-    "unzip": "*",
     "universal-analytics": "*",
     "node-windows": "*",
     "winston": "*",
