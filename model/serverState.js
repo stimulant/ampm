@@ -77,7 +77,10 @@ exports.ServerState = BaseModel.extend({
     },
 
     setSource: function(updater, source) {
-        updater = this.get(updater + 'Updater');
+        if (_.isString(updater)) {
+            updater = this.get(updater + 'Updater');
+        }
+
         if (source == updater.get('source')) {
             return;
         }
@@ -125,14 +128,32 @@ exports.ServerState = BaseModel.extend({
     },
 
     deploy: function(updater, force) {
-        this.get('persistence').shutdownApp(_.bind(function() {
+        if (_.isString(updater)) {
+            updater = this.get(updater + 'Updater');
+        }
 
+        doDeploy = function(callback) {
             // Copy content files from the temp folder.
             updater.deploy(force, _.bind(function(error) {
                 if (!error) {
                     logger.info(updater.get('name') + ' deploy complete!');
                 }
 
+                if (callback) {
+                    callback();
+                }
+            }, this));
+        };
+
+        // Just deploy.
+        if (!this.get('appState').get('isRunning')) {
+            doDeploy();
+            return;
+        }
+
+        // Shutdown, deploy, restart.
+        this.get('persistence').shutdownApp(_.bind(function() {
+            doDeploy(_.bind(function() {
                 this.get('persistence').restartApp();
             }, this));
         }, this));
@@ -140,10 +161,28 @@ exports.ServerState = BaseModel.extend({
 
     // Shut down the app, roll back content, and restart it.
     rollback: function(updater) {
-        updater = this.get(updater + 'Updater');
-        this.get('persistence').shutdownApp(_.bind(function() {
+        if (_.isString(updater)) {
+            updater = this.get(updater + 'Updater');
+        }
+
+        doRollback = function(callback) {
             updater.rollBack(_.bind(function() {
                 logger.info('Rollback complete!');
+                if (callback) {
+                    callback();
+                }
+            }, this));
+        };
+
+        // Just rollback.
+        if (!this.get('appState').get('isRunning')) {
+            doRollback();
+            return;
+        }
+
+        // Shutdown, rollback, restart.
+        this.get('persistence').shutdownApp(_.bind(function() {
+            doRollback(_.bind(function() {
                 this.get('persistence').restartApp();
             }, this));
         }, this));
