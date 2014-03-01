@@ -36,7 +36,7 @@ function start() {
 
     console.log('Server starting up.');
 
-    if (global['serverState']) {
+    if (global.serverState) {
         global.serverState.clean();
     }
 
