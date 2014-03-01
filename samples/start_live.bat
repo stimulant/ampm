@@ -1,24 +1,19 @@
-@ECHO OFF
 
-SETLOCAL
-SET NODEFOUND=0
-FOR %%x IN (node.exe) DO IF NOT [%%~$PATH:x]==[] SET NODEFOUND=1
-IF %NODEFOUND% == 0 GOTO INSTALLNODE
+:: Check for the node installation.
+WHERE node.exe
+IF %ERRORLEVEL% NEQ 0 (
+	ECHO You need to install nodejs.
+	PAUSE
+	START http://nodejs.org
+	GOTO :EOF
+)
 
-IF EXIST .\ampm GOTO START
-ECHO Unzipping ampm...
-tools\7z x -y ampm.zip > NUL
-DEL ampm.zip
-RMDIR /S /Q tools
+:: Install nodemon.
+WHERE nodemon.cmd
+IF %ERRORLEVEL% NEQ 0 (
+	CALL npm install -g nodemon 
+)
 
-:START
-WHERE nodemon
-IF %ERRORLEVEL% NEQ 0 CALL npm install -g nodemon 
-cd ..\..\ampm
-nodemon server.js ../ampm-test/WPF-test/config_live.json
-EXIT
-
-:INSTALLNODE
-ECHO You need to install nodejs.
-PAUSE
-EXIT
+:: Launch ampm.
+CD app\ampm
+nodemon server.js ..\..\config_live.json
