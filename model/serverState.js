@@ -130,7 +130,7 @@ exports.ServerState = BaseModel.extend({
             // Copy content files from the temp folder.
             updater.deploy(force, _.bind(function(error) {
                 if (!error) {
-                    logger.info(updater.get('name') + ' deploy complete! ' + updater.get('updated').toString());
+                    logger.info(updater.get('name') + ' deploy complete!');
                 }
 
                 this.get('persistence').restartApp();

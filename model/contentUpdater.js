@@ -15,10 +15,6 @@ var BaseModel = require('./baseModel.js').BaseModel;
 exports.ContentUpdater = BaseModel.extend({
 
     defaults: {
-        // When the content was last updated.
-        downloaded: null,
-        updated: null,
-
         // The remote URL to the root XML.
         remote: null,
 
@@ -302,7 +298,6 @@ exports.ContentUpdater = BaseModel.extend({
 
         if (!filesToGo) {
             this.set('isUpdating', false);
-            this.set('downloaded', moment());
             this._callback();
         }
     },
@@ -347,7 +342,6 @@ exports.ContentUpdater = BaseModel.extend({
 
     // Notify on completion.
     _completed: function() {
-        this.set('updated', moment());
         this.set('isUpdating', false);
         this.trigger('complete');
         if (this._callback) {
@@ -411,7 +405,6 @@ exports.ContentUpdater = BaseModel.extend({
 
         copy.on('close', _.bind(function(code) {
             // The return codes are weird. http://support.microsoft.com/kb/954404
-            this.set('downloaded', moment());
             if (callback) {
                 callback(code);
             }
