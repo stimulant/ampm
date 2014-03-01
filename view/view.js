@@ -7,7 +7,7 @@ var View = Backbone.View.extend({
 		'click #restart-pc': '_onRestartPcClicked',
 		'click #start-app': '_onStartClicked',
 		'click #update': '_onUpdateClicked',
-		'click #rollBack': '_onRollbackClicked'
+		'click #rollback': '_onRollbackClicked'
 	},
 
 	_socket: null,
@@ -43,12 +43,12 @@ var View = Backbone.View.extend({
 		$('#start-app').toggle(!message.isRunning);
 		$('#restart-app').toggle(message.isRunning);
 
+		$('#controls-updaters').prop('disabled', message.updaters.content.isUpdating || message.updaters.app.isUpdating);
 		this._updateUpdater($('#controls-updaters-content'), message.updaters.content);
 		this._updateUpdater($('#controls-updaters-app'), message.updaters.app);
 	},
 
 	_updateUpdater: function(container, state) {
-		container.prop('disabled', state.isUpdating);
 		$('#rollback', container).toggle(state.canRollback);
 		$('.current', container).html(state.source);
 		$('.sources button', container).each(_.bind(function(index, value) {
@@ -112,18 +112,15 @@ var View = Backbone.View.extend({
 	},
 
 	_onSetSourceClicked: function(event, updater, source) {
-		return;
 		this._socket.emit('setSource', updater, source);
 	},
 
 	_onUpdateClicked: function(event) {
-		return;
 		var updater = $(event.target).parents('fieldset').first().attr('id').indexOf('content') != -1 ? 'content' : 'app';
-		this._socket.emit('updateContent', updater);
+		this._socket.emit('update', updater);
 	},
 
-	_onRollbackClicked: function() {;
-		return;
+	_onRollbackClicked: function() {
 		var updater = $(event.target).parents('fieldset').first().attr('id').indexOf('content') != -1 ? 'content' : 'app';
 		this._socket.emit('rollBack', updater);
 	}

@@ -41,7 +41,13 @@ exports.ContentUpdater = BaseModel.extend({
         isUpdating: false,
 
         // Indicates whether there is a backup of content to roll back to.
-        canRollback: false
+        canRollback: false,
+
+        // A unique name for the updater.
+        name: null,
+
+        // The current remote source.
+        source: null
     },
 
     // A callback to call when updating is complete.
@@ -63,15 +69,17 @@ exports.ContentUpdater = BaseModel.extend({
         // Set up the temp and backup paths.
         var temp = {};
         var backup = {};
-        var defaultSource = savedState.contentSource;
-        if (!this.get('remote')[defaultSource]) {
-            defaultSource = null;
+
+        // Retrieve the last saved source, if any.
+        this.set('source', savedState['source-' + this.get('name')]);
+        if (!this.get('remote')[this.get('source')]) {
+            this.set('source', null);
         }
 
         for (var source in this.get('remote')) {
-            if (!defaultSource) {
-                defaultSource = source;
-                global.saveState('contentSource', defaultSource);
+            if (!this.get('source')) {
+                this.set('source', source);
+                global.saveState('source-' + this.get('name'), this.get('source'));
             }
 
             temp[source] = path.join(path.dirname(this.get('local')), path.basename(this.get('local')) + '.' + source + '.temp', '/');
@@ -81,36 +89,32 @@ exports.ContentUpdater = BaseModel.extend({
         this.set('temp', temp);
         this.set('backup', backup);
 
-        fs.exists(this.get('backup')[defaultSource], _.bind(function(exists) {
+        fs.exists(this.get('backup')[this.get('source')], _.bind(function(exists) {
             this.set('canRollback', exists);
+        }, this));
+
+        // When the source changes, save it to disk.
+        this.on('change:source', _.bind(function() {
+            global.saveState('source-' + this.get('name'), this.get('source'));
         }, this));
     },
 
     // Download new content to the temp folder.
-    download: function(source, callback) {
-        var remote = this.get('remote');
-
-        remote = remote[source];
+    download: function(callback) {
         this._callback = callback;
-
-        if (!remote) {
-            this._callback();
-            return;
-        }
-
         this.set('needsUpdate', false);
         this.set('isUpdating', true);
-
-        this._doDownload(source);
+        this._doDownload();
     },
 
-    _doDownload: function(source) {
-        this._initDirectories(source, _.bind(function() {
+    _doDownload: function() {
+        var source = this.get('source');
+        this._initDirectories(_.bind(function() {
             var remote = this.get('remote')[source];
             if (remote.indexOf('http') === 0) {
                 // We're going to pull down an XML file from the web and parse it for other files.
                 request(remote, _.bind(function(error, response, body) {
-                    this._processContentRoot(source, error, response, body);
+                    this._processContentRoot(error, response, body);
                 }, this));
             } else {
                 // We're going to just robocopy from another folder instead.
@@ -127,7 +131,8 @@ exports.ContentUpdater = BaseModel.extend({
     },
 
     // Set up the temp and output directories.
-    _initDirectories: function(source, callback) {
+    _initDirectories: function(callback) {
+        var source = this.get('source');
         // Make the temp directory.
         fs.mkdir(this.get('temp')[source], 0777, true, _.bind(function(error) {
             this._handleError('Error creating temp directory.', error);
@@ -148,7 +153,8 @@ exports.ContentUpdater = BaseModel.extend({
     },
 
     // Process the XML file to extract files to load.
-    _processContentRoot: function(source, error, response, body) {
+    _processContentRoot: function(error, response, body) {
+        var source = this.get('source');
         if (response.statusCode != 200) {
             this._handleError('Error loading root XML -- bad password?');
             return;
@@ -303,7 +309,7 @@ exports.ContentUpdater = BaseModel.extend({
 
     // Copy files to their final destination when all files are loaded.
     deploy: function(force, callback) {
-        var source = savedState.contentSource;
+        var source = this.get('source');
         this.set('isUpdating', true);
         this._callback = callback;
         if (!force && !this.get('needsUpdate')) {

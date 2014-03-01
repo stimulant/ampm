@@ -27,9 +27,11 @@ exports.ServerState = BaseModel.extend({
             config: config.network
         }));
         this.set('contentUpdater', new ContentUpdater({
+            name: 'content',
             config: config.contentUpdater
         }));
         this.set('appUpdater', new AppUpdater({
+            name: 'app',
             config: config.appUpdater
         }));
         this.set('persistence', new Persistence({
@@ -70,32 +72,24 @@ exports.ServerState = BaseModel.extend({
 
     _onConnection: function(socket) {
         socket.on('setSource', _.bind(this.setSource, this));
-        socket.on('updateContent', _.bind(this.updateContent, this));
-        socket.on('rollBack', _.bind(this.rollBackContent, this));
+        socket.on('update', _.bind(this.update, this));
+        socket.on('rollBack', _.bind(this.rollback, this));
     },
 
-    setSource: function(source) {
-        if (source == savedState.contentSource) {
+    setSource: function(updater, source) {
+        updater = this.get(updater + 'Updater');
+        if (source == updater.get('source')) {
             return;
         }
 
-        saveState('contentSource', source);
+        updater.set('source', source);
 
-        var contentChecked = false;
-        var appChecked = false;
-        var contentDownloaded = false;
-        var appDownloaded = false;
-
-        fs.exists(this.get('contentUpdater').get('temp')[source], _.bind(function(exists) {
-            contentChecked = true;
-            contentDownloaded = exists;
-            this._deploySource(contentChecked, appChecked, contentDownloaded, appDownloaded, true);
-        }, this));
-
-        fs.exists(this.get('appUpdater').get('temp')[source], _.bind(function(exists) {
-            appChecked = true;
-            appDownloaded = exists;
-            this._deploySource(contentChecked, appChecked, contentDownloaded, appDownloaded, true);
+        fs.exists(updater.get('temp')[source], _.bind(function(exists) {
+            if (exists) {
+                this.deploy(updater, true);
+            } else {
+                this.update(updater);
+            }
         }, this));
     },
 
@@ -104,81 +98,53 @@ exports.ServerState = BaseModel.extend({
             if (contentDownloaded && appDownloaded) {
                 this._onDownloaded(contentDownloaded, appDownloaded, force);
             } else {
-                this.updateContent();
+                this.update();
             }
         }
     },
 
-    updateContent: function() {
-        var contentDownloaded = false;
-        var appDownloaded = false;
-
-        source = savedState.contentSource;
-
-        if (source) {
-            logger.info('Updating from ' + source);
+    update: function(updater) {
+        if (_.isString(updater)) {
+            updater = this.get(updater + 'Updater');
         }
 
-        // Download content update.
-        this.get('contentUpdater').download(source, _.bind(function(error) {
-            contentDownloaded = true;
-            this._onDownloaded(contentDownloaded, appDownloaded);
-            if (!error) {
-                logger.info('Content download complete! ' + (this.get('contentUpdater').get('needsUpdate') ? '' : 'Nothing new was found.'));
-            }
-        }, this));
+        logger.info('Updating ' + updater.get('name') + ' from ' + updater.get('source'));
 
-        // Download app update.
-        this.get('appUpdater').download(source, _.bind(function(error) {
-            appDownloaded = true;
-            this._onDownloaded(contentDownloaded, appDownloaded);
-            if (!error) {
-                logger.info('App download complete! ' + (this.get('appUpdater').get('needsUpdate') ? '' : 'Nothing new was found.'));
-            }
-        }, this));
-    },
-
-    _onDownloaded: function(contentDownloaded, appDownloaded, force) {
-        if (!contentDownloaded || !appDownloaded) {
-            return;
-        }
-
-        // New stuff was downloaded, so shut down the app and process the downloaded files.
-        if (!force) {
-            var contentUpdated = !this.get('contentUpdater').get('needsUpdate');
-            var appUpdated = !this.get('appUpdater').get('needsUpdate');
-            if (contentUpdated && appUpdated) {
+        updater.download(_.bind(function(error) {
+            if (error) {
                 return;
             }
-        }
 
+            logger.info(updater.get('name') + ' download complete! ' + (updater.get('needsUpdate') ? '' : 'Nothing new was found.'));
+            if (!updater.get('needsUpdate')) {
+                return;
+            }
+
+            this.deploy(updater);
+        }, this));
+    },
+
+    deploy: function(updater, force) {
         this.get('persistence').shutdownApp(_.bind(function() {
+
             // Copy content files from the temp folder.
-            this.get('contentUpdater').deploy(force, _.bind(function(error) {
+            updater.deploy(force, _.bind(function(error) {
                 if (!error) {
-                    logger.info('Content deploy complete! ' + this.get('contentUpdater').get('updated').toString());
+                    logger.info(updater.get('name') + ' deploy complete! ' + updater.get('updated').toString());
                 }
 
-                // Copy the app from the temp folder, and unzip it.
-                this.get('appUpdater').deploy(force, _.bind(function(error) {
-                    if (!error) {
-                        logger.info('App deploy complete! ' + this.get('appUpdater').get('updated').toString());
-                    }
-
-                    this.get('persistence').restartApp();
-                }, this));
+                this.get('persistence').restartApp();
             }, this));
         }, this));
     },
 
     // Shut down the app, roll back content, and restart it.
-    rollBackContent: function() {
+    rollback: function(updater) {
+        updater = this.get(updater + 'Updater');
         this.get('persistence').shutdownApp(_.bind(function() {
-            this.get('contentUpdater').rollBack(_.bind(function() {
-                this.get('appUpdater').rollBack(_.bind(function() {
-                    logger.info('Rollback complete!');
-                    this.get('persistence').restartApp();
-                }, this));
+            updater.rollBack(_.bind(function() {
+                logger.info('Rollback complete!');
+                this.get('persistence').restartApp();
             }, this));
         }, this));
     }

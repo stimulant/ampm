@@ -21,8 +21,8 @@ exports.AppUpdater = ContentUpdater.extend({
 	}),
 
 	// Download the new app to the temp folder.
-	_doDownload: function(source) {
-
+	_doDownload: function() {
+		var source = this.get('source');
 		var remote = this.get('remote')[source];
 		var filename = path.basename(remote);
 		var file = new ContentFile({
@@ -36,7 +36,7 @@ exports.AppUpdater = ContentUpdater.extend({
 		this.set('files', new ContentFiles());
 		this.get('files').add(file);
 
-		this._initDirectories(source, _.bind(function() {
+		this._initDirectories(_.bind(function() {
 			if (remote.indexOf('http') === 0) {
 				// We're going to download a file from the web using the content updater logic.
 				this._processFile(file);

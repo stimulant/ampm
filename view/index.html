@@ -2,6 +2,7 @@
 <html>
 <head>
     <title>ampm</title>
+
     <script src="//code.jquery.com/jquery-2.1.0.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/static/libs/lodash.min.js"></script>
@@ -11,6 +12,7 @@
     <script src="/static/libs/moment-duration-format.js"></script>
     <script src="/static/libs/humanize.js"></script>
     <script src="/static/view.js"></script>
+    
     <script type="text/javascript">
 
     $(document).ready(function() {
@@ -18,6 +20,7 @@
     });
 
     </script>
+
     <script type="text/template" id="info-template"> 
         <p>isRunning: <%- isRunning %>
         <br/>uptime: <%- uptime %>
@@ -30,9 +33,11 @@
         <hr/>
         <pre><%- eventList %></pre>
     </script>
+    
     <script type="text/template" id="update-button-template">
         <button id="source-<%- source %>">set source to <%- source %></button>
     </script>
+    
     <style type="text/css">
 
     body
