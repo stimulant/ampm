@@ -136,13 +136,13 @@ AppState = exports.AppState = BaseModel.extend({
 			this.set('uptime', isRunning ? Date.now() - this._startupTime : 0);
 
 			/*
-			// tasklist.exe output looks like this:
-			Image Name:   Client.exe
-			PID:          12008
-			Session Name: Console
-			Session#:     1
-			Mem Usage:    39,384 K
-			*/
+            // tasklist.exe output looks like this:
+            Image Name:   Client.exe
+            PID:          12008
+            Session Name: Console
+            Session#:     1
+            Mem Usage:    39,384 K
+            */
 
 			// Update the memory.
 			var memory = parseInt(stdout.split('\r\n')[5].split('    ')[1].split(' ')[0].replace(',', ''), 10) * 1024;

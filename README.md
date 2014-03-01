@@ -56,7 +56,7 @@ Below are all the defaults for the various modules. Your JSON file only needs to
 // Settings for the logging module.
 "logging": {
 
-	// Settings for the file logger.
+    // Settings for the file logger.
     "file": {
         "enabled": true, // false to turn off
         "filename": "logs/server.log", // Path to the log file, relative to server.js.

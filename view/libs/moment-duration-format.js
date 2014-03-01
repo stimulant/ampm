@@ -1,5 +1,5 @@
 // moment.duration.format([template] [, precision] [, settings])
-moment.duration.fn.format = function () {
+moment.duration.fn.format = function() {
 
 	var tokenizer, tokens, types, typeMap, momentTypes, foundFirst,
 		args = [].slice.call(arguments),
@@ -8,7 +8,7 @@ moment.duration.fn.format = function () {
 		remainder = moment.duration(this);
 
 	// parse arguments
-	_.each(args, function (arg) {
+	_.each(args, function(arg) {
 		if (typeof arg === "string") {
 			settings.template = arg;
 			return;
@@ -28,19 +28,19 @@ moment.duration.fn.format = function () {
 	types = settings.types.split(" ");
 
 	// tokenizer regexp
-	tokenizer = new RegExp(_.map(types, function (type) {
+	tokenizer = new RegExp(_.map(types, function(type) {
 		return settings[type].source;
 	}).join("|"), "g");
 
 	// token type map function
-	typeMap = function (token) {
-		return _.find(types, function (type, index) {
+	typeMap = function(token) {
+		return _.find(types, function(type, index) {
 			return settings[type].test(token);
 		});
 	};
 
 	// tokens array
-	tokens = _.map(settings.template.match(tokenizer), function (token, index) {
+	tokens = _.map(settings.template.match(tokenizer), function(token, index) {
 		var type = typeMap(token),
 			length = token.length;
 
@@ -68,7 +68,7 @@ moment.duration.fn.format = function () {
 	}
 
 	// calculate values for each token type in the template
-	_.each(momentTypes, function (momentType, index) {
+	_.each(momentTypes, function(momentType, index) {
 		var value, wholeValue, decimalValue;
 
 		// calculate integer and decimal value portions
@@ -85,7 +85,7 @@ moment.duration.fn.format = function () {
 		// update tokens array
 		// using this algorithm to not assume anything about
 		// the order or frequency of any tokens
-		_.each(tokens, function (token) {
+		_.each(tokens, function(token) {
 			if (token.type === momentType) {
 				_.extend(token, {
 					value: value,
@@ -117,7 +117,7 @@ moment.duration.fn.format = function () {
 
 	// trim tokens array
 	if (settings.trim) {
-		tokens = _[settings.trim === "left" ? "rest" : "initial"](tokens, function (token) {
+		tokens = _[settings.trim === "left" ? "rest" : "initial"](tokens, function(token) {
 			// return `true` if:
 			// the token is not the least moment token (don't trim the least moment token)
 			// the token is a moment token that does not have a value (don't trim moment tokens that have a whole value)
@@ -135,7 +135,7 @@ moment.duration.fn.format = function () {
 		tokens.reverse();
 	}
 
-	tokens = _.map(tokens, function (token, index) {
+	tokens = _.map(tokens, function(token, index) {
 		var val,
 			decVal;
 
