@@ -74,12 +74,18 @@ exports.AppUpdater = ContentUpdater.extend({
 		// Unzip the file.
 		logger.info('Unzipping app. ' + contentFile.get('tempPath'));
 		var cmd = path.join(process.cwd(), 'tools/7z.exe');
+
+		// Extract
 		cmd += ' x ';
 		cmd += '"' + path.resolve(contentFile.get('tempPath')) + '"';
-		cmd += ' o';
+
+		// Output directory
+		cmd += ' -o';
 		cmd += '"' + path.dirname(path.resolve(contentFile.get('tempPath'))) + '"';
-		console.log(cmd);
-		return;
+
+		// Crazy trick to suppress most of the output, otherwise the buffer gets exceeded. http://stackoverflow.com/a/11629736/468472
+		cmd += ' | FIND /V "ing  "';
+
 		child_process.exec(cmd, _.bind(function(error, stdout, stderr) {
 			this._handleError('Error unzipping app.', error);
 			ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
