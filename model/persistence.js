@@ -385,5 +385,10 @@ exports.Persistence = BaseModel.extend({
         // -T 0 - shutdown now
         // -F - don't wait for anything to shut down gracefully
         setTimeout(child_process.exec('shutdown -R -T 0 -F -C "ampm restart"'), 3000);
+    },
+
+    restartServer: function() {
+        // This should cause node-supervisor to reboot us.
+        fs.writeFile('restart.json', new Date().getTime());
     }
 });

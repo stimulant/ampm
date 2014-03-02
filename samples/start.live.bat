@@ -13,12 +13,10 @@ IF %ERRORLEVEL% NEQ 0 (
 	CALL npm install -g supervisor 
 )
 
-:: Launch ampm.
-CD app\ampm
+:: Run the local ampm and just watch the restart file.
+cd app\ampm
 supervisor ^
-	--watch .,..\ampm-test\wpf-test\config.json ^
+	--watch restart.json ^
 	--ignore .git,node_modules,view,samples,logs,app,content,state.json ^
 	--extensions js,json ^
-	--no-restart-on error ^
-	--quiet ^
-	-- server.js ..\..\config_dev.json
+	-- server.js ..\..\config.live.json

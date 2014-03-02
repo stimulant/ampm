@@ -11,23 +11,24 @@ process.chdir(path.dirname(process.mainModule.filename));
 // args will be ['node', 'server.js', 'config.json']
 configFile = '';
 if (process.argv.length > 2) {
-    configFile = process.argv[2];
+	configFile = process.argv[2];
 }
 
+console.log(process.argv);
 global.app = null;
 global.comm = {};
 
 // Save a value to the serialized state file.
 global.saveState = function(key, value) {
-    if (savedState[key] === value) {
-        return;
-    }
+	if (savedState[key] === value) {
+		return;
+	}
 
-    savedState[key] = value;
-    clearTimeout(saveState.writeTimeout);
-    saveState.writeTimeout = setTimeout(function() {
-        fs.writeFile(stateFile, JSON.stringify(savedState, null, '\t'));
-    }, 1000);
+	savedState[key] = value;
+	clearTimeout(saveState.writeTimeout);
+	saveState.writeTimeout = setTimeout(function() {
+		fs.writeFile(stateFile, JSON.stringify(savedState, null, '\t'));
+	}, 1000);
 };
 
 global.config = configFile && fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile)) : {};
