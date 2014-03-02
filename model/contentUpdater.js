@@ -435,7 +435,7 @@ exports.ContentUpdater = BaseModel.extend({
                     this.set('isUpdating', false);
                     this.set('canRollback', false);
                 }, this));
-                callback(!error);
+                callback(error);
             }, this));
         }, this));
     }

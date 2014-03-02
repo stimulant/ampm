@@ -122,6 +122,6 @@ var View = Backbone.View.extend({
 
 	_onRollbackClicked: function() {
 		var updater = $(event.target).parents('fieldset').first().attr('id').indexOf('content') != -1 ? 'content' : 'app';
-		this._socket.emit('rollBack', updater);
+		this._socket.emit('rollback', updater);
 	}
 });

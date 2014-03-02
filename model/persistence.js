@@ -175,22 +175,16 @@ exports.Persistence = BaseModel.extend({
             this._updateInterval = later.setInterval(_.bind(function() {
                 logger.info('Update time has arrived. ' + new Date());
                 this.set('restartCount', 0);
-
-                function doUpdate(callback) {
+                var isRunning = this.get('appState').get('isRunning');
+                this.shutdownApp(_.bind(function() {
                     serverState.update(serverState.get('appUpdater'), _.bind(function() {
-                        serverState.update(serverState.get('contentUpdater'), callback);
-                    }, this));
-                }
-
-                if (serverState.get('appState').get('isRunning')) {
-                    this.shutdownApp(_.bind(function() {
-                        doUpdate(_.bind(function() {
-                            this.restartApp();
+                        serverState.update(serverState.get('contentUpdater'), _.bind(function() {
+                            if (isRunning) {
+                                this.restartServer();
+                            }
                         }, this));
                     }, this));
-                } else {
-                    doUpdate();
-                }
+                }, this));
 
             }, this), this._updateSchedule);
         }
@@ -355,8 +349,10 @@ exports.Persistence = BaseModel.extend({
         }, this));
     },
 
-    restartApp: function() {
-        this.shutdownApp(_.bind(this.startApp, this));
+    restartApp: function(callback) {
+        this.shutdownApp(_.bind(function() {
+            this.startApp(callback);
+        }, this));
     },
 
     shutdownMachine: function() {

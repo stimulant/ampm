@@ -110,43 +110,34 @@ exports.ServerState = BaseModel.extend({
 
             logger.info(updater.get('name') + ' download complete! ' + (updater.get('needsUpdate') ? '' : 'Nothing new was found.'));
             if (!updater.get('needsUpdate')) {
-                callback();
+                if (callback) {
+                    callback();
+                }
                 return;
             }
 
-            this.deploy(updater, false, callback);
+            this.deploy(updater, false);
         }, this));
     },
 
-    deploy: function(updater, force, callback) {
+    deploy: function(updater, force) {
         if (_.isString(updater)) {
             updater = this.get(updater + 'Updater');
         }
 
-        doDeploy = function(callback) {
-            // Copy content files from the temp folder.
+        this.get('persistence').shutdownApp(_.bind(function() {
             updater.deploy(force, _.bind(function(error) {
-                if (!error) {
-                    logger.info(updater.get('name') + ' deploy complete!');
+                if (error) {
+                    return;
                 }
 
-                if (callback) {
-                    callback();
+                logger.info(updater.get('name') + ' deploy complete!');
+                if (updater.get('name') == 'app') {
+                    this.get('persistence').restartServer();
+                } else {
+                    this.get('persistence').restartApp();
                 }
             }, this));
-        };
-
-        // Just deploy.
-        if (!this.get('appState').get('isRunning')) {
-            doDeploy(callback);
-            return;
-        }
-
-        // Shutdown, deploy, restart.
-        this.get('persistence').shutdownApp(_.bind(function() {
-            doDeploy(_.bind(function() {
-                this.get('persistence').restartApp();
-            }, this), callback);
         }, this));
     },
 
@@ -156,25 +147,18 @@ exports.ServerState = BaseModel.extend({
             updater = this.get(updater + 'Updater');
         }
 
-        doRollback = function(callback) {
-            updater.rollBack(_.bind(function() {
-                logger.info('Rollback complete!');
-                if (callback) {
-                    callback();
-                }
-            }, this));
-        };
-
-        // Just rollback.
-        if (!this.get('appState').get('isRunning')) {
-            doRollback();
-            return;
-        }
-
-        // Shutdown, rollback, restart.
         this.get('persistence').shutdownApp(_.bind(function() {
-            doRollback(_.bind(function() {
-                this.get('persistence').restartApp();
+            updater.rollBack(_.bind(function(error) {
+                if (error) {
+                    return;
+                }
+
+                logger.info('Rollback complete!');
+                if (updater.get('name') == 'app') {
+                    this.get('persistence').restartServer();
+                } else {
+                    this.get('persistence').restartApp();
+                }
             }, this));
         }, this));
     }
