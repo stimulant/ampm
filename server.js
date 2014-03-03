@@ -20,16 +20,15 @@ global.comm = {};
 
 // Save a value to the serialized state file.
 global.saveState = function(key, value) {
-	if (savedState[key] === value) {
+	if (savedState[key] === value)
 		return;
-	}
-
-	savedState[key] = value;
-	clearTimeout(saveState.writeTimeout);
-	saveState.writeTimeout = setTimeout(function() {
-		fs.writeFile(stateFile, JSON.stringify(savedState, null, '\t'));
-	}, 1000);
 };
+
+savedState[key] = value;
+clearTimeout(saveState.writeTimeout);
+saveState.writeTimeout = setTimeout(function() {
+	fs.writeFile(stateFile, JSON.stringify(savedState, null, '\t'));
+}, 1000);
 
 global.config = configFile && fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile)) : {};
 global.savedState = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile)) : {};
