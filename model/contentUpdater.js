@@ -8,7 +8,6 @@ var progress = require('request-progress'); // Progress events on downloads. htt
 var XRegExp = require('xregexp').XRegExp; // Fancy regular expressions. http://xregexp.com/
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var ncp = require('ncp').ncp; // Recursive directory copy. https://npmjs.org/package/ncp
-var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 var rimraf = require('rimraf'); // Recursive directory delete. https://github.com/isaacs/rimraf
 
 var BaseModel = require('./baseModel.js').BaseModel;
@@ -70,7 +69,7 @@ exports.ContentUpdater = BaseModel.extend({
 
 
         // Retrieve the last saved source, if any.
-        this.set('source', savedState['source-' + this.get('name')]);
+        this.set('source', serverState.get('source-' + this.get('name')));
         if (!this.get('remote')[this.get('source')]) {
             this.set('source', null);
         }
@@ -89,7 +88,7 @@ exports.ContentUpdater = BaseModel.extend({
 
         // When the source changes, save it to disk.
         this.on('change:source', _.bind(function() {
-            global.saveState('source-' + this.get('name'), this.get('source'));
+            serverState.saveState('source-' + this.get('name'), this.get('source'));
             fs.exists(this.get('backup')[this.get('source')], _.bind(function(exists) {
                 this.set('canRollback', exists);
             }, this));

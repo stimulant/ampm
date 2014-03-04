@@ -4,7 +4,6 @@ var http = require('http'); // HTTP support. http://nodejs.org/api/http.html
 
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
-var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var express = require('express'); // Routing framework. http://expressjs.com/
 var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc

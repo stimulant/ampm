@@ -1,13 +1,12 @@
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
-var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
 // Model for app logic specific to the server.
 exports.ConsoleState = BaseModel.extend({
-    start: function() {
+    initialize: function() {
 
         // Spew config for documentation.
         // console.log(JSON.stringify(this.fullConfig(), null, '\t'));

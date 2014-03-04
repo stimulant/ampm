@@ -1,6 +1,5 @@
 var path = require('path'); //http://nodejs.org/api/path.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
-var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 var os = require('os'); // http://nodejs.org/api/os.html
 
 var ConsoleState = require('./model/consoleState.js').ConsoleState;
@@ -10,6 +9,7 @@ var ContentUpdater = require('./model/contentUpdater.js').ContentUpdater;
 var AppUpdater = require('./model/appUpdater.js').AppUpdater;
 var Persistence = require('./model/persistence.js').Persistence;
 var AppState = require('./model/appState.js').AppState;
+var ServerState = require('./model/serverState.js').ServerState;
 var Logging = require('./model/logging.js').Logging;
 
 var stateFile = 'state.json';
@@ -23,46 +23,38 @@ if (process.argv.length > 2) {
 	configFile = process.argv[2];
 }
 
-// Save a value to the serialized state file.
-global.saveState = function(key, value) {
-	if (savedState[key] === value) {
-		return;
-	}
-	savedState[key] = value;
-	clearTimeout(saveState.writeTimeout);
-	saveState.writeTimeout = setTimeout(function() {
-		fs.writeFile(stateFile, JSON.stringify(savedState, null, '\t'));
-	}, 1000);
-};
-
 console.log('Server starting up.');
 
-// Global reference to the config file, passed as an argument.
 global.config = configFile && fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile)) : {};
 
-// A state object which is persisted between sessions.
-global.savedState = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile)) : {};
+global.serverState = new ServerState(fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile)) : {});
 
 global.network = new Network({
 	config: config.network
 });
+
 global.contentUpdater = new ContentUpdater({
 	name: 'content',
 	config: config.contentUpdater
 });
+
 global.appUpdater = new AppUpdater({
 	name: 'app',
 	config: config.appUpdater
 });
+
 global.persistence = new Persistence({
 	config: config.persistence
 });
+
 global.logging = new Logging({
 	config: config.logging
 });
+
 global.appState = new AppState({
 	config: config.app
 });
+
 global.consoleState = new ConsoleState();
 
 logger.info('Server started.');

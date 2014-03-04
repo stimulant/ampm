@@ -17,8 +17,7 @@ AppState = exports.AppState = BaseModel.extend({
 		cpu: null,
 		memory: null,
 		canUpdate: false,
-		isUpdating: false,
-		savedState: null,
+		isUpdating: false
 	},
 
 	// How often to update stats.

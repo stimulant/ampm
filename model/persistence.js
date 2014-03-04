@@ -5,7 +5,6 @@ var fs = require('node-fs'); // Recursive directory creation. https://github.com
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var later = require('later'); // Schedule processing. http://bunkat.github.io/later/ 
-var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
