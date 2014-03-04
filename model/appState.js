@@ -34,8 +34,8 @@ AppState = exports.AppState = BaseModel.extend({
 
 	initialize: function() {
 		BaseModel.prototype.initialize.apply(this);
-		this.set('canUpdate', ((serverState.get('contentUpdater').get('remote') && true) || (serverState.get('appUpdater').get('remote') && true)) === true);
-		serverState.get('persistence').on('heart', this._onHeart, this);
+		this.set('canUpdate', ((contentUpdater.get('remote') && true) || (appUpdater.get('remote') && true)) === true);
+		persistence.on('heart', this._onHeart, this);
 		this._updateStats();
 		this._updateCpu();
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
@@ -48,21 +48,21 @@ AppState = exports.AppState = BaseModel.extend({
 
 	_updateConsole: function() {
 		var message = _.clone(this.attributes);
-		message.restartCount = serverState.get('persistence').get('restartCount');
-		message.logs = serverState.get('logging').get('logCache');
-		message.events = serverState.get('logging').get('eventCache');
+		message.restartCount = persistence.get('restartCount');
+		message.logs = logging.get('logCache');
+		message.events = logging.get('eventCache');
 		message.canUpdate = this.get('canUpdate');
 
 		message.updaters = {
 			content: {
-				isUpdating: serverState.get('contentUpdater').get('isUpdating'),
-				canRollback: serverState.get('contentUpdater').get('canRollback'),
-				source: serverState.get('contentUpdater').get('source')
+				isUpdating: contentUpdater.get('isUpdating'),
+				canRollback: contentUpdater.get('canRollback'),
+				source: contentUpdater.get('source')
 			},
 			app: {
-				isUpdating: serverState.get('appUpdater').get('isUpdating'),
-				canRollback: serverState.get('appUpdater').get('canRollback'),
-				source: serverState.get('appUpdater').get('source')
+				isUpdating: appUpdater.get('isUpdating'),
+				canRollback: appUpdater.get('canRollback'),
+				source: appUpdater.get('source')
 			}
 		};
 
@@ -94,7 +94,7 @@ AppState = exports.AppState = BaseModel.extend({
 		}
 
 		clearTimeout(this._updateStatsTimeout);
-		var process = serverState.get('persistence').get('processName').toUpperCase();
+		var process = persistence.get('processName').toUpperCase();
 		if (!process) {
 			this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
 			return;

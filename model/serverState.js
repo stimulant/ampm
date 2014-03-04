@@ -4,45 +4,10 @@ var winston = require('winston'); // Logging. https://github.com/flatiron/winsto
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 
 var BaseModel = require('./baseModel.js').BaseModel;
-var Network = require('./network.js').Network;
-var ContentUpdater = require('./contentUpdater.js').ContentUpdater;
-var AppUpdater = require('./appUpdater.js').AppUpdater;
-var Persistence = require('./persistence.js').Persistence;
-var AppState = require('./appState.js').AppState;
-var Logging = require('./logging.js').Logging;
 
 // Model for app logic specific to the server.
 exports.ServerState = BaseModel.extend({
-    defaults: {
-        contentUpdater: null,
-        appUpdater: null,
-        persistence: null,
-        appState: null,
-        logging: null,
-        network: null
-    },
-
     start: function() {
-        this.set('network', new Network({
-            config: config.network
-        }));
-        this.set('contentUpdater', new ContentUpdater({
-            name: 'content',
-            config: config.contentUpdater
-        }));
-        this.set('appUpdater', new AppUpdater({
-            name: 'app',
-            config: config.appUpdater
-        }));
-        this.set('persistence', new Persistence({
-            config: config.persistence
-        }));
-        this.set('logging', new Logging({
-            config: config.logging
-        }));
-        this.set('appState', new AppState({
-            config: config.app
-        }));
 
         // Spew config for documentation.
         // console.log(JSON.stringify(this.fullConfig(), null, '\t'));
@@ -52,11 +17,11 @@ exports.ServerState = BaseModel.extend({
 
     fullConfig: function() {
         return {
-            network: this.get('network').attributes,
-            contentUpdater: this.get('contentUpdater').attributes,
-            appUpdater: this.get('appUpdater').attributes,
-            persistence: this.get('persistence').attributes,
-            logging: this.get('logging').attributes
+            network: network.attributes,
+            contentUpdater: contentUpdater.attributes,
+            appUpdater: appUpdater.attributes,
+            persistence: persistence.attributes,
+            logging: logging.attributes
         };
     },
 
@@ -68,7 +33,7 @@ exports.ServerState = BaseModel.extend({
 
     setSource: function(updater, source) {
         if (_.isString(updater)) {
-            updater = this.get(updater + 'Updater');
+            updater = global[updater + 'Updater'];
         }
 
         if (source == updater.get('source')) {
@@ -98,7 +63,7 @@ exports.ServerState = BaseModel.extend({
 
     update: function(updater, callback) {
         if (_.isString(updater)) {
-            updater = this.get(updater + 'Updater');
+            updater = global[updater + 'Updater'];
         }
 
         logger.info('Updating ' + updater.get('name') + ' from ' + updater.get('source'));
@@ -122,10 +87,10 @@ exports.ServerState = BaseModel.extend({
 
     deploy: function(updater, force) {
         if (_.isString(updater)) {
-            updater = this.get(updater + 'Updater');
+            updater = global[updater + 'Updater'];
         }
 
-        this.get('persistence').shutdownApp(_.bind(function() {
+        persistence.shutdownApp(_.bind(function() {
             updater.deploy(force, _.bind(function(error) {
                 if (error) {
                     return;
@@ -133,9 +98,9 @@ exports.ServerState = BaseModel.extend({
 
                 logger.info(updater.get('name') + ' deploy complete!');
                 if (updater.get('name') == 'app') {
-                    this.get('persistence').restartServer();
+                    persistence.restartServer();
                 } else {
-                    this.get('persistence').restartApp();
+                    persistence.restartApp();
                 }
             }, this));
         }, this));
@@ -144,10 +109,10 @@ exports.ServerState = BaseModel.extend({
     // Shut down the app, roll back content, and restart it.
     rollback: function(updater) {
         if (_.isString(updater)) {
-            updater = this.get(updater + 'Updater');
+            updater = global[updater + 'Updater'];
         }
 
-        this.get('persistence').shutdownApp(_.bind(function() {
+        persistence.shutdownApp(_.bind(function() {
             updater.rollBack(_.bind(function(error) {
                 if (error) {
                     return;
@@ -155,9 +120,9 @@ exports.ServerState = BaseModel.extend({
 
                 logger.info('Rollback complete!');
                 if (updater.get('name') == 'app') {
-                    this.get('persistence').restartServer();
+                    persistence.restartServer();
                 } else {
-                    this.get('persistence').restartApp();
+                    persistence.restartApp();
                 }
             }, this));
         }, this));

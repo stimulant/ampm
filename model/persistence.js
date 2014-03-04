@@ -177,8 +177,8 @@ exports.Persistence = BaseModel.extend({
                 this.set('restartCount', 0);
                 var isRunning = this.get('appState').get('isRunning');
                 this.shutdownApp(_.bind(function() {
-                    serverState.update(serverState.get('appUpdater'), _.bind(function() {
-                        serverState.update(serverState.get('contentUpdater'), _.bind(function() {
+                    serverState.update(appUpdater, _.bind(function() {
+                        serverState.update(contentUpdater, _.bind(function() {
                             if (isRunning) {
                                 this.restartServer();
                             }
@@ -329,12 +329,12 @@ exports.Persistence = BaseModel.extend({
             this._startupCallback = callback;
 
             // Start the app.
-            var appPath = path.resolve(path.join(serverState.get('appUpdater').get('local'), this.get('processName')));
+            var appPath = path.resolve(path.join(appUpdater.get('local'), this.get('processName')));
             fs.exists(appPath, _.bind(function(exists) {
                 if (!exists) {
                     this._isStartingUp = false;
                     logger.error('Application not found.');
-                    serverState.update(serverState.get('appUpdater'), _.bind(function() {
+                    serverState.update(appUpdater, _.bind(function() {
                         this.restartApp();
                     }, this));
                     return;
