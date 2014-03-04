@@ -39,11 +39,11 @@ AppState = exports.AppState = BaseModel.extend({
 		this._updateStats();
 		this._updateCpu();
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
-		comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
+		network.transports.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
 	},
 
 	_onConnection: function() {
-		comm.socketToConsole.sockets.emit('config', serverState.fullConfig());
+		network.transports.socketToConsole.sockets.emit('config', consoleState.fullConfig());
 	},
 
 	_updateConsole: function() {
@@ -66,7 +66,7 @@ AppState = exports.AppState = BaseModel.extend({
 			}
 		};
 
-		comm.socketToConsole.sockets.emit('appState', message);
+		network.transports.socketToConsole.sockets.emit('appState', message);
 		this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
 	},
 

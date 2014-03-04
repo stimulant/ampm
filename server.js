@@ -3,7 +3,7 @@ var fs = require('node-fs'); // Recursive directory creation. https://github.com
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 var os = require('os'); // http://nodejs.org/api/os.html
 
-var ServerState = require('./model/serverState.js').ServerState;
+var ConsoleState = require('./model/consoleState.js').ConsoleState;
 var BaseModel = require('./model/baseModel.js').BaseModel;
 var Network = require('./model/network.js').Network;
 var ContentUpdater = require('./model/contentUpdater.js').ContentUpdater;
@@ -37,20 +37,11 @@ global.saveState = function(key, value) {
 
 console.log('Server starting up.');
 
-// Global reference to the express app.
-global.app = null;
-
-// Global reference to the network class, which contains the various clients and servers.
-global.comm = {};
-
 // Global reference to the config file, passed as an argument.
 global.config = configFile && fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile)) : {};
 
 // A state object which is persisted between sessions.
 global.savedState = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile)) : {};
-
-// The main state object which contains instances of all the other model classes.
-global.serverState = new ServerState(config.server);
 
 global.network = new Network({
 	config: config.network
@@ -72,9 +63,7 @@ global.logging = new Logging({
 global.appState = new AppState({
 	config: config.app
 });
-
-
-serverState.start(config);
+global.consoleState = new ConsoleState();
 
 logger.info('Server started.');
 console.log('Console is at: http://' + os.hostname() + ':' + network.get('socketToConsolePort'));

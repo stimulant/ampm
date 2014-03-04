@@ -66,7 +66,7 @@ exports.Persistence = BaseModel.extend({
 
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
-        comm.oscFromApp.on('heart', _.bind(this._onHeart, this));
+        network.transports.oscFromApp.on('heart', _.bind(this._onHeart, this));
 
         this._initSchedules();
         if (this._shouldBeRunning()) {
@@ -75,7 +75,7 @@ exports.Persistence = BaseModel.extend({
             this.shutdownApp();
         }
 
-        comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
+        network.transports.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
     _onConnection: function(socket) {
@@ -177,8 +177,8 @@ exports.Persistence = BaseModel.extend({
                 this.set('restartCount', 0);
                 var isRunning = this.get('appState').get('isRunning');
                 this.shutdownApp(_.bind(function() {
-                    serverState.update(appUpdater, _.bind(function() {
-                        serverState.update(contentUpdater, _.bind(function() {
+                    consoleState.update(appUpdater, _.bind(function() {
+                        consoleState.update(contentUpdater, _.bind(function() {
                             if (isRunning) {
                                 this.restartServer();
                             }
@@ -334,7 +334,7 @@ exports.Persistence = BaseModel.extend({
                 if (!exists) {
                     this._isStartingUp = false;
                     logger.error('Application not found.');
-                    serverState.update(appUpdater, _.bind(function() {
+                    consoleState.update(appUpdater, _.bind(function() {
                         this.restartApp();
                     }, this));
                     return;

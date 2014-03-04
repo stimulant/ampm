@@ -6,13 +6,13 @@ var fs = require('node-fs'); // Recursive directory creation. https://github.com
 var BaseModel = require('./baseModel.js').BaseModel;
 
 // Model for app logic specific to the server.
-exports.ServerState = BaseModel.extend({
+exports.ConsoleState = BaseModel.extend({
     start: function() {
 
         // Spew config for documentation.
         // console.log(JSON.stringify(this.fullConfig(), null, '\t'));
 
-        comm.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
+        network.transports.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
     fullConfig: function() {

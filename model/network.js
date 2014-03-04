@@ -22,32 +22,36 @@ exports.Network = BaseModel.extend({
 		socketLogLevel: 2
 	},
 
+	transports: null,
+
 	initialize: function() {
 		BaseModel.prototype.initialize.apply(this);
 
+		this.transports = {};
+
 		// Set up web server for console.
 		global.app = express();
-		comm.webServer = http.createServer(app).listen(this.get('socketToConsolePort'));
+		this.transports.webServer = http.createServer(app).listen(this.get('socketToConsolePort'));
 		app.use('/static', express.static(path.resolve(__dirname + '/../view')));
 		app.get('/', function(req, res) {
 			res.sendfile(path.resolve(__dirname + '/../view/index.html'));
 		});
 
 		// Set up socket connection to console.
-		comm.socketToConsole = ioServer.listen(comm.webServer)
+		this.transports.socketToConsole = ioServer.listen(this.transports.webServer)
 			.set('log level', this.get('socketLogLevel'));
 
 		// Set up OSC connection from app.
-		comm.oscFromApp = new osc.Server(this.get('oscFromAppPort'));
-		comm.oscFromApp.on('message', _.bind(function(message, info) {
-			this._handleOsc(comm.oscFromApp, message, info);
+		this.transports.oscFromApp = new osc.Server(this.get('oscFromAppPort'));
+		this.transports.oscFromApp.on('message', _.bind(function(message, info) {
+			this._handleOsc(this.transports.oscFromApp, message, info);
 		}, this));
 
 		// Set up OSC connection to app.
-		comm.oscToApp = new osc.Client(this.get('oscToAppPort'));
+		this.transports.oscToApp = new osc.Client(this.get('oscToAppPort'));
 
 		// Set up socket connection to app.
-		comm.socketToApp = ioServer.listen(this.get('socketToAppPort'))
+		this.transports.socketToApp = ioServer.listen(this.get('socketToAppPort'))
 			.set('log level', this.get('socketLogLevel'));
 	},
 

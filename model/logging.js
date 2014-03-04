@@ -169,7 +169,7 @@ exports.Logging = BaseModel.extend({
 			}, this));
 		}
 
-		comm.socketToApp.sockets.on('connection', _.bind(function(socket) {
+		network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
 
 			// Log on request from the app.
 			socket.on('log', _.bind(function(data) {
