@@ -63,7 +63,7 @@ exports.ServerState = BaseModel.extend({
     _onConnection: function(socket) {
         socket.on('setSource', _.bind(this.setSource, this));
         socket.on('update', _.bind(this.update, this));
-        socket.on('rollBack', _.bind(this.rollback, this));
+        socket.on('rollback', _.bind(this.rollback, this));
     },
 
     setSource: function(updater, source) {

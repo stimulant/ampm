@@ -17,6 +17,8 @@ IF %ERRORLEVEL% NEQ 0 (
 cd app\ampm
 supervisor ^
 	--watch restart.json ^
-	--ignore .git,node_modules,view,samples,logs,app,content,state.json ^
+	--ignore * ^
 	--extensions js,json ^
+	--no-restart-on error ^
+	--quiet ^
 	-- server.js ..\..\config.live.json

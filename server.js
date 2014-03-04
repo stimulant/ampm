@@ -24,11 +24,13 @@ global.saveState = function(key, value) {
 		return;
 };
 
-savedState[key] = value;
-clearTimeout(saveState.writeTimeout);
-saveState.writeTimeout = setTimeout(function() {
-	fs.writeFile(stateFile, JSON.stringify(savedState, null, '\t'));
-}, 1000);
+function saveState(key, value) {
+	savedState[key] = value;
+	clearTimeout(saveState.writeTimeout);
+	saveState.writeTimeout = setTimeout(function() {
+		fs.writeFile(stateFile, JSON.stringify(savedState, null, '\t'));
+	}, 1000);
+}
 
 global.config = configFile && fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile)) : {};
 global.savedState = fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile)) : {};

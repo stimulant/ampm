@@ -316,14 +316,22 @@ exports.ContentUpdater = BaseModel.extend({
 
         deployFromTemp = _.bind(function() {
             logger.info('Deploying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
-            ncp(this.get('temp')[source], this.get('local'), _.bind(function(error) {
-                this._handleError('Error copying from temp folder.', error);
-                this._completed();
+
+            // Delete restart file.
+            fs.unlink(path.join(this.get('temp')[source], '/ampm/restart.json'), _.bind(function() {
+
+                // Copy from temp to local.
+                ncp(this.get('temp')[source], this.get('local'), _.bind(function(error) {
+                    this._handleError('Error copying from temp folder.', error);
+                    this._completed();
+                }, this));
             }, this));
         }, this);
 
         backupThenDeploy = _.bind(function() {
             logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup')[source]);
+
+            // Copy from local to backup.
             ncp(this.get('local'), this.get('backup')[source], _.bind(function(error) {
                 this._handleError('Error copying to backup folder.', error);
                 if (error) {
@@ -424,18 +432,26 @@ exports.ContentUpdater = BaseModel.extend({
         this.set('isUpdating', true);
         logger.info('Rolling back, copying from ' + this.get('backup')[source] + ' to ' + this.get('temp')[source]);
 
+        // Copy from backup to temp.
         ncp(this.get('backup')[source], this.get('temp')[source], _.bind(function(error) {
             this._handleError('Error copying to temp folder.', error);
-
             logger.info('Rolling back, copying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
-            ncp(this.get('temp')[source], this.get('local'), _.bind(function(error) {
-                this._handleError('Error copying to deploy folder.', error);
-                rimraf(this.get('backup')[source], _.bind(function(error) {
-                    this._handleError('Error deleting backup.', error);
-                    this.set('isUpdating', false);
-                    this.set('canRollback', false);
+
+            // Delete restart file.
+            fs.unlink(path.join(this.get('temp')[source], '/ampm/restart.json'), _.bind(function() {
+
+                // Copy from temp to local.
+                ncp(this.get('temp')[source], this.get('local'), _.bind(function(error) {
+                    this._handleError('Error copying to deploy folder.', error);
+
+                    // Delete old backup.
+                    rimraf(this.get('backup')[source], _.bind(function(error) {
+                        this._handleError('Error deleting backup.', error);
+                        this.set('isUpdating', false);
+                        this.set('canRollback', false);
+                    }, this));
+                    callback(error);
                 }, this));
-                callback(error);
             }, this));
         }, this));
     }

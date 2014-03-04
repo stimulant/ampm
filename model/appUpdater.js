@@ -87,6 +87,10 @@ exports.AppUpdater = ContentUpdater.extend({
 		cmd += ' | FIND /V "ing  "';
 
 		child_process.exec(cmd, _.bind(function(error, stdout, stderr) {
+			if (stdout.toLowerCase().indexOf('error') != -1) {
+				error = stdout;
+			}
+
 			this._handleError('Error unzipping app.', error);
 			ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
 		}, this));

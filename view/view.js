@@ -43,7 +43,7 @@ var View = Backbone.View.extend({
 		$('#start-app').toggle(!message.isRunning);
 		$('#restart-app').toggle(message.isRunning);
 
-		$('#controls-updaters').prop('disabled', message.updaters.content.isUpdating || message.updaters.app.isUpdating);
+		$('#controls').prop('disabled', message.updaters.content.isUpdating || message.updaters.app.isUpdating);
 		this._updateUpdater($('#controls-updaters-content'), message.updaters.content);
 		this._updateUpdater($('#controls-updaters-app'), message.updaters.app);
 	},

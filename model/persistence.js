@@ -385,6 +385,7 @@ exports.Persistence = BaseModel.extend({
 
     restartServer: function() {
         // This should cause node-supervisor to reboot us.
+        logger.info('Triggering server restart.');
         fs.writeFile('restart.json', new Date().getTime());
     }
 });
