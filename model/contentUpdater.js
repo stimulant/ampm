@@ -1,31 +1,40 @@
 var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
 var path = require('path'); // File path processing. http://nodejs.org/api/path.html
+var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
+
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var moment = require('moment'); // Date processing. http://momentjs.com/
 var request = require('request'); // Simpler HTTP. https://github.com/mikeal/request
 var progress = require('request-progress'); // Progress events on downloads. https://github.com/IndigoUnited/node-request-progress
 var XRegExp = require('xregexp').XRegExp; // Fancy regular expressions. http://xregexp.com/
-var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var ncp = require('ncp').ncp; // Recursive directory copy. https://npmjs.org/package/ncp
 var rimraf = require('rimraf'); // Recursive directory delete. https://github.com/isaacs/rimraf
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
-// Update content for the application, as well as the application itself.
+// Download and deploy content by parsing an XML file or copying from a local/network location.
 exports.ContentUpdater = BaseModel.extend({
 
     defaults: {
-        // The remote URL to the root XML.
+        // A unique name for the updater.
+        name: null,
+
+        // The path to fetch new content from. If this is a URL, ampm will look for an XML file and
+        // parse it for additional URLs to fetch. If it's a local/network path, it will use robocopy
+        // to fetch a directory.
         remote: null,
 
-        // The final local path for content.
-        local: 'content/',
+        // The local path to deployed content, relative to server.js.
+        local: "content/",
 
-        // The temp path for content.
+        // The current remote source.
+        source: null,
+
+        // The local path to download files to before deployment.
         temp: null,
 
-        // The path for content backups.
+        // The local path to backup existing content to before deployment.
         backup: null,
 
         // A collection of file objects that are being processed.
@@ -38,13 +47,7 @@ exports.ContentUpdater = BaseModel.extend({
         isUpdating: false,
 
         // Indicates whether there is a backup of content to roll back to.
-        canRollback: false,
-
-        // A unique name for the updater.
-        name: null,
-
-        // The current remote source.
-        source: null
+        canRollback: false
     },
 
     // A callback to call when updating is complete.
@@ -74,6 +77,7 @@ exports.ContentUpdater = BaseModel.extend({
             this.set('source', null);
         }
 
+        // Create temp and backup paths.
         for (var source in this.get('remote')) {
             if (!this.get('source')) {
                 this.set('source', source);
@@ -104,6 +108,8 @@ exports.ContentUpdater = BaseModel.extend({
         this._doDownload();
     },
 
+    // Based on the source path, determine if it's a remote XML file or local copy, and begin the 
+    // update.
     _doDownload: function() {
         var source = this.get('source');
         this._initDirectories(_.bind(function() {
@@ -129,9 +135,8 @@ exports.ContentUpdater = BaseModel.extend({
 
     // Set up the temp and output directories.
     _initDirectories: function(callback) {
-        var source = this.get('source');
         // Make the temp directory.
-        fs.mkdir(this.get('temp')[source], 0777, true, _.bind(function(error) {
+        fs.mkdir(this.get('temp')[this.get('source')], 0777, true, _.bind(function(error) {
             this._handleError('Error creating temp directory.', error);
 
             fs.exists(this.get('local'), _.bind(function(exists) {
@@ -456,6 +461,7 @@ exports.ContentUpdater = BaseModel.extend({
     }
 });
 
+// A model representing a file to load from the web.
 exports.ContentFile = Backbone.Model.extend({
     defaults: {
         url: null,
@@ -475,6 +481,7 @@ exports.ContentFile = Backbone.Model.extend({
     }
 });
 
+// A collection of content files.
 exports.ContentFiles = Backbone.Collection.extend({
     model: exports.ContentFile
 });

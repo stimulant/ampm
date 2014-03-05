@@ -112,16 +112,16 @@ var View = Backbone.View.extend({
 	},
 
 	_onSetSourceClicked: function(event, updater, source) {
-		this._socket.emit('setSource', updater, source);
+		this._socket.emit('setUpdaterSource', updater, source);
 	},
 
 	_onUpdateClicked: function(event) {
 		var updater = $(event.target).parents('fieldset').first().attr('id').indexOf('content') != -1 ? 'content' : 'app';
-		this._socket.emit('update', updater);
+		this._socket.emit('updateUpdater', updater);
 	},
 
 	_onRollbackClicked: function() {
 		var updater = $(event.target).parents('fieldset').first().attr('id').indexOf('content') != -1 ? 'content' : 'app';
-		this._socket.emit('rollback', updater);
+		this._socket.emit('rollbackUpdater', updater);
 	}
 });

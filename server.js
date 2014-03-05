@@ -8,53 +8,54 @@ var Network = require('./model/network.js').Network;
 var ContentUpdater = require('./model/contentUpdater.js').ContentUpdater;
 var AppUpdater = require('./model/appUpdater.js').AppUpdater;
 var Persistence = require('./model/persistence.js').Persistence;
-var AppState = require('./model/appState.js').AppState;
 var ServerState = require('./model/serverState.js').ServerState;
 var Logging = require('./model/logging.js').Logging;
-
-var stateFile = 'state.json';
 
 // Set the current working directory to the location of server.js so it's always consistent.
 process.chdir(path.dirname(process.mainModule.filename));
 
 // args will be ['node', 'server.js', 'config.json']
-var configFile = '';
+var configPath = '';
 if (process.argv.length > 2) {
-	configFile = process.argv[2];
+	configPath = process.argv[2];
 }
 
 console.log('Server starting up.');
 
-global.config = configFile && fs.existsSync(configFile) ? JSON.parse(fs.readFileSync(configFile)) : {};
+// Parse the config file that was passed as an argument and make a global reference to it.
+global.config = configPath && fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath)) : {};
 
-global.serverState = new ServerState(fs.existsSync(stateFile) ? JSON.parse(fs.readFileSync(stateFile)) : {});
+// A persistent state object, saved to state.json.
+global.serverState = new ServerState();
 
+// A container for all the network transports, generally accessed via network.transports.
 global.network = new Network({
 	config: config.network
 });
 
+// The updater which downloads content referenced by an XML file or local/network file path.
 global.contentUpdater = new ContentUpdater({
 	name: 'content',
 	config: config.contentUpdater
 });
 
+// The updater which downloads a zip file and decompresses it.
 global.appUpdater = new AppUpdater({
 	name: 'app',
 	config: config.appUpdater
 });
 
+// The manager of the application process, controlling restarts and heartbeats.
 global.persistence = new Persistence({
 	config: config.persistence
 });
 
+// The logging manager.
 global.logging = new Logging({
 	config: config.logging
 });
 
-global.appState = new AppState({
-	config: config.app
-});
-
+// The back-end for the web console.
 global.consoleState = new ConsoleState();
 
 logger.info('Server started.');

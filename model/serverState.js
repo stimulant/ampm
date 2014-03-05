@@ -3,11 +3,17 @@ var fs = require('node-fs'); // Recursive directory creation. https://github.com
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
-// Model for app logic specific to the server.
+// A state object which persists across server restarts.
 exports.ServerState = BaseModel.extend({
 	_saveTimeout: 0,
 	_stateFile: 'state.json',
 
+	// Decode the state file.
+	initialize: function() {
+		this.set(fs.existsSync(this._stateFile) ? JSON.parse(fs.readFileSync(this._stateFile)) : {});
+	},
+
+	// Write to the state file.
 	saveState: function(key, value) {
 		if (this.get(key) == value) {
 			return;

@@ -12,12 +12,26 @@ var ioClient = require('socket.io-client'); // Web socket implementation. http:/
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
+// Initialize and manage the various network transports.
 exports.Network = BaseModel.extend({
 	defaults: {
+		// The port used to communicate between node and the browser. This is also the URL you'd use
+		// to access the console, such as http://localhost:3000.
 		socketToConsolePort: 3000,
+
+		// The port used to communicate between node and the client app over a TCP socket. This is
+		// used for the app to send log messages and event tracking.
 		socketToAppPort: 3001,
+
+		// The port used to communicate from the client app to the server over UDP/OSC. This is used
+		// to send heartbeat messages and syncronize state between clients. 
 		oscFromAppPort: 3004,
+
+		// The port used to communicate from the server to the client app over UDP/OSC. This is used
+		// to syncronize state between clients. 
 		oscToAppPort: 3005,
+
+		// How much socket.io logging you want to see in the console. Higher is more debug info. 
 		socketLogLevel: 2
 	},
 

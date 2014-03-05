@@ -11,56 +11,64 @@ var wincmd = require('node-windows'); // Windows utilities. https://github.com/c
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
+// Initialize and manage the various loggers.
 exports.Logging = BaseModel.extend({
+
+	// See readme.md for all this.
 	defaults: {
-		console: {
-			enabled: true,
-			colorize: true,
-			timestamp: true,
-			level: 'info'
-		},
-
+		// Settings for the file logger.
 		file: {
-			enabled: true,
-			filename: 'logs/server.log',
-			maxsize: 1024 * 1024, // 1MB
-			json: false,
-			level: 'info'
+			enabled: true, // false to turn off
+			filename: "logs/server.log", // Path to the log file, relative to server.js.
+			maxsize: 1048576, // The max size of the log file before rolling over (1MB default)
+			json: false, // Whether to log in JSON format.
+			level: "info" // The logging level to write: info, warn, error.
 		},
 
+		// Settings for the console logger.
+		console: {
+			enabled: true, // false to turn off
+			colorize: true, // Colors are fun.
+			timestamp: true, // Include timestamps.
+			level: "info" // The logging level to write: info, warn, error.
+		},
+
+		// Settings for the Windows event logger.
 		eventLog: {
-			enabled: true,
-			eventSource: 'ampmserver'
+			enabled: true // Whether to log Windows events at all.
 		},
 
+		// Settings for Google Analytics.
 		google: {
-			enabled: true,
-			accountId: 'UA-46432303-2',
-			userId: '3e582629-7aad-4aa3-90f2-9f7cb3f89597'
+			enabled: true, // false to turn off
+			accountId: "UA-46432303-2", // The property ID -- this should be unique per project.
+			userId: "3e582629-7aad-4aa3-90f2-9f7cb3f89597" // The user ID -- this should always be the same.
 		},
 
+		// Settings for loggly.com.
 		loggly: {
-			enabled: true,
-			subdomain: 'stimulant', // https://stimulant.loggly.com/dashboards
-			inputToken: 'b8eeee6e-12f4-4f2f-b6b4-62f087ad795e',
-			json: true,
-			tags: 'ampm'
+			enabled: true, // false to turn off
+			subdomain: "stimulant", // The account name. https://stimulant.loggly.com/dashboards
+			inputToken: "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The API token.
+			json: true, // Whether to log as JSON -- this should be true.
+			token: "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The um, other token.
+			tags: "ampm" // A tag to differentiate app logs from one another in loggly.
 		},
 
+		// Settings for the email logger.
 		mail: {
-			enabled: true,
-			host: 'mail.content.stimulant.io',
-			ssl: false,
-			username: 'ampm@content.stimulant.io',
-			from: 'ampm@content.stimulant.io',
-			password: 'JPv5U9N6',
-			subject: 'ERROR: {hostname}',
-			level: 'error',
-			to: 'josh@stimulant.io'
+			enabled: true, // false to turn off
+			host: "mail.content.stimulant.io", // The SMTP server to use.
+			ssl: false, // Whether to use SSL.
+			username: "ampm@content.stimulant.io", // The account to log in with.
+			from: "ampm@content.stimulant.io", // Where the emails should appear to be from.
+			password: "JPv5U9N6", // The password to log in with.
+			subject: "ERROR: {hostname}", // The subject of the emails. "{hostname}" is replaced by the output of os.hostname().
+			level: "error", // The logging level to write: info, warn, error.
+			to: "josh@stimulant.io" // Where the emails should go.
 		},
 
-		// How many log/event messages to show on the console.
-		cacheAmount: 20,
+		cacheAmount: 20, // How many lines of logs and events to show in the web console.
 
 		// Cache of the last n log messages, sent to console.
 		logCache: null,

@@ -12,11 +12,7 @@ var ContentFile = cu.ContentFile;
 exports.AppUpdater = ContentUpdater.extend({
 
 	defaults: _.extend(_.clone(ContentUpdater.prototype.defaults), {
-		// The final local path for the app.
-		local: 'app/',
-
-		// The temp path for the app.
-		temp: null
+		local: 'app/'
 	}),
 
 	// Download the new app to the temp folder.

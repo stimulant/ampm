@@ -11,26 +11,35 @@ var BaseModel = require('./baseModel.js').BaseModel;
 // Startup and shutdown the app on demand and on schedule.
 exports.Persistence = BaseModel.extend({
     defaults: {
-        // The name of the executable.
-        processName: '',
+        // The name of the executable file for the client app.
+        processName: "",
+
         // Restart the app if it doesn't start up in this much time.
         startupTimeout: 10,
-        // Restart the app if there's no heartbeat for this much time.
+
+        // Restart the app this many seconds of no heartbeat messages.
         heartbeatTimeout: 5,
-        // After this many app restarts, give up ans restart the whole machine.
+
+        // Restart the machine after this many app restarts.
         restartMachineAfter: Infinity,
+
+        // Shut down the app on this schedule -- see cronmaker.com for the format.
+        shutdownSchedule: null,
+
+        // Shut down the PC on this schedule -- see cronmaker.com for the format.
+        shutdownPcSchedule: null,
+
+        // Start up the app on this schedule -- see cronmaker.com for the format.
+        startupSchedule: null,
+
+        // Update the content and app on this schedule -- see cronmaker.com for the format.
+        updateSchedule: null,
+
+        // Restart the app on this schedule -- see cronmaker.com for the format. 
+        restartSchedule: null,
+
         // How many times the app has been restarted.
         restartCount: 0,
-        // Shut down the app according to this schedule.
-        shutdownSchedule: null,
-        // Shut down the machine according to this schedule.
-        shutdownPcSchedule: null,
-        // Start up the app according to this schedule.
-        startupSchedule: null,
-        // Update the content and the app according to this schedule.
-        updateSchedule: null,
-        // Restart the app according to this schedule.
-        restartSchedule: null
     },
 
     // The first heartbeat since startup, in ms since epoch.
@@ -73,37 +82,9 @@ exports.Persistence = BaseModel.extend({
         } else {
             this.shutdownApp();
         }
-
-        network.transports.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
-    _onConnection: function(socket) {
-        socket.on('restart-app', _.bind(function() {
-            logger.info('Restart requested from console.');
-            this.restartApp();
-        }, this));
-
-        socket.on('shutdown-app', _.bind(function() {
-            logger.info('Shutdown requested from console.');
-            this.shutdownApp();
-        }, this));
-
-        socket.on('restart-pc', _.bind(function() {
-            logger.info('Reboot requested from console.');
-            this.restartMachine();
-        }, this));
-
-        socket.on('shutdown-pc', _.bind(function() {
-            logger.info('Shutdown requested from console.');
-            this.shutdownMachine();
-        }, this));
-
-        socket.on('start', _.bind(function() {
-            logger.info('Startup requested from console.');
-            this.startApp();
-        }, this));
-    },
-
+    // Initialize the various cron schedules.
     _initSchedules: function() {
         // Important to configure later to not use UTC.
         later.date.localTime();
@@ -189,6 +170,7 @@ exports.Persistence = BaseModel.extend({
         }
     },
 
+    // Determine whether the app should be running, based on the cron schedules.
     _shouldBeRunning: function() {
         if (!this._startupSchedule || !this._shutdownSchedule) {
             return true;
@@ -199,6 +181,7 @@ exports.Persistence = BaseModel.extend({
         return lastStartup > lastShutdown;
     },
 
+    // Handle heartbeat messages from the app.
     _onHeart: function(message) {
         this._resetRestartTimeout(this.get('heartbeatTimeout'));
         if (!this._lastHeart) {
@@ -215,6 +198,7 @@ exports.Persistence = BaseModel.extend({
         this.trigger('heart');
     },
 
+    // Cancel and reset the timeout that restarts the app.
     _resetRestartTimeout: function(time) {
         clearTimeout(this._restartTimeout);
         if (!this._isShuttingDown) {
@@ -222,6 +206,7 @@ exports.Persistence = BaseModel.extend({
         }
     },
 
+    // When a heartbeat hasn't been received for a while, restart the app or the whole machine.
     _onRestartTimeout: function() {
         var restartCount = this.get('restartCount');
         restartCount++;
@@ -240,6 +225,7 @@ exports.Persistence = BaseModel.extend({
         this.restartApp();
     },
 
+    // Determine whether the app is running.
     _isAppRunning: function(callback) {
         if (!callback) {
             return;
@@ -257,6 +243,7 @@ exports.Persistence = BaseModel.extend({
         }, this));
     },
 
+    // Kill the app process.
     shutdownApp: function(callback) {
         if (this._isShuttingDown) {
             return;
@@ -305,6 +292,7 @@ exports.Persistence = BaseModel.extend({
         }, this));
     },
 
+    // Start the app process.
     startApp: function(callback) {
         if (this._isStartingUp || !this._shouldBeRunning() || !this.get('processName')) {
             return;
@@ -348,12 +336,14 @@ exports.Persistence = BaseModel.extend({
         }, this));
     },
 
+    // Kill the app process, then start it back up.
     restartApp: function(callback) {
         this.shutdownApp(_.bind(function() {
             this.startApp(callback);
         }, this));
     },
 
+    // Shut down the whole PC.
     shutdownMachine: function() {
         if (this._isShuttingDown) {
             return;
@@ -368,6 +358,7 @@ exports.Persistence = BaseModel.extend({
         setTimeout(child_process.exec('shutdown -S -T 0 -F -C "ampm shutdown"'), 3000);
     },
 
+    // Reboot the whole PC.
     restartMachine: function() {
         if (this._isShuttingDown) {
             return;
@@ -382,6 +373,7 @@ exports.Persistence = BaseModel.extend({
         setTimeout(child_process.exec('shutdown -R -T 0 -F -C "ampm restart"'), 3000);
     },
 
+    // Restart the ampm server via node-administrator.
     restartServer: function() {
         // This should cause node-supervisor to reboot us.
         logger.info('Triggering server restart.');

@@ -1,7 +1,7 @@
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 
-// Swiped from here: https://blog.andyet.com/2011/feb/15/re-using-backbonejs-models-on-the-server-with-node/
+// A base class from which the other models are derived in order to share some utility functions.
 var BaseModel = Backbone.Model.extend({
 
     // Map the properties of the config object to the model properties.
@@ -24,7 +24,8 @@ var BaseModel = Backbone.Model.extend({
         }
     },
 
-    // builds and return a simple object ready to be JSON stringified
+    // Convert a model to a simple object which can then be passed to JSON.stringify.
+    // https://blog.andyet.com/2011/feb/15/re-using-backbonejs-models-on-the-server-with-node/
     xport: function(opt) {
         var result = {},
             settings = _({
@@ -60,7 +61,8 @@ var BaseModel = Backbone.Model.extend({
         return result;
     },
 
-    // rebuild the nested objects/collections from data created by the xport method
+    // Convert a simple object to a model.
+    // https://blog.andyet.com/2011/feb/15/re-using-backbonejs-models-on-the-server-with-node/
     mport: function(data, silent) {
         function process(targetObj, data) {
             targetObj.id = data.id || null;
