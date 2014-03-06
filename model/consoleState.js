@@ -22,7 +22,7 @@ exports.ConsoleState = BaseModel.extend({
     },
 
     // How often to update stats.
-    _updateFrequency: 1000,
+    _updateStatsRate: 1000,
 
     // How many updates of historical data to keep.
     _statHistory: 60,
@@ -30,7 +30,10 @@ exports.ConsoleState = BaseModel.extend({
 
     // The interval to update stats.
     _updateStatsTimeout: 0,
+
+    // A timeout to throttle the speed of updates to the console.
     _updateConsoleTimeout: 0,
+    _updateConsoleRate: 1000 / 30,
 
     // The last time the app was running to compute uptime.
     _startupTime: 0,
@@ -42,7 +45,6 @@ exports.ConsoleState = BaseModel.extend({
         $$persistence.on('heart', this._onHeart, this);
         this._updateStats();
         this._updateCpu();
-        this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
         $$network.transports.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
@@ -60,6 +62,14 @@ exports.ConsoleState = BaseModel.extend({
 
     // On initial socket connection with the console, listen for commands and send out the config.
     _onConnection: function(socket) {
+
+        // Responsd to requests for appState updates, but throttle it to _updateConsoleRate.
+        var updateConsole = _.bind(this._updateConsole, this);
+        socket.on('appStateRequest', _.bind(function() {
+            clearTimeout(this._updateConsoleTimeout);
+            this._updateConsoleTimeout = setTimeout(updateConsole, this._updateConsoleRate);
+        }, this));
+
         socket.on('setUpdaterSource', _.bind(this.setUpdaterSource, this));
         socket.on('updateUpdater', _.bind(this.updateUpdater, this));
         socket.on('rollbackUpdater', _.bind(this.rollbackUpdater, this));
@@ -114,7 +124,6 @@ exports.ConsoleState = BaseModel.extend({
         };
 
         $$network.transports.socketToConsole.sockets.emit('appState', message);
-        this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
     },
 
     // Update the internal objects which specify the FPS, whether the app is running, memory usage,
@@ -145,7 +154,7 @@ exports.ConsoleState = BaseModel.extend({
         clearTimeout(this._updateStatsTimeout);
         var process = $$persistence.get('processName').toUpperCase();
         if (!process) {
-            this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
+            this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateStatsRate);
             return;
         }
 
@@ -165,7 +174,7 @@ exports.ConsoleState = BaseModel.extend({
                     memory: null
                 });
 
-                this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
+                this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateStatsRate);
                 return;
             }
 
@@ -192,7 +201,7 @@ exports.ConsoleState = BaseModel.extend({
                 memoryHistory.shift();
             }
 
-            this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
+            this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateStatsRate);
         }, this));
     },
 

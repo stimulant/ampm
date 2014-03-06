@@ -14,11 +14,23 @@ var View = Backbone.View.extend({
 
 	initialize: function() {
 		this._socket = io.connect();
-		this._socket.on('appState', _.bind(this._onAppState, this));
-		this._socket.on('config', _.bind(this._onConfig, this));
+
+		this._socket.on('connect', _.bind(function() {
+			this._socket.emit('appStateRequest');
+		}, this));
+
+		this._socket.on('appState', _.bind(function(message) {
+			this._onAppState(message);
+			this._socket.emit('appStateRequest');
+		}, this));
+
+		this._socket.on('config', _.bind(function(message) {
+			this._onConfig(message);
+		}, this));
 	},
 
 	_onAppState: function(message) {
+		console.log(new Date().getTime());
 		$(document.body).show();
 
 		message.uptime = moment.duration(message.uptime, 'milliseconds').format('dd:hh:mm:ss');
