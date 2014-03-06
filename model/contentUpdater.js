@@ -60,7 +60,7 @@ exports.ContentUpdater = BaseModel.extend({
         this.set('local', path.join(this.get('local'), '/'));
 
         // Even if there's only one remote configured, make it an object so it's standard.
-        if (!_.isObject(this.get('remote'))) {
+        if (this.get('remote') && !_.isObject(this.get('remote'))) {
             this.set('remote', {
                 remote: this.get('remote')
             });
@@ -73,7 +73,7 @@ exports.ContentUpdater = BaseModel.extend({
 
         // Retrieve the last saved source, if any.
         this.set('source', serverState.get('source-' + this.get('name')));
-        if (!this.get('remote')[this.get('source')]) {
+        if (!this.get('remote') || !this.get('remote')[this.get('source')]) {
             this.set('source', null);
         }
 
@@ -92,6 +92,10 @@ exports.ContentUpdater = BaseModel.extend({
 
         // When the source changes, save it to disk.
         this.on('change:source', _.bind(function() {
+            if (!this.get('source')) {
+                return;
+            }
+
             serverState.saveState('source-' + this.get('name'), this.get('source'));
             fs.exists(this.get('backup')[this.get('source')], _.bind(function(exists) {
                 this.set('canRollback', exists);

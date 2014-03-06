@@ -38,7 +38,8 @@ var View = Backbone.View.extend({
 		var template = _.unescape($('#info-template').html()).trim();
 		$('#info').html(_.template(template, message));
 
-		$('#controls-app, #controls-updaters').toggle(!message.isUpdating);
+		$('#controls-app').toggle(!message.isUpdating);
+		$('#controls-updaters').toggle(!message.isUpdating && (message.updaters.app.source !== null || message.updaters.content.source !== null));
 		$('#shutdown-app').toggle(message.isRunning);
 		$('#start-app').toggle(!message.isRunning);
 		$('#restart-app').toggle(message.isRunning);
@@ -49,6 +50,7 @@ var View = Backbone.View.extend({
 	},
 
 	_updateUpdater: function(container, state) {
+		container.toggle(state.source !== null);
 		$('.rollback', container).toggle(state.canRollback);
 		$('.current', container).html(state.source);
 		$('.sources button', container).each(_.bind(function(index, value) {
