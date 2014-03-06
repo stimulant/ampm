@@ -159,11 +159,10 @@ exports.ConsoleState = BaseModel.extend({
         }
 
         // Is the app running?
-        child_process.exec('tasklist /FI "IMAGENAME eq ' + process + '" /FO LIST', _.bind(function(error, stdout, stderr) {
+        $$persistence.isAppRunning(_.bind(function(isRunning, memory) {
 
             // Update isRunning.
             var wasRunning = this.get('isRunning');
-            var isRunning = stdout.toUpperCase().indexOf(process) != -1;
             this.set('isRunning', isRunning);
 
             if (!isRunning) {
@@ -185,17 +184,7 @@ exports.ConsoleState = BaseModel.extend({
 
             this.set('uptime', isRunning ? Date.now() - this._startupTime : 0);
 
-            /*
-            // tasklist.exe output looks like this:
-            Image Name:   Client.exe
-            PID:          12008
-            Session Name: Console
-            Session#:     1
-            Mem Usage:    39,384 K
-            */
-
             // Update the memory.
-            var memory = parseInt(stdout.split('\r\n')[5].split('    ')[1].split(' ')[0].replace(',', ''), 10) * 1024;
             memoryHistory.push(memory);
             while (memoryHistory.length > this._statHistory) {
                 memoryHistory.shift();

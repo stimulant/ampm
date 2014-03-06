@@ -42,6 +42,9 @@ exports.Persistence = BaseModel.extend({
         restartCount: 0,
     },
 
+    // The spawned application process.
+    _appProcess: null,
+
     // The first heartbeat since startup, in ms since epoch.
     _firstHeart: null,
     // The most recent heartbeat, in ms since epoch.
@@ -226,20 +229,34 @@ exports.Persistence = BaseModel.extend({
     },
 
     // Determine whether the app is running.
-    _isAppRunning: function(callback) {
+    isAppRunning: function(callback) {
         if (!callback) {
             return;
         }
 
-        if (!this.get('processName')) {
+        if (!this._appProcess || !this.get('processName')) {
             callback(false);
             return;
         }
 
         var process = this.get('processName').toUpperCase();
-        child_process.exec('tasklist /FI "IMAGENAME eq ' + process + '"', _.bind(function(error, stdout, stderr) {
+        child_process.exec('tasklist /FI "PID eq ' + this._appProcess.pid + '" /FO LIST', _.bind(function(error, stdout, stderr) {
+            /*
+            // tasklist.exe output looks like this:
+            Image Name:   Client.exe
+            PID:          12008
+            Session Name: Console
+            Session#:     1
+            Mem Usage:    39,384 K
+            */
+
             var isRunning = stdout.toUpperCase().indexOf(process) != -1;
-            callback(isRunning);
+            var memory = parseInt(stdout.split('\r\n')[5].split('    ')[1].split(' ')[0].replace(',', ''), 10) * 1024;
+            if (!isRunning) {
+                this._appProcess = null;
+            }
+
+            callback(isRunning, memory);
         }, this));
     },
 
@@ -252,7 +269,7 @@ exports.Persistence = BaseModel.extend({
         this._isShuttingDown = true;
 
         // See if the app is running.
-        this._isAppRunning(_.bind(function(isRunning) {
+        this.isAppRunning(_.bind(function(isRunning) {
             if (!isRunning) {
                 this._isShuttingDown = false;
                 // Nope, not running.
@@ -275,7 +292,7 @@ exports.Persistence = BaseModel.extend({
 
                 // Check on an interval to see if it's dead.
                 var check = setInterval(_.bind(function() {
-                    this._isAppRunning(_.bind(function(isRunning) {
+                    this.isAppRunning(_.bind(function(isRunning) {
                         if (isRunning) {
                             return;
                         }
@@ -299,7 +316,7 @@ exports.Persistence = BaseModel.extend({
         }
 
         this._isStartingUp = true;
-        this._isAppRunning(_.bind(function(isRunning) {
+        this.isAppRunning(_.bind(function(isRunning) {
             if (isRunning) {
                 // It's already running.
                 this._isStartingUp = false;
@@ -328,7 +345,7 @@ exports.Persistence = BaseModel.extend({
                 }
 
                 logger.info('App starting up.');
-                child_process.spawn(appPath, [JSON.stringify($$config)], {
+                this._appProcess = child_process.spawn(appPath, [JSON.stringify($$config)], {
                     cwd: path.dirname(appPath)
                 });
                 this._resetRestartTimeout(this.get('startupTimeout'));
