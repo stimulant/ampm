@@ -58,5 +58,7 @@ global.$$logging = new Logging({
 // The back-end for the web console.
 global.consoleState = new ConsoleState();
 
+$$persistence.boot();
+
 logger.info('Server started.');
 console.log('Console is at: http://' + os.hostname() + ':' + $$network.get('socketToConsolePort'));

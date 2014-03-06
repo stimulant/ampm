@@ -42,7 +42,8 @@ Below are all the defaults for the various modules. Your JSON file only needs to
 
 // Settings for the persistence manager.
 "persistence": {
-    "processName": "", // The name of the executable file for the client app.
+    "launchCommand": "client.exe {config}", // The command to run to launch the client, relative to server.js.
+                                            // {config} will be replaced with the contents of the config file.
     "startupTimeout": 10, // Restart the app if it doesn't start up in this much time.
     "heartbeatTimeout": 5, // Restart the app this many seconds of no heartbeat messages.
     "restartMachineAfter": Infinity, // Restart the machine after this many app restarts.

@@ -152,11 +152,6 @@ exports.ConsoleState = BaseModel.extend({
         }
 
         clearTimeout(this._updateStatsTimeout);
-        var process = $$persistence.get('processName').toUpperCase();
-        if (!process) {
-            this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateStatsRate);
-            return;
-        }
 
         // Is the app running?
         $$persistence.isAppRunning(_.bind(function(isRunning, memory) {

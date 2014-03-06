@@ -11,8 +11,9 @@ var BaseModel = require('./baseModel.js').BaseModel;
 // Startup and shutdown the app on demand and on schedule.
 exports.Persistence = BaseModel.extend({
     defaults: {
-        // The name of the executable file for the client app.
-        processName: "",
+        // The command to run to launch the client, relative to server.js.
+        // {config} will be replaced with the contents of the config file.
+        launchCommand: "client.exe {config}",
 
         // Restart the app if it doesn't start up in this much time.
         startupTimeout: 10,
@@ -80,6 +81,9 @@ exports.Persistence = BaseModel.extend({
         $$network.transports.oscFromApp.on('heart', _.bind(this._onHeart, this));
 
         this._initSchedules();
+    },
+
+    boot: function() {
         if (this._shouldBeRunning()) {
             this.restartApp();
         } else {
@@ -234,12 +238,11 @@ exports.Persistence = BaseModel.extend({
             return;
         }
 
-        if (!this._appProcess || !this.get('processName')) {
+        if (!this._appProcess) {
             callback(false);
             return;
         }
 
-        var process = this.get('processName').toUpperCase();
         child_process.exec('tasklist /FI "PID eq ' + this._appProcess.pid + '" /FO LIST', _.bind(function(error, stdout, stderr) {
             /*
             // tasklist.exe output looks like this:
@@ -250,8 +253,8 @@ exports.Persistence = BaseModel.extend({
             Mem Usage:    39,384 K
             */
 
-            var isRunning = stdout.toUpperCase().indexOf(process) != -1;
-            var memory = parseInt(stdout.split('\r\n')[5].split('    ')[1].split(' ')[0].replace(',', ''), 10) * 1024;
+            var isRunning = stdout.toUpperCase().indexOf(this._appProcess.pid) != -1;
+            var memory = !isRunning ? 0 : parseInt(stdout.split('\r\n')[5].split('    ')[1].split(' ')[0].replace(',', ''), 10) * 1024;
             if (!isRunning) {
                 this._appProcess = null;
             }
@@ -282,13 +285,8 @@ exports.Persistence = BaseModel.extend({
 
             // Kill the app.
             clearTimeout(this._restartTimeout);
-            var process = this.get('processName').toUpperCase();
-            if (!process) {
-                callback();
-                return;
-            }
 
-            child_process.exec('taskkill /IM ' + process + ' /T /F', _.bind(function(error, stdout, stderr) {
+            child_process.exec('taskkill /PID ' + this._appProcess.pid + ' /T /F', _.bind(function(error, stdout, stderr) {
 
                 // Check on an interval to see if it's dead.
                 var check = setInterval(_.bind(function() {
@@ -311,7 +309,7 @@ exports.Persistence = BaseModel.extend({
 
     // Start the app process.
     startApp: function(callback) {
-        if (this._isStartingUp || !this._shouldBeRunning() || !this.get('processName')) {
+        if (this._isStartingUp || !this._shouldBeRunning() || this._appProcess) {
             return;
         }
 
@@ -332,24 +330,47 @@ exports.Persistence = BaseModel.extend({
             this._firstHeart = null;
             this._startupCallback = callback;
 
-            // Start the app.
-            var appPath = path.resolve(path.join($$appUpdater.get('local'), this.get('processName')));
-            fs.exists(appPath, _.bind(function(exists) {
-                if (!exists) {
-                    this._isStartingUp = false;
-                    logger.error('Application not found.');
-                    consoleState.update(appUpdater, _.bind(function() {
-                        this.restartApp();
-                    }, this));
-                    return;
+            // Parse out the arguments from the launch command.
+            // var cmd = "'my command' arg1 arg2 'long arg' {config}"
+            var cmd = this.get('launchCommand');
+            var split = cmd.split(' ');
+            var parts = [];
+            var i = 0;
+            while (i < split.length) {
+                var part = split[i];
+                var first = part[0];
+                if (first == "'" || first == '"') {
+                    part = part.substr(1);
+                    var j = i + 1;
+                    while (j < split.length) {
+                        part += ' ' + split[j];
+                        var last = part[part.length - 1];
+                        if (last == first) {
+                            part = part.substr(0, part.length - 1);
+                            i = j;
+                            break;
+                        }
+
+                        j++;
+                    }
                 }
 
-                logger.info('App starting up.');
-                this._appProcess = child_process.spawn(appPath, [JSON.stringify($$config)], {
-                    cwd: path.dirname(appPath)
-                });
-                this._resetRestartTimeout(this.get('startupTimeout'));
-            }, this));
+                if (part == '{config}') {
+                    part = JSON.stringify($$config);
+                }
+
+                parts.push(part);
+                i++;
+            }
+
+            parts[0] = path.resolve(parts[0]);
+
+            // Start the app.
+            logger.info('App starting up.');
+            this._appProcess = child_process.spawn(parts[0], parts.slice(1), {
+                cwd: path.dirname(path.resolve($$appUpdater.get('local')))
+            });
+            this._resetRestartTimeout(this.get('startupTimeout'));
         }, this));
     },
 
