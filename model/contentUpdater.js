@@ -72,7 +72,7 @@ exports.ContentUpdater = BaseModel.extend({
 
 
         // Retrieve the last saved source, if any.
-        this.set('source', serverState.get('source-' + this.get('name')));
+        this.set('source', $$serverState.get('source-' + this.get('name')));
         if (!this.get('remote') || !this.get('remote')[this.get('source')]) {
             this.set('source', null);
         }
@@ -96,7 +96,7 @@ exports.ContentUpdater = BaseModel.extend({
                 return;
             }
 
-            serverState.saveState('source-' + this.get('name'), this.get('source'));
+            $$serverState.saveState('source-' + this.get('name'), this.get('source'));
             fs.exists(this.get('backup')[this.get('source')], _.bind(function(exists) {
                 this.set('canRollback', exists);
             }, this));

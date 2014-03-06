@@ -74,7 +74,7 @@ exports.Persistence = BaseModel.extend({
 
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
-        network.transports.oscFromApp.on('heart', _.bind(this._onHeart, this));
+        $$network.transports.oscFromApp.on('heart', _.bind(this._onHeart, this));
 
         this._initSchedules();
         if (this._shouldBeRunning()) {
@@ -316,7 +316,7 @@ exports.Persistence = BaseModel.extend({
             this._startupCallback = callback;
 
             // Start the app.
-            var appPath = path.resolve(path.join(appUpdater.get('local'), this.get('processName')));
+            var appPath = path.resolve(path.join($$appUpdater.get('local'), this.get('processName')));
             fs.exists(appPath, _.bind(function(exists) {
                 if (!exists) {
                     this._isStartingUp = false;
@@ -328,7 +328,7 @@ exports.Persistence = BaseModel.extend({
                 }
 
                 logger.info('App starting up.');
-                child_process.spawn(appPath, [JSON.stringify(config)], {
+                child_process.spawn(appPath, [JSON.stringify($$config)], {
                     cwd: path.dirname(appPath)
                 });
                 this._resetRestartTimeout(this.get('startupTimeout'));

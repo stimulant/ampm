@@ -38,23 +38,23 @@ exports.ConsoleState = BaseModel.extend({
     // Set up update loops.
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
-        this.set('canUpdate', ((contentUpdater.get('remote') && true) || (appUpdater.get('remote') && true)) === true);
-        persistence.on('heart', this._onHeart, this);
+        this.set('canUpdate', (($$contentUpdater.get('remote') && true) || ($$appUpdater.get('remote') && true)) === true);
+        $$persistence.on('heart', this._onHeart, this);
         this._updateStats();
         this._updateCpu();
         this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
-        network.transports.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
+        $$network.transports.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
     // Build an object representing the whole configuration of the server. Sent to the console on
     // initial connection, also useful to spew for documentation.
     fullConfig: function() {
         return {
-            network: network.attributes,
-            contentUpdater: contentUpdater.attributes,
-            appUpdater: appUpdater.attributes,
-            persistence: persistence.attributes,
-            logging: logging.attributes
+            network: $$network.attributes,
+            contentUpdater: $$contentUpdater.attributes,
+            appUpdater: $$appUpdater.attributes,
+            persistence: $$persistence.attributes,
+            logging: $$logging.attributes
         };
     },
 
@@ -66,54 +66,54 @@ exports.ConsoleState = BaseModel.extend({
 
         socket.on('restart-app', _.bind(function() {
             logger.info('Restart requested from console.');
-            persistence.restartApp();
+            $$persistence.restartApp();
         }, this));
 
         socket.on('shutdown-app', _.bind(function() {
             logger.info('Shutdown requested from console.');
-            persistence.shutdownApp();
+            $$persistence.shutdownApp();
         }, this));
 
         socket.on('restart-pc', _.bind(function() {
             logger.info('Reboot requested from console.');
-            persistence.restartMachine();
+            $$persistence.restartMachine();
         }, this));
 
         socket.on('shutdown-pc', _.bind(function() {
             logger.info('Shutdown requested from console.');
-            persistence.shutdownMachine();
+            $$persistence.shutdownMachine();
         }, this));
 
         socket.on('start', _.bind(function() {
             logger.info('Startup requested from console.');
-            persistence.startApp();
+            $$persistence.startApp();
         }, this));
 
-        network.transports.socketToConsole.sockets.emit('config', this.fullConfig());
+        $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig());
     },
 
     // Send the console new data on an interval.
     _updateConsole: function() {
         var message = _.clone(this.attributes);
-        message.restartCount = persistence.get('restartCount');
-        message.logs = logging.get('logCache');
-        message.events = logging.get('eventCache');
+        message.restartCount = $$persistence.get('restartCount');
+        message.logs = $$logging.get('logCache');
+        message.events = $$logging.get('eventCache');
         message.canUpdate = this.get('canUpdate');
 
         message.updaters = {
             content: {
-                isUpdating: contentUpdater.get('isUpdating'),
-                canRollback: contentUpdater.get('canRollback'),
-                source: contentUpdater.get('source')
+                isUpdating: $$contentUpdater.get('isUpdating'),
+                canRollback: $$contentUpdater.get('canRollback'),
+                source: $$contentUpdater.get('source')
             },
             app: {
-                isUpdating: appUpdater.get('isUpdating'),
-                canRollback: appUpdater.get('canRollback'),
-                source: appUpdater.get('source')
+                isUpdating: $$appUpdater.get('isUpdating'),
+                canRollback: $$appUpdater.get('canRollback'),
+                source: $$appUpdater.get('source')
             }
         };
 
-        network.transports.socketToConsole.sockets.emit('appState', message);
+        $$network.transports.socketToConsole.sockets.emit('appState', message);
         this._updateConsoleTimeout = setTimeout(_.bind(this._updateConsole, this), this._updateFrequency);
     },
 
@@ -143,7 +143,7 @@ exports.ConsoleState = BaseModel.extend({
         }
 
         clearTimeout(this._updateStatsTimeout);
-        var process = persistence.get('processName').toUpperCase();
+        var process = $$persistence.get('processName').toUpperCase();
         if (!process) {
             this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateFrequency);
             return;
@@ -257,7 +257,7 @@ exports.ConsoleState = BaseModel.extend({
     // Change the source used by one of the updaters.
     setUpdaterSource: function(updater, source) {
         if (_.isString(updater)) {
-            updater = global[updater + 'Updater'];
+            updater = global['$$' + updater + 'Updater'];
         }
 
         if (source == updater.get('source')) {
@@ -278,7 +278,7 @@ exports.ConsoleState = BaseModel.extend({
     // Trigger an update on one of the updaters.
     updateUpdater: function(updater, callback) {
         if (_.isString(updater)) {
-            updater = global[updater + 'Updater'];
+            updater = global['$$' + updater + 'Updater'];
         }
 
         logger.info('Updating ' + updater.get('name') + ' from ' + updater.get('source'));
@@ -303,10 +303,10 @@ exports.ConsoleState = BaseModel.extend({
     // Deploy content downloaded by one of the updaters.
     _deployUpdater: function(updater, force) {
         if (_.isString(updater)) {
-            updater = global[updater + 'Updater'];
+            updater = global['$$' + updater + 'Updater'];
         }
 
-        persistence.shutdownApp(_.bind(function() {
+        $$persistence.shutdownApp(_.bind(function() {
             updater.deploy(force, _.bind(function(error) {
                 if (error) {
                     return;
@@ -314,9 +314,9 @@ exports.ConsoleState = BaseModel.extend({
 
                 logger.info(updater.get('name') + ' deploy complete!');
                 if (updater.get('name') == 'app') {
-                    persistence.restartServer();
+                    $$persistence.restartServer();
                 } else {
-                    persistence.restartApp();
+                    $$persistence.restartApp();
                 }
             }, this));
         }, this));
@@ -325,10 +325,10 @@ exports.ConsoleState = BaseModel.extend({
     // Shut down the app, roll back content, and restart it.
     rollbackUpdater: function(updater) {
         if (_.isString(updater)) {
-            updater = global[updater + 'Updater'];
+            updater = global['$$' + updater + 'Updater'];
         }
 
-        persistence.shutdownApp(_.bind(function() {
+        $$persistence.shutdownApp(_.bind(function() {
             updater.rollBack(_.bind(function(error) {
                 if (error) {
                     return;
@@ -336,9 +336,9 @@ exports.ConsoleState = BaseModel.extend({
 
                 logger.info('Rollback complete!');
                 if (updater.get('name') == 'app') {
-                    persistence.restartServer();
+                    $$persistence.restartServer();
                 } else {
-                    persistence.restartApp();
+                    $$persistence.restartApp();
                 }
             }, this));
         }, this));

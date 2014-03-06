@@ -23,40 +23,40 @@ if (process.argv.length > 2) {
 console.log('Server starting up.');
 
 // Parse the config file that was passed as an argument and make a global reference to it.
-global.config = configPath && fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath)) : {};
+global.$$config = configPath && fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath)) : {};
 
 // A persistent state object, saved to state.json.
-global.serverState = new ServerState();
+global.$$serverState = new ServerState();
 
-// A container for all the network transports, generally accessed via network.transports.
-global.network = new Network({
-	config: config.network
+// A container for all the network transports, generally accessed via $$network.transports.
+global.$$network = new Network({
+	config: $$config.network
 });
 
 // The updater which downloads content referenced by an XML file or local/network file path.
-global.contentUpdater = new ContentUpdater({
+global.$$contentUpdater = new ContentUpdater({
 	name: 'content',
-	config: config.contentUpdater
+	config: $$config.contentUpdater
 });
 
 // The updater which downloads a zip file and decompresses it.
-global.appUpdater = new AppUpdater({
+global.$$appUpdater = new AppUpdater({
 	name: 'app',
-	config: config.appUpdater
+	config: $$config.appUpdater
 });
 
 // The manager of the application process, controlling restarts and heartbeats.
-global.persistence = new Persistence({
-	config: config.persistence
+global.$$persistence = new Persistence({
+	config: $$config.persistence
 });
 
 // The logging manager.
-global.logging = new Logging({
-	config: config.logging
+global.$$logging = new Logging({
+	config: $$config.logging
 });
 
 // The back-end for the web console.
 global.consoleState = new ConsoleState();
 
 logger.info('Server started.');
-console.log('Console is at: http://' + os.hostname() + ':' + network.get('socketToConsolePort'));
+console.log('Console is at: http://' + os.hostname() + ':' + $$network.get('socketToConsolePort'));
