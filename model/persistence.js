@@ -372,6 +372,15 @@ exports.Persistence = BaseModel.extend({
 
             parts[0] = path.resolve(parts[0]);
 
+            if (!fs.existsSync(parts[0])) {
+                this._isStartingUp = false;
+                logger.error('Application not found.');
+                if (callback) {
+                    callback(false);
+                }
+                return;
+            }
+
             // Start the app.
             logger.info('App starting up.');
             this._appProcess = child_process.spawn(parts[0], parts.slice(1), {
