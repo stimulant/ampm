@@ -265,27 +265,26 @@ exports.Persistence = BaseModel.extend({
 
         // Kill the app.
         clearTimeout(this._restartTimeout);
+        this._appProcess.kill();
 
-        child_process.exec('taskkill /PID ' + this._appProcess.pid + ' /T /F', _.bind(function(error, stdout, stderr) {
-            // Check on an interval to see if it's dead.
-            var check = setInterval(_.bind(function() {
-                if (this.processId()) {
-                    return;
-                }
+        // Check on an interval to see if it's dead.
+        var check = setInterval(_.bind(function() {
+            if (this.processId()) {
+                return;
+            }
 
-                clearInterval(check);
-                logger.info('App shut down by force.');
-                this._isShuttingDown = false;
-                if (callback) {
-                    callback();
-                }
-            }, this));
+            clearInterval(check);
+            logger.info('App shut down by force.');
+            this._isShuttingDown = false;
+            if (callback) {
+                callback();
+            }
         }, this), 250);
     },
 
     // Start the app process.
     startApp: function(callback) {
-        if (this._isStartingUp || !this._shouldBeRunning() || this._appProcess || !this.get('launchCommand')) {
+        if (this._isStartingUp || !this._shouldBeRunning() || this.processId() || !this.get('launchCommand')) {
             return;
         }
 
