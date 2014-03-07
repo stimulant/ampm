@@ -31,6 +31,12 @@ exports.ConsoleState = BaseModel.extend({
     // The interval to update stats.
     _updateStatsTimeout: 0,
 
+    // A console process in which TASKLIST is run periodically to update memory usage.
+    _memoryConsole: null,
+
+    // A console process in which TYPEPERF is run continuously to update CPU usage.
+    _cpuConsole: null,
+
     // A timeout to throttle the speed of updates to the console.
     _updateConsoleTimeout: 0,
     _updateConsoleRate: 1000 / 30,
@@ -41,6 +47,10 @@ exports.ConsoleState = BaseModel.extend({
     // Set up update loops.
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
+
+        this._memoryConsole = child_process.spawn('cmd.exe');
+        this._memoryConsole.stdout.on('data', _.bind(this._updateMemory, this));
+
         this.set('canUpdate', (($$contentUpdater.get('remote') && true) || ($$appUpdater.get('remote') && true)) === true);
         $$persistence.on('heart', this._onHeart, this);
         this._updateStats();
@@ -130,14 +140,11 @@ exports.ConsoleState = BaseModel.extend({
     // and uptime.
     _updateStats: function() {
         var fpsHistory = this.get('fps');
-        var memoryHistory = this.get('memory');
 
-        if (!fpsHistory || !memoryHistory) {
+        if (!fpsHistory) {
             fpsHistory = [];
-            memoryHistory = [];
             this.set({
                 fps: fpsHistory,
-                memory: memoryHistory
             });
         }
 
@@ -151,52 +158,79 @@ exports.ConsoleState = BaseModel.extend({
             fpsHistory.shift();
         }
 
-        clearTimeout(this._updateStatsTimeout);
-
         // Is the app running?
-        $$persistence.isAppRunning(_.bind(function(isRunning, memory) {
+        var isRunning = $$persistence.appProcess !== null;
 
-            // Update isRunning.
-            var wasRunning = this.get('isRunning');
-            this.set('isRunning', isRunning);
+        // Update isRunning.
+        var wasRunning = this.get('isRunning');
+        this.set('isRunning', isRunning);
 
-            if (!isRunning) {
-                // Not running, so reset everything.
-                this.set('uptime', 0);
-                this.set({
-                    fps: null,
-                    memory: null
-                });
-
-                this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateStatsRate);
-                return;
-            }
-
+        if (!isRunning) {
+            // Not running, so reset everything.
+            this.set({
+                fps: null,
+                memory: null,
+                uptime: 0
+            });
+        } else {
             // Update the uptime.
-            if (isRunning && !wasRunning) {
+            if (!wasRunning) {
                 this._startupTime = Date.now();
             }
-
             this.set('uptime', isRunning ? Date.now() - this._startupTime : 0);
 
-            // Update the memory.
-            memoryHistory.push(memory);
-            while (memoryHistory.length > this._statHistory) {
-                memoryHistory.shift();
-            }
+            // Request to update the memory.
+            this._memoryConsole.stdin.write('tasklist /FI "PID eq ' + $$persistence.appProcess.pid + '" /FO LIST\n');
+        }
 
-            this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateStatsRate);
-        }, this));
+        clearTimeout(this._updateStatsTimeout);
+        this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateStatsRate);
+    },
+
+    // Parse the output of the memory console process to update the memory.
+    _updateMemory: function(stdout) {
+        /*
+        // tasklist.exe output looks like this:
+        Image Name:   Client.exe
+        PID:          12008
+        Session Name: Console
+        Session#:     1
+        Mem Usage:    39,384 K
+        */
+
+        stdout = stdout.toString();
+        var match = XRegExp.exec(stdout, XRegExp('[\\d,]+\\sK'));
+        if (!match) {
+            return;
+        }
+
+        match = match[0]; // "39,384 K"
+        match = match.replace(',', '').replace(' K', ''); // "39384"
+        var memory = parseInt(match) * 1024; // 40329216
+
+        var memoryHistory = this.get('memory');
+
+        if (!memoryHistory) {
+            memoryHistory = [];
+            this.set({
+                memory: memoryHistory
+            });
+        }
+
+        memoryHistory.push(memory);
+        while (memoryHistory.length > this._statHistory) {
+            memoryHistory.shift();
+        }
     },
 
     // Run typeperf to get total CPU usage -- haven't figured out how to get it per process.
     _updateCpu: function() {
-        this._typeperf = child_process.spawn('typeperf', ['\\Processor(_Total)\\% Processor Time']);
-        this._typeperf.stdout.on('data', _.bind(function(data) {
+        this._cpuConsole = child_process.spawn('typeperf', ['\\Processor(_Total)\\% Processor Time']);
+        this._cpuConsole.stdout.on('data', _.bind(function(stdout) {
 
-            data = data.toString();
-            if (data && data.indexOf(',') === 0) {
-                var cpu = parseFloat(data.substr(2, data.length - 3));
+            stdout = stdout.toString();
+            if (stdout && stdout.indexOf(',') === 0) {
+                var cpu = parseFloat(stdout.substr(2, stdout.length - 3));
                 if (!isNaN(cpu)) {
                     var cpuHistory = this.get('cpu');
                     if (!cpuHistory) {

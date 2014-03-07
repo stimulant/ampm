@@ -44,7 +44,7 @@ exports.Persistence = BaseModel.extend({
     },
 
     // The spawned application process.
-    _appProcess: null,
+    appProcess: null,
 
     // The first heartbeat since startup, in ms since epoch.
     _firstHeart: null,
@@ -245,12 +245,12 @@ exports.Persistence = BaseModel.extend({
             return;
         }
 
-        if (!this._appProcess) {
+        if (!this.appProcess) {
             callback(false);
             return;
         }
 
-        child_process.exec('tasklist /FI "PID eq ' + this._appProcess.pid + '" /FO LIST', _.bind(function(error, stdout, stderr) {
+        child_process.exec('tasklist /FI "PID eq ' + this.appProcess.pid + '" /FO LIST', _.bind(function(error, stdout, stderr) {
             /*
             // tasklist.exe output looks like this:
             Image Name:   Client.exe
@@ -260,10 +260,10 @@ exports.Persistence = BaseModel.extend({
             Mem Usage:    39,384 K
             */
 
-            var isRunning = this._appProcess && stdout.toUpperCase().indexOf(this._appProcess.pid) != -1;
+            var isRunning = this.appProcess && stdout.toUpperCase().indexOf(this.appProcess.pid) != -1;
             var memory = !isRunning ? 0 : parseInt(stdout.split('\r\n')[5].split('    ')[1].split(' ')[0].replace(',', ''), 10) * 1024;
             if (!isRunning && !this._isStartingUp) {
-                this._appProcess = null;
+                this.appProcess = null;
             }
 
             callback(isRunning, memory);
@@ -293,7 +293,7 @@ exports.Persistence = BaseModel.extend({
             // Kill the app.
             clearTimeout(this._restartTimeout);
 
-            child_process.exec('taskkill /PID ' + this._appProcess.pid + ' /T /F', _.bind(function(error, stdout, stderr) {
+            child_process.exec('taskkill /PID ' + this.appProcess.pid + ' /T /F', _.bind(function(error, stdout, stderr) {
 
                 // Check on an interval to see if it's dead.
                 var check = setInterval(_.bind(function() {
@@ -316,7 +316,7 @@ exports.Persistence = BaseModel.extend({
 
     // Start the app process.
     startApp: function(callback) {
-        if (this._isStartingUp || !this._shouldBeRunning() || this._appProcess || !this.get('launchCommand')) {
+        if (this._isStartingUp || !this._shouldBeRunning() || this.appProcess || !this.get('launchCommand')) {
             return;
         }
 
@@ -374,7 +374,7 @@ exports.Persistence = BaseModel.extend({
 
             // Start the app.
             logger.info('App starting up.');
-            this._appProcess = child_process.spawn(parts[0], parts.slice(1), {
+            this.appProcess = child_process.spawn(parts[0], parts.slice(1), {
                 cwd: path.dirname(path.resolve($$appUpdater.get('local')))
             });
             this._resetRestartTimeout(this.get('startupTimeout'));
