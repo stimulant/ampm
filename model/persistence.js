@@ -78,7 +78,14 @@ exports.Persistence = BaseModel.extend({
 
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
+
+        // Desktop apps will send hearts over OSC.
         $$network.transports.oscFromApp.on('heart', _.bind(this._onHeart, this));
+
+        // Web apps will send them over the app socket.
+        $$network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
+            socket.on('heart', _.bind(this._onHeart, this));
+        }, this));
 
         this._initSchedules();
     },
@@ -253,9 +260,9 @@ exports.Persistence = BaseModel.extend({
             Mem Usage:    39,384 K
             */
 
-            var isRunning = stdout.toUpperCase().indexOf(this._appProcess.pid) != -1;
+            var isRunning = this._appProcess && stdout.toUpperCase().indexOf(this._appProcess.pid) != -1;
             var memory = !isRunning ? 0 : parseInt(stdout.split('\r\n')[5].split('    ')[1].split(' ')[0].replace(',', ''), 10) * 1024;
-            if (!isRunning) {
+            if (!isRunning && !this._isStartingUp) {
                 this._appProcess = null;
             }
 
@@ -309,7 +316,7 @@ exports.Persistence = BaseModel.extend({
 
     // Start the app process.
     startApp: function(callback) {
-        if (this._isStartingUp || !this._shouldBeRunning() || this._appProcess) {
+        if (this._isStartingUp || !this._shouldBeRunning() || this._appProcess || !this.get('launchCommand')) {
             return;
         }
 

@@ -178,7 +178,6 @@ exports.Logging = BaseModel.extend({
 		}
 
 		$$network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
-
 			// Log on request from the app.
 			socket.on('log', _.bind(function(data) {
 				data.level = this._appLevelToWinstonLevel[data.level];

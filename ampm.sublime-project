@@ -20,8 +20,12 @@
 		"folder_exclude_patterns": [
 			"app*",
 			"content*",
-			"logs"
+			"logs",
+			".nuget"
 		],
-		"path": "../ampm-test/WPF-test"
+		"file_exclude_patterns": [
+			".gitmodules"
+		],
+		"path": "../ampm-test"
 	}]
 }
