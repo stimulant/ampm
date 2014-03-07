@@ -240,34 +240,8 @@ exports.Persistence = BaseModel.extend({
     },
 
     // Determine whether the app is running.
-    isAppRunning: function(callback) {
-        if (!callback) {
-            return;
-        }
-
-        if (!this.appProcess) {
-            callback(false);
-            return;
-        }
-
-        child_process.exec('tasklist /FI "PID eq ' + this.appProcess.pid + '" /FO LIST', _.bind(function(error, stdout, stderr) {
-            /*
-            // tasklist.exe output looks like this:
-            Image Name:   Client.exe
-            PID:          12008
-            Session Name: Console
-            Session#:     1
-            Mem Usage:    39,384 K
-            */
-
-            var isRunning = this.appProcess && stdout.toUpperCase().indexOf(this.appProcess.pid) != -1;
-            var memory = !isRunning ? 0 : parseInt(stdout.split('\r\n')[5].split('    ')[1].split(' ')[0].replace(',', ''), 10) * 1024;
-            if (!isRunning && !this._isStartingUp) {
-                this.appProcess = null;
-            }
-
-            callback(isRunning, memory);
-        }, this));
+    processId: function() {
+        return this._appProcess ? this._appProcess.pid : 0;
     },
 
     // Kill the app process.
@@ -279,106 +253,101 @@ exports.Persistence = BaseModel.extend({
         this._isShuttingDown = true;
 
         // See if the app is running.
-        this.isAppRunning(_.bind(function(isRunning) {
-            if (!isRunning) {
+        if (!this.processId()) {
+            this._isShuttingDown = false;
+            // Nope, not running.
+            if (callback) {
+                callback();
+            }
+
+            return;
+        }
+
+        // Kill the app.
+        clearTimeout(this._restartTimeout);
+
+        child_process.exec('taskkill /PID ' + this._appProcess.pid + ' /T /F', _.bind(function(error, stdout, stderr) {
+            // Check on an interval to see if it's dead.
+            var check = setInterval(_.bind(function() {
+                if (this.processId()) {
+                    return;
+                }
+
+                clearInterval(check);
+                logger.info('App shut down by force.');
                 this._isShuttingDown = false;
-                // Nope, not running.
                 if (callback) {
                     callback();
                 }
-
-                return;
-            }
-
-            // Kill the app.
-            clearTimeout(this._restartTimeout);
-
-            child_process.exec('taskkill /PID ' + this.appProcess.pid + ' /T /F', _.bind(function(error, stdout, stderr) {
-
-                // Check on an interval to see if it's dead.
-                var check = setInterval(_.bind(function() {
-                    this.isAppRunning(_.bind(function(isRunning) {
-                        if (isRunning) {
-                            return;
-                        }
-
-                        clearInterval(check);
-                        logger.info('App shut down by force.');
-                        this._isShuttingDown = false;
-                        if (callback) {
-                            callback();
-                        }
-                    }, this));
-                }, this), 250);
             }, this));
-        }, this));
+        }, this), 250);
     },
 
     // Start the app process.
     startApp: function(callback) {
-        if (this._isStartingUp || !this._shouldBeRunning() || this.appProcess || !this.get('launchCommand')) {
+        if (this._isStartingUp || !this._shouldBeRunning() || this._appProcess || !this.get('launchCommand')) {
             return;
         }
 
         this._isStartingUp = true;
-        this.isAppRunning(_.bind(function(isRunning) {
-            if (isRunning) {
-                // It's already running.
-                this._isStartingUp = false;
-                if (callback) {
-                    callback(true);
-                }
-
-                return;
+        if (this.processId()) {
+            // It's already running.
+            this._isStartingUp = false;
+            if (callback) {
+                callback(true);
             }
 
-            // Config length limited to 8191 characters. (DOT was about 1200)
-            this._lastHeart = null;
-            this._firstHeart = null;
-            this._startupCallback = callback;
+            return;
+        }
 
-            // Parse out the arguments from the launch command.
-            // var cmd = "'my command' arg1 arg2 'long arg' {config}"
-            var cmd = this.get('launchCommand');
-            var split = cmd.split(' ');
-            var parts = [];
-            var i = 0;
-            while (i < split.length) {
-                var part = split[i];
-                var first = part[0];
-                if (first == "'" || first == '"') {
-                    part = part.substr(1);
-                    var j = i + 1;
-                    while (j < split.length) {
-                        part += ' ' + split[j];
-                        var last = part[part.length - 1];
-                        if (last == first) {
-                            part = part.substr(0, part.length - 1);
-                            i = j;
-                            break;
-                        }
+        // Config length limited to 8191 characters. (DOT was about 1200)
+        this._lastHeart = null;
+        this._firstHeart = null;
+        this._startupCallback = callback;
 
-                        j++;
+        // Parse out the arguments from the launch command.
+        // var cmd = "'my command' arg1 arg2 'long arg' {config}"
+        var cmd = this.get('launchCommand');
+        var split = cmd.split(' ');
+        var parts = [];
+        var i = 0;
+        while (i < split.length) {
+            var part = split[i];
+            var first = part[0];
+            if (first == "'" || first == '"') {
+                part = part.substr(1);
+                var j = i + 1;
+                while (j < split.length) {
+                    part += ' ' + split[j];
+                    var last = part[part.length - 1];
+                    if (last == first) {
+                        part = part.substr(0, part.length - 1);
+                        i = j;
+                        break;
                     }
-                }
 
-                if (part == '{config}') {
-                    part = JSON.stringify($$config);
+                    j++;
                 }
-
-                parts.push(part);
-                i++;
             }
 
-            parts[0] = path.resolve(parts[0]);
+            if (part == '{config}') {
+                part = JSON.stringify($$config);
+            }
 
-            // Start the app.
-            logger.info('App starting up.');
-            this.appProcess = child_process.spawn(parts[0], parts.slice(1), {
-                cwd: path.dirname(path.resolve($$appUpdater.get('local')))
-            });
-            this._resetRestartTimeout(this.get('startupTimeout'));
+            parts.push(part);
+            i++;
+        }
+
+        parts[0] = path.resolve(parts[0]);
+
+        // Start the app.
+        logger.info('App starting up.');
+        this._appProcess = child_process.spawn(parts[0], parts.slice(1), {
+            cwd: path.dirname(path.resolve($$appUpdater.get('local')))
+        }).on('exit', _.bind(function() {
+            this._appProcess = null;
         }, this));
+        this._resetRestartTimeout(this.get('startupTimeout'));
     },
 
     // Kill the app process, then start it back up.

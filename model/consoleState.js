@@ -21,15 +21,14 @@ exports.ConsoleState = BaseModel.extend({
         isUpdating: false
     },
 
-    // How often to update stats.
+    // The interval to update stats.
+    _updateStatsTimeout: 0,
+    _updateMemoryTimeout: 0,
     _updateStatsRate: 1000,
 
     // How many updates of historical data to keep.
     _statHistory: 60,
     _statIndex: 0,
-
-    // The interval to update stats.
-    _updateStatsTimeout: 0,
 
     // A console process in which TASKLIST is run periodically to update memory usage.
     _memoryConsole: null,
@@ -49,12 +48,13 @@ exports.ConsoleState = BaseModel.extend({
         BaseModel.prototype.initialize.apply(this);
 
         this._memoryConsole = child_process.spawn('cmd.exe');
-        this._memoryConsole.stdout.on('data', _.bind(this._updateMemory, this));
+        this._memoryConsole.stdout.on('data', _.bind(this._parseMemory, this));
 
         this.set('canUpdate', (($$contentUpdater.get('remote') && true) || ($$appUpdater.get('remote') && true)) === true);
         $$persistence.on('heart', this._onHeart, this);
         this._updateStats();
         this._updateCpu();
+        this._updateMemory();
         $$network.transports.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
@@ -158,37 +158,41 @@ exports.ConsoleState = BaseModel.extend({
             fpsHistory.shift();
         }
 
-        // Is the app running?
-        var isRunning = $$persistence.appProcess !== null;
-
-        // Update isRunning.
-        var wasRunning = this.get('isRunning');
-        this.set('isRunning', isRunning);
-
-        if (!isRunning) {
+        if ($$persistence.processId()) {
+            // Update the uptime.
+            var wasRunning = this.get('isRunning');
+            if (!wasRunning) {
+                this._startupTime = Date.now();
+            }
+            this.set('uptime', Date.now() - this._startupTime);
+            this.set('isRunning', true);
+        } else {
             // Not running, so reset everything.
             this.set({
+                isRunning: false,
                 fps: null,
                 memory: null,
                 uptime: 0
             });
-        } else {
-            // Update the uptime.
-            if (!wasRunning) {
-                this._startupTime = Date.now();
-            }
-            this.set('uptime', isRunning ? Date.now() - this._startupTime : 0);
-
-            // Request to update the memory.
-            this._memoryConsole.stdin.write('tasklist /FI "PID eq ' + $$persistence.appProcess.pid + '" /FO LIST\n');
         }
 
         clearTimeout(this._updateStatsTimeout);
         this._updateStatsTimeout = setTimeout(_.bind(this._updateStats, this), this._updateStatsRate);
     },
 
+    // Request to update the memory.
+    _updateMemory: function() {
+        var id = $$persistence.processId();
+        if (id) {
+            this._memoryConsole.stdin.write('tasklist /FI "PID eq ' + id + '" /FO LIST\n');
+        }
+
+        clearTimeout(this._updateMemoryTimeout);
+        this._updateMemoryTimeout = setTimeout(_.bind(this._updateMemory, this), this._updateStatsRate);
+    },
+
     // Parse the output of the memory console process to update the memory.
-    _updateMemory: function(stdout) {
+    _parseMemory: function(stdout) {
         /*
         // tasklist.exe output looks like this:
         Image Name:   Client.exe
