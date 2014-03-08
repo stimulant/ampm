@@ -17,7 +17,7 @@ exports.Network = BaseModel.extend({
 	defaults: {
 		// The port used to communicate between node and the browser. This is also the URL you'd use
 		// to access the console, such as http://localhost:3000.
-		socketToConsolePort: 3000,
+		socketToConsolePort: 81,
 
 		// The port used to communicate between node and the client app over a TCP socket. This is
 		// used for the app to send log messages and event tracking.
@@ -31,15 +31,19 @@ exports.Network = BaseModel.extend({
 		// to syncronize state between clients. 
 		oscToAppPort: 3005,
 
+		oscToPeerPort: 3006,
+		oscFromPeerPort: 3007,
+
 		// How much socket.io logging you want to see in the console. Higher is more debug info. 
-		socketLogLevel: 2
+		socketLogLevel: 2,
+
+		peers: null
 	},
 
 	transports: null,
 
 	initialize: function() {
 		BaseModel.prototype.initialize.apply(this);
-
 		this.transports = {};
 
 		// Set up web server for console.
@@ -61,11 +65,39 @@ exports.Network = BaseModel.extend({
 		}, this));
 
 		// Set up OSC connection to app.
-		this.transports.oscToApp = new osc.Client(this.get('oscToAppPort'));
+		this.transports.oscToApp = new osc.Client('localhost', this.get('oscToAppPort'));
 
 		// Set up socket connection to app.
 		this.transports.socketToApp = ioServer.listen(this.get('socketToAppPort'))
 			.set('log level', this.get('socketLogLevel'));
+
+		// Set up a state-syncing connection to the next peer in the list.
+		var peers = this.get('peers');
+		if ($$sharedState && peers) {
+			var myName = os.hostname().toLowerCase();
+			var myIndex = -1;
+			for (var i in peers) {
+				peers[i] = peers[i].toLowerCase();
+				if (peers[i] == myName) {
+					myIndex = parseInt(i);
+				}
+			}
+
+			if (myIndex != -1) {
+				var peer = peers[myIndex + 1] ? peers[myIndex + 1] : peers[0];
+
+				this.transports.oscToPeer = new osc.Client(peer, this.get('oscToPeerPort'));
+				this.transports.oscFromPeer = new osc.Server(this.get('oscFromPeerPort'));
+
+				this.transports.oscFromPeer.on('message', _.bind(function(message, info) {
+					this._handleOsc(this.transports.oscFromPeer, message, info);
+				}, this));
+
+				this.transports.oscFromPeer.on('sharedStateRequest', _.bind(function(message) {
+					this.transports.oscToPeer.send(JSON.stringify($$sharedState.attributes));
+				}, this));
+			}
+		}
 	},
 
 	// Generic handler to decode and re-post OSC messages as native events.

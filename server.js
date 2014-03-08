@@ -32,7 +32,6 @@ global.$$serverState = new ServerState();
 if ($$config.sharedState && fs.existsSync($$config.sharedState)) {
 	var SharedState = require($$config.sharedState).SharedState;
 	global.$$sharedState = new SharedState();
-	console.log($$sharedState.attributes);
 }
 
 // A container for all the network transports, generally accessed via $$network.transports.
