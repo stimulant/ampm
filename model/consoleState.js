@@ -86,11 +86,13 @@ exports.ConsoleState = BaseModel.extend({
 
         socket.on('restart-app', _.bind(function() {
             logger.info('Restart requested from console.');
-            $$persistence.restartApp();
+            $$serverState.saveState('runApp', true);
+            $$persistence.restartApp(true);
         }, this));
 
         socket.on('shutdown-app', _.bind(function() {
             logger.info('Shutdown requested from console.');
+            $$serverState.saveState('runApp', false);
             $$persistence.shutdownApp();
         }, this));
 
@@ -106,7 +108,8 @@ exports.ConsoleState = BaseModel.extend({
 
         socket.on('start', _.bind(function() {
             logger.info('Startup requested from console.');
-            $$persistence.startApp();
+            $$serverState.saveState('runApp', true);
+            $$persistence.startApp(true);
         }, this));
 
         $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig());

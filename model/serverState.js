@@ -8,6 +8,11 @@ exports.ServerState = BaseModel.extend({
 	_saveTimeout: 0,
 	_stateFile: 'state.json',
 
+	defaults: {
+		// False when the admin has shut down the app from the panel. Don't start the app on boot if this is false.
+		runApp: true
+	},
+
 	// Decode the state file.
 	initialize: function() {
 		this.set(fs.existsSync(this._stateFile) ? JSON.parse(fs.readFileSync(this._stateFile)) : {});

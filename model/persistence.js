@@ -91,10 +91,8 @@ exports.Persistence = BaseModel.extend({
     },
 
     boot: function() {
-        if (this._shouldBeRunning()) {
-            this.restartApp();
-        } else {
-            this.shutdownApp();
+        if ($$serverState.get('runApp')) {
+            this.startApp();
         }
     },
 
@@ -140,6 +138,11 @@ exports.Persistence = BaseModel.extend({
 
             this._startupInterval = later.setInterval(_.bind(function() {
                 logger.info('Startup time has arrived. ' + new Date());
+                if (!$$serverState.get('runApp')) {
+                    logger.info('Startup disabled by console.');
+                    return;
+                }
+
                 this.set('restartCount', 0);
                 this.startApp();
             }, this), this._startupSchedule);
@@ -154,6 +157,11 @@ exports.Persistence = BaseModel.extend({
 
             this._restartInterval = later.setInterval(_.bind(function() {
                 logger.info('Restart time has arrived. ' + new Date());
+                if (!$$serverState.get('runApp')) {
+                    logger.info('Startup disabled by console.');
+                    return;
+                }
+
                 this.set('restartCount', 0);
                 this.restartApp();
             }, this), this._restartSchedule);
@@ -283,8 +291,21 @@ exports.Persistence = BaseModel.extend({
     },
 
     // Start the app process.
-    startApp: function(callback) {
-        if (this._isStartingUp || !this._shouldBeRunning() || this.processId() || !this.get('launchCommand')) {
+    startApp: function(force, callback) {
+
+        // Don't start if we're waiting for it to finish starting already.
+        var should = !this._isStartingUp;
+
+        // Don't start if we're outside the schedule, unless requested by the console.
+        should = should && (this._shouldBeRunning() || force === true);
+
+        // Don't start if it's already running.
+        should = should && !this.processId();
+
+        // Don't start if there's no start command.
+        should = should && this.get('launchCommand');
+
+        if (!should) {
             return;
         }
 
@@ -359,9 +380,9 @@ exports.Persistence = BaseModel.extend({
     },
 
     // Kill the app process, then start it back up.
-    restartApp: function(callback) {
+    restartApp: function(force, callback) {
         this.shutdownApp(_.bind(function() {
-            this.startApp(callback);
+            this.startApp(force, callback);
         }, this));
     },
 
