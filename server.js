@@ -28,6 +28,13 @@ global.$$config = configPath && fs.existsSync(configPath) ? JSON.parse(fs.readFi
 // A persistent state object, saved to state.json.
 global.$$serverState = new ServerState();
 
+// Load the shared state plugin file.
+if ($$config.sharedState && fs.existsSync($$config.sharedState)) {
+	var SharedState = require($$config.sharedState).SharedState;
+	global.$$sharedState = new SharedState();
+	console.log($$sharedState.attributes);
+}
+
 // A container for all the network transports, generally accessed via $$network.transports.
 global.$$network = new Network({
 	config: $$config.network
