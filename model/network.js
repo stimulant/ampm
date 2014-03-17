@@ -33,7 +33,7 @@ exports.Network = BaseModel.extend({
 		oscToPeerPort: 3004,
 
 		// How often in ms to send state changes to peers.
-		stateSyncRate: 1000 / 1,
+		stateSyncRate: 1000 / 60,
 
 		// How much socket.io logging you want to see in the console. Higher is more debug info. 
 		socketLogLevel: 2,
