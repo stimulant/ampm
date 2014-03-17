@@ -23,16 +23,17 @@ exports.Network = BaseModel.extend({
 		// used for the app to send log messages and event tracking.
 		socketToAppPort: 3001,
 
-		// The port used to communicate from the client app to the server over UDP/OSC. This is used
-		// to send heartbeat messages and syncronize state between clients. 
+		// The port used to communicate from the client app to the server over UDP/OSC. 
 		oscFromAppPort: 3004,
 
-		// The port used to communicate from the server to the client app over UDP/OSC. This is used
-		// to syncronize state between clients. 
+		// The port used to communicate from the server to the client app over UDP/OSC.
 		oscToAppPort: 3005,
 
+		// The port used to communicate from the server to another peer over UDP/OSC.
 		oscToPeerPort: 3006,
-		oscFromPeerPort: 3007,
+
+		// How often in ms to send state changes to peers.
+		stateSyncRate: 1000 / 1,
 
 		// How much socket.io logging you want to see in the console. Higher is more debug info. 
 		socketLogLevel: 2,
@@ -85,17 +86,21 @@ exports.Network = BaseModel.extend({
 
 			if (myIndex != -1) {
 				var peer = peers[myIndex + 1] ? peers[myIndex + 1] : peers[0];
+				if (peer != myName) {
+					console.log('from ' + myName + ' to ' + peer);
 
-				this.transports.oscToPeer = new osc.Client(peer, this.get('oscToPeerPort'));
-				this.transports.oscFromPeer = new osc.Server(this.get('oscFromPeerPort'));
+					// Continuously send state updates to this peer.
+					this.transports.oscToPeer = new osc.Client(peer, this.get('oscToPeerPort'));
+					setInterval(_.bind(function() {
+						this.transports.oscToPeer.send('sharedState', JSON.stringify($$sharedState.shared));
+					}, this), this.get('stateSyncRate'));
 
-				this.transports.oscFromPeer.on('message', _.bind(function(message, info) {
-					this._handleOsc(this.transports.oscFromPeer, message, info);
-				}, this));
-
-				this.transports.oscFromPeer.on('sharedStateRequest', _.bind(function(message) {
-					this.transports.oscToPeer.send(JSON.stringify($$sharedState.attributes));
-				}, this));
+					// Continuously receive state updates from this peer.
+					this.transports.oscFromPeer = new osc.Server(this.get('oscToPeerPort'));
+					this.transports.oscFromPeer.on('message', _.bind(function(message, info) {
+						_.merge($$sharedState.shared, JSON.parse(message[1]));
+					}, this));
+				}
 			}
 		}
 	},
