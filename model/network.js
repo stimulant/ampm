@@ -24,13 +24,13 @@ exports.Network = BaseModel.extend({
 		socketToAppPort: 3001,
 
 		// The port used to communicate from the client app to the server over UDP/OSC. 
-		oscFromAppPort: 3004,
+		oscFromAppPort: 3002,
 
 		// The port used to communicate from the server to the client app over UDP/OSC.
-		oscToAppPort: 3005,
+		oscToAppPort: 3003,
 
 		// The port used to communicate from the server to another peer over UDP/OSC.
-		oscToPeerPort: 3006,
+		oscToPeerPort: 3004,
 
 		// How often in ms to send state changes to peers.
 		stateSyncRate: 1000 / 1,
@@ -64,9 +64,12 @@ exports.Network = BaseModel.extend({
 		this.transports.oscFromApp.on('message', _.bind(function(message, info) {
 			this._handleOsc(this.transports.oscFromApp, message, info);
 		}, this));
+		this.transports.oscFromApp.on('sharedState', _.bind(function(data) {
+			_.merge($$sharedState.shared, data);
+		}, this));
 
 		// Set up OSC connection to app.
-		this.transports.oscToApp = new osc.Client('localhost', this.get('oscToAppPort'));
+		this.transports.oscToApp = new osc.Client('127.0.0.1', this.get('oscToAppPort'));
 
 		// Set up socket connection to app.
 		this.transports.socketToApp = ioServer.listen(this.get('socketToAppPort'))
@@ -87,18 +90,21 @@ exports.Network = BaseModel.extend({
 			if (myIndex != -1) {
 				var peer = peers[myIndex + 1] ? peers[myIndex + 1] : peers[0];
 				if (peer != myName) {
-					console.log('from ' + myName + ' to ' + peer);
-
 					// Continuously send state updates to this peer.
 					this.transports.oscToPeer = new osc.Client(peer, this.get('oscToPeerPort'));
 					setInterval(_.bind(function() {
-						this.transports.oscToPeer.send('sharedState', JSON.stringify($$sharedState.shared));
+						var state = JSON.stringify($$sharedState.shared);
+						this.transports.oscToPeer.send('/sharedState', state);
+						this.transports.oscToApp.send('/sharedState', state);
 					}, this), this.get('stateSyncRate'));
 
 					// Continuously receive state updates from this peer.
 					this.transports.oscFromPeer = new osc.Server(this.get('oscToPeerPort'));
 					this.transports.oscFromPeer.on('message', _.bind(function(message, info) {
-						_.merge($$sharedState.shared, JSON.parse(message[1]));
+						this._handleOsc(this.transports.oscFromPeer, message, info);
+					}, this));
+					this.transports.oscFromPeer.on('sharedState', _.bind(function(data) {
+						_.merge($$sharedState.shared, data);
 					}, this));
 				}
 			}
@@ -107,43 +113,8 @@ exports.Network = BaseModel.extend({
 
 	// Generic handler to decode and re-post OSC messages as native events.
 	_handleOsc: function(transport, message, info) {
-		if (message.length == 1) {
-			// Simple format from WPF
-			message = message[0];
-		} else {
-			// Bundled format from Cinder
-			message = message[2][0];
-		}
-		var decoded = this._decodeOsc(message);
-		transport.emit(decoded.type, decoded);
-	},
-
-	// /event/hostname/{data}
-	_decodeOsc: function(message) {
-		if (!this._decodeOsc.emptyFilter) {
-			this._decodeOsc.emptyFilter = function(part) {
-				return part;
-			};
-		}
-
-		var parts = message.split('/');
-		parts = _.filter(parts, this._decodeOsc.emptyFilter);
-
-		var type = parts.shift();
-		var hostname = parts.shift();
-		var data = parts.shift();
-		if (data) {
-			try {
-				data = JSON.parse(data);
-			} catch (error) {
-				logger.warn('Bad OSC message from app.', error);
-			}
-		}
-
-		return {
-			hostname: hostname,
-			type: type,
-			data: data
-		};
+		var e = message[0].substr(1);
+		var data = message[1] ? JSON.parse(message[1]) : null;
+		transport.emit(e, data);
 	}
 });

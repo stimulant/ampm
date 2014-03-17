@@ -13,13 +13,13 @@ var BaseModel = Backbone.Model.extend({
         }
 
         for (var i in config) {
-            if (_.isString(config[i])) {
-                this.set(i, config[i]);
-            } else {
+            if (_.isObject(config[i])) {
                 this.set(i, _.clone(this.get(i)) || {});
                 for (var j in config[i]) {
                     this.get(i)[j] = config[i][j];
                 }
+            } else {
+                this.set(i, config[i]);
             }
         }
     },
