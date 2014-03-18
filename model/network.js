@@ -64,9 +64,6 @@ exports.Network = BaseModel.extend({
 		this.transports.oscFromApp.on('message', _.bind(function(message, info) {
 			this._handleOsc(this.transports.oscFromApp, message, info);
 		}, this));
-		this.transports.oscFromApp.on('sharedState', _.bind(function(data) {
-			_.merge($$sharedState.shared, data);
-		}, this));
 
 		// Set up OSC connection to app.
 		this.transports.oscToApp = new osc.Client('127.0.0.1', this.get('oscToAppPort'));
@@ -77,7 +74,7 @@ exports.Network = BaseModel.extend({
 
 		// Set up a state-syncing connection to the next peer in the list.
 		var peers = this.get('peers');
-		if ($$sharedState && peers) {
+		if (peers) {
 			var myName = os.hostname().toLowerCase();
 			var myIndex = -1;
 			for (var i in peers) {
@@ -92,11 +89,6 @@ exports.Network = BaseModel.extend({
 				if (peer != myName) {
 					// Continuously send state updates to this peer.
 					this.transports.oscToPeer = new osc.Client(peer, this.get('oscToPeerPort'));
-					setInterval(_.bind(function() {
-						var state = JSON.stringify($$sharedState.shared);
-						this.transports.oscToPeer.send('/sharedState', state);
-						this.transports.oscToApp.send('/sharedState', state);
-					}, this), this.get('stateSyncRate'));
 
 					// Continuously receive state updates from this peer.
 					this.transports.oscFromPeer = new osc.Server(this.get('oscToPeerPort'));
@@ -104,16 +96,34 @@ exports.Network = BaseModel.extend({
 						this._handleOsc(this.transports.oscFromPeer, message, info);
 					}, this));
 					this.transports.oscFromPeer.on('sharedState', _.bind(function(data) {
-						_.merge($$sharedState.shared, data);
+						this._mergeState(data);
 					}, this));
 				}
 			}
 		}
+
+		// Continuously send state updates to this peer.
+		setInterval(_.bind(function() {
+			var state = JSON.stringify($$sharedState.shared);
+			if (this.transports.oscToPeer) {
+				this.transports.oscToPeer.send('/sharedState', state);
+			}
+
+			this.transports.oscToApp.send('/sharedState', state);
+		}, this), this.get('stateSyncRate'));
+	},
+
+	_mergeState: function(state) {
+		if (!state || state.changed <= $$sharedState.shared.changed) {
+			return;
+		}
+
+		_.merge($$sharedState.shared, state);
 	},
 
 	// Generic handler to decode and re-post OSC messages as native events.
 	_handleOsc: function(transport, message, info) {
-		var e = message[0].substr(1);
+		var e = message[0].replace('/', '');
 		var data = message[1] ? JSON.parse(message[1]) : null;
 		transport.emit(e, data);
 	}
