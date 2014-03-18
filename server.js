@@ -25,13 +25,13 @@ console.log('Server starting up.');
 // Parse the config file that was passed as an argument and make a global reference to it.
 global.$$config = configPath && fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath)) : {};
 
-// A persistent state object, saved to state.json.
-global.$$serverState = new ServerState();
-
 // A container for all the network transports, generally accessed via $$network.transports.
 global.$$network = new Network({
 	config: $$config.network
 });
+
+// A persistent state object, saved to state.json.
+global.$$serverState = new ServerState();
 
 // The updater which downloads content referenced by an XML file or local/network file path.
 global.$$contentUpdater = new ContentUpdater({
