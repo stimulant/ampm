@@ -47,7 +47,7 @@ exports.Network = BaseModel.extend({
 	initialize: function() {
 		BaseModel.prototype.initialize.apply(this);
 
-		this.isMaster = this.get('master').toLowerCase() == os.hostname().toLowerCase();
+		this.isMaster = this.get('master') && this.get('master').toLowerCase() == os.hostname().toLowerCase();
 
 		this.transports = {};
 
