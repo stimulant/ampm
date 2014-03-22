@@ -31,4 +31,4 @@ supervisor ^
 	--extensions js,json ^
 	--no-restart-on error ^
 	--quiet ^
-	-- server.js ..\..\config.live.json
+	-- server.js ..\..\config.json live

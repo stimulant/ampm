@@ -1,0 +1,46 @@
+{
+	"default": {
+		"appUpdater": {
+			"remote": "http://content.stimulant.io/uploads/mvi_video_app/mvi_video.zip",
+			"local": "../"
+		},
+		"contentUpdater": {
+			"remote": {
+				"live": "http://mvi_video:funk0@content.stimulant.io/mvi_video/category/6",
+				"draft": "http://mvi_video:funk0@content.stimulant.io/mvi_video/category/6"
+			},
+			"local": "../content"
+		},
+		"persistence": {
+			"launchCommand": "../Client.exe {config}",
+			"startupTimeout": 10,
+			"heartbeatTimeout": 5
+		},
+		"network": {
+			"peers": ["devopsbeta", "I14"],
+			"master": "I14"
+		},
+		"logging": {
+			"loggly": {
+				"tags": "WPF-test"
+			},
+			"file": {
+				"filename": "../logs/server.log"
+			}
+		},
+		"sharedState": "../../../sharedState.js"
+	},
+	"dev": {
+		"logging": {
+			"loggly": {
+				"enabled": false
+			},
+			"mail": {
+				"enabled": false
+			},
+			"console": {
+				"timestamp": false
+			}
+		}
+	}
+}

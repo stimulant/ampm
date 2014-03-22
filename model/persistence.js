@@ -13,7 +13,7 @@ exports.Persistence = BaseModel.extend({
     defaults: {
         // The command to run to launch the client, relative to server.js.
         // {config} will be replaced with the contents of the config file.
-        launchCommand: "client.exe {config}",
+        launchCommand: "",
 
         // Restart the app if it doesn't start up in this much time.
         startupTimeout: 10,
