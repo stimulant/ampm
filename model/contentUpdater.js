@@ -22,7 +22,8 @@ exports.ContentUpdater = BaseModel.extend({
 
         // The path to fetch new content from. If this is a URL, ampm will look for an XML file and
         // parse it for additional URLs to fetch. If it's a local/network path, it will use robocopy
-        // to fetch a directory.
+        // to fetch a directory. This can also be a mapping of content sources and URLs, such as:
+        // {dev: url, live: url }
         remote: null,
 
         // The local path to deployed content, relative to server.js.
@@ -323,7 +324,7 @@ exports.ContentUpdater = BaseModel.extend({
         }
 
         deployFromTemp = _.bind(function() {
-            logger.info('Deploying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
+            logger.info('Deploying from ' + path.resolve(this.get('temp')[source]) + ' to ' + path.resolve(this.get('local')));
 
             // Delete restart file.
             fs.unlink(path.join(this.get('temp')[source], '/ampm/restart.json'), _.bind(function() {
@@ -337,7 +338,7 @@ exports.ContentUpdater = BaseModel.extend({
         }, this);
 
         backupThenDeploy = _.bind(function() {
-            logger.info('Backing up from ' + this.get('local') + ' to ' + this.get('backup')[source]);
+            logger.info('Backing up from ' + path.resolve(this.get('local')) + ' to ' + path.resolve(this.get('backup')[source]));
 
             // Copy from local to backup.
             ncp(this.get('local'), this.get('backup')[source], _.bind(function(error) {

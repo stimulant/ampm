@@ -9,7 +9,7 @@
 				"live": "http://mvi_video:funk0@content.stimulant.io/mvi_video/category/6",
 				"draft": "http://mvi_video:funk0@content.stimulant.io/mvi_video/category/6"
 			},
-			"local": "../content"
+			"local": "../../content"
 		},
 		"persistence": {
 			"launchCommand": "../Client.exe {config}",
@@ -25,7 +25,7 @@
 				"tags": "WPF-test"
 			},
 			"file": {
-				"filename": "../logs/server.log"
+				"filename": "../../logs/server.log"
 			}
 		},
 		"sharedState": "../../../sharedState.js"

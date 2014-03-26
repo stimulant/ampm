@@ -25,7 +25,6 @@ if (process.argv.length > 2) {
 	configScheme = process.argv[3];
 }
 
-console.log(process.argv);
 if (configPath && fs.existsSync(configPath)) {
 	var config = JSON.parse(fs.readFileSync(configPath));
 	if (!config['default']) {
