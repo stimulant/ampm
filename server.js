@@ -1,6 +1,7 @@
 var path = require('path'); //http://nodejs.org/api/path.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var os = require('os'); // http://nodejs.org/api/os.html
+var _ = require('lodash'); // Utilities. http://underscorejs.org/
 
 var ConsoleState = require('./model/consoleState.js').ConsoleState;
 var BaseModel = require('./model/baseModel.js').BaseModel;
@@ -14,16 +15,55 @@ var Logging = require('./model/logging.js').Logging;
 // Set the current working directory to the location of server.js so it's always consistent.
 process.chdir(path.dirname(process.mainModule.filename));
 
-// args will be ['node', 'server.js', 'config.json']
+global.$$config = {};
+
+// args will be ['node', 'server.js', 'config.json', 'dev.i14']
 var configPath = '';
+var configScheme = '';
 if (process.argv.length > 2) {
 	configPath = process.argv[2];
+	configScheme = process.argv[3];
+}
+
+if (configPath && fs.existsSync(configPath)) {
+	var config = JSON.parse(fs.readFileSync(configPath));
+	if (!config['default']) {
+		// There are no schemes in the config, just ingest it whole.
+		console.log('Using single configuration.');
+		_.merge($$config, config);
+	} else {
+		// Merge the default config.
+		console.log('Merging config: default');
+		_.merge($$config, config['default']);
+		var schemes = configScheme.split('.');
+		var currentScheme = '';
+
+		// Merge the schemes passed on the command line.
+		// "dev.foo" would merge "dev" then "dev.foo" then "dev.foo".
+		for (var i = 0; i < schemes.length; i++) {
+			currentScheme += schemes[i];
+			console.log('Merging config: ' + currentScheme);
+			_.merge($$config, config[currentScheme]);
+			currentScheme += '.';
+		}
+
+		// Merge machine-specific schemes.
+		// "I14" would merge "I14", then "I14.dev", then "I14.dev.foo".
+		var machine = os.hostname();
+		console.log('Merging config: ' + machine);
+		_.merge($$config, config[machine]);
+
+		currentScheme = '';
+		for (var i = 0; i < schemes.length; i++) {
+			currentScheme += schemes[i];
+			console.log('Merging config: ' + machine + '.' + currentScheme);
+			_.merge($$config, config[machine + '.' + currentScheme]);
+			currentScheme += '.';
+		}
+	}
 }
 
 console.log('Server starting up.');
-
-// Parse the config file that was passed as an argument and make a global reference to it.
-global.$$config = configPath && fs.existsSync(configPath) ? JSON.parse(fs.readFileSync(configPath)) : {};
 
 // A container for all the network transports, generally accessed via $$network.transports.
 global.$$network = new Network({

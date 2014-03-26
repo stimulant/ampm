@@ -16,7 +16,7 @@ var BaseModel = require('./baseModel.js').BaseModel;
 exports.Network = BaseModel.extend({
 	defaults: {
 		// The port used to communicate between node and the browser. This is also the URL you'd use
-		// to access the console, such as http://localhost:3000.
+		// to access the console, such as http://localhost:81.
 		socketToConsolePort: 81,
 
 		// The port used to communicate between node and the client app over a TCP socket. This is
@@ -38,7 +38,10 @@ exports.Network = BaseModel.extend({
 		// How much socket.io logging you want to see in the console. Higher is more debug info. 
 		socketLogLevel: 2,
 
+		// A listing of hostnames of peers with whom to share state.
 		peers: null,
+
+		// Which hostname is the "master" keeper of shared state.
 		master: null
 	},
 
@@ -47,7 +50,7 @@ exports.Network = BaseModel.extend({
 	initialize: function() {
 		BaseModel.prototype.initialize.apply(this);
 
-		this.isMaster = this.get('master').toLowerCase() == os.hostname().toLowerCase();
+		this.isMaster = this.get('master') && this.get('master').toLowerCase() == os.hostname().toLowerCase();
 
 		this.transports = {};
 
