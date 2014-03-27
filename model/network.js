@@ -136,7 +136,7 @@ exports.Network = BaseModel.extend({
 		this.transports.socketToApp = ioServer.listen(this.get('socketToAppPort'))
 			.set('log level', this.get('socketLogLevel'));
 
-		if ($$sharedState) {
+		if ($$config.sharedState) {
 			var peers = this.get('peers');
 			var myName = os.hostname();
 			if (!this.isMaster) {

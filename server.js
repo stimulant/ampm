@@ -65,6 +65,13 @@ if (configPath && fs.existsSync(configPath)) {
 
 console.log('Server starting up.');
 
+// Load the shared state plugin file.
+global.$$sharedState = null;
+if ($$config.sharedState && fs.existsSync($$config.sharedState)) {
+	var SharedState = require($$config.sharedState).SharedState;
+	global.$$sharedState = new SharedState();
+}
+
 // A container for all the network transports, generally accessed via $$network.transports.
 global.$$network = new Network({
 	config: $$config.network
@@ -95,17 +102,13 @@ global.$$logging = new Logging({
 	config: $$config.logging
 });
 
-// Load the shared state plugin file.
-global.$$sharedState = null;
-if ($$config.sharedState && fs.existsSync($$config.sharedState)) {
-	var SharedState = require($$config.sharedState).SharedState;
-	global.$$sharedState = new SharedState();
-}
-
 // The back-end for the web console.
 global.$$consoleState = new ConsoleState();
 
 $$persistence.boot();
+if ($$sharedState) {
+	$$sharedState.boot();
+}
 
 logger.info('Server started.');
 console.log('Console is at: http://' + os.hostname() + ':' + $$network.get('socketToConsolePort'));
