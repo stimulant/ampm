@@ -96,6 +96,7 @@ global.$$logging = new Logging({
 });
 
 // Load the shared state plugin file.
+global.$$sharedState = null;
 if ($$config.sharedState && fs.existsSync($$config.sharedState)) {
 	var SharedState = require($$config.sharedState).SharedState;
 	global.$$sharedState = new SharedState();
