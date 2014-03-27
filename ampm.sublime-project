@@ -18,7 +18,7 @@
 		"path": "."
 	}, {
 		"folder_exclude_patterns": [
-			"app*",
+			"*test/app*",
 			"content*",
 			"logs",
 			".nuget"

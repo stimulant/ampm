@@ -102,7 +102,7 @@ if ($$config.sharedState && fs.existsSync($$config.sharedState)) {
 }
 
 // The back-end for the web console.
-global.consoleState = new ConsoleState();
+global.$$consoleState = new ConsoleState();
 
 $$persistence.boot();
 
