@@ -9,6 +9,10 @@ var express = require('express'); // Routing framework. http://expressjs.com/
 var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
 var ioServer = require('socket.io'); // Web socket implementation. http://socket.io/
 var ioClient = require('socket.io-client'); // Web socket implementation. http://socket.io/
+var connect = require('connect');
+var passport = require('passport');
+var passportSocketIo = require('passport.socketio');
+var DigestStrategy = require('passport-http').DigestStrategy;
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
@@ -47,17 +51,52 @@ exports.Network = BaseModel.extend({
 
 	transports: null,
 
+
 	initialize: function() {
 		BaseModel.prototype.initialize.apply(this);
 
 		this.isMaster = this.get('master') && this.get('master').toLowerCase() == os.hostname().toLowerCase();
 
 		this.transports = {};
+		/*
+		var user = 'test3';
+		var pass = 'test3';
 
+		passport.use(new DigestStrategy({
+				qop: 'auth'
+			},
+			function(username, done) {
+				if (username == user) {
+					return done(null, user, pass);
+				} else {
+					return done(null, false);
+				}
+			}
+		));
+
+		var secret = '_foo';
+		var store = new express.session.MemoryStore();
+*/
 		// Set up web server for console.
 		global.app = express();
 		this.transports.webServer = http.createServer(app).listen(this.get('socketToConsolePort'));
 		app.use('/static', express.static(path.resolve(__dirname + '/../view')));
+		/*
+		app.use(express.cookieParser(secret));
+		app.use(express.session({
+			store: store,
+			key: 'sessionId',
+			secret: secret
+		}));
+		app.use(passport.initialize());
+		app.use(passport.session());
+		app.use(app.router);
+		app.get('/', passport.authenticate('digest', {
+			session: false
+		}), function(req, res) {
+			res.sendfile(path.resolve(__dirname + '/../view/index.html'));
+		});
+*/
 		app.get('/', function(req, res) {
 			res.sendfile(path.resolve(__dirname + '/../view/index.html'));
 		});
@@ -65,7 +104,25 @@ exports.Network = BaseModel.extend({
 		// Set up socket connection to console.
 		this.transports.socketToConsole = ioServer.listen(this.transports.webServer)
 			.set('log level', this.get('socketLogLevel'));
-
+		/*
+		this.transports.socketToConsole.configure(_.bind(function() {
+			this.transports.socketToConsole.set('authorization', passportSocketIo.authorize({
+				cookieParser: express.cookieParser,
+				key: 'sessionId',
+				secret: secret,
+				store: store,
+				success: function(data, accept) {
+					console.log('success');
+					accept(null, true);
+				},
+				fail: function(data, message, error, accept) {
+					console.log(message, error);
+					console.log(store);
+					accept(null, true);
+				}
+			}));
+		}, this));
+*/
 		// Set up OSC connection from app.
 		this.transports.oscFromApp = new osc.Server(this.get('oscFromAppPort'));
 		this.transports.oscFromApp.on('message', _.bind(function(message, info) {
