@@ -30,7 +30,6 @@ var View = Backbone.View.extend({
 	},
 
 	_onAppState: function(message) {
-		console.log(new Date().getTime());
 		$(document.body).show();
 
 		message.uptime = moment.duration(message.uptime, 'milliseconds').format('dd:hh:mm:ss');
