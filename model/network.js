@@ -58,9 +58,12 @@ exports.Network = BaseModel.extend({
 		this.isMaster = this.get('master') && this.get('master').toLowerCase() == os.hostname().toLowerCase();
 
 		this.transports = {};
-		/*
-		var user = 'test3';
-		var pass = 'test3';
+
+		var user = 'test4';
+		var pass = 'test4';
+
+		var secret = '_notsosecret';
+		var store = new express.session.MemoryStore();
 
 		passport.use(new DigestStrategy({
 				qop: 'auth'
@@ -74,14 +77,18 @@ exports.Network = BaseModel.extend({
 			}
 		));
 
-		var secret = '_foo';
-		var store = new express.session.MemoryStore();
-*/
+		passport.serializeUser(function(user, done) {
+			done(null, user);
+		});
+
+		passport.deserializeUser(function(id, done) {
+			done(null, id);
+		});
+
 		// Set up web server for console.
 		global.app = express();
 		this.transports.webServer = http.createServer(app).listen(this.get('socketToConsolePort'));
 		app.use('/static', express.static(path.resolve(__dirname + '/../view')));
-		/*
 		app.use(express.cookieParser(secret));
 		app.use(express.session({
 			store: store,
@@ -92,19 +99,14 @@ exports.Network = BaseModel.extend({
 		app.use(passport.session());
 		app.use(app.router);
 		app.get('/', passport.authenticate('digest', {
-			session: false
+			session: true
 		}), function(req, res) {
-			res.sendfile(path.resolve(__dirname + '/../view/index.html'));
-		});
-*/
-		app.get('/', function(req, res) {
 			res.sendfile(path.resolve(__dirname + '/../view/index.html'));
 		});
 
 		// Set up socket connection to console.
 		this.transports.socketToConsole = ioServer.listen(this.transports.webServer)
 			.set('log level', this.get('socketLogLevel'));
-		/*
 		this.transports.socketToConsole.configure(_.bind(function() {
 			this.transports.socketToConsole.set('authorization', passportSocketIo.authorize({
 				cookieParser: express.cookieParser,
@@ -112,17 +114,16 @@ exports.Network = BaseModel.extend({
 				secret: secret,
 				store: store,
 				success: function(data, accept) {
-					console.log('success');
+					logger.info('Socket access authorized for user', data.user);
 					accept(null, true);
 				},
 				fail: function(data, message, error, accept) {
-					console.log(message, error);
-					console.log(store);
-					accept(null, true);
+					logger.info('Socket access unauthorized.', message, error);
+					accept(null, false);
 				}
 			}));
 		}, this));
-*/
+
 		// Set up OSC connection from app.
 		this.transports.oscFromApp = new osc.Server(this.get('oscFromAppPort'));
 		this.transports.oscFromApp.on('message', _.bind(function(message, info) {

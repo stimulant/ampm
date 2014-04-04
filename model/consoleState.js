@@ -73,6 +73,8 @@ exports.ConsoleState = BaseModel.extend({
     // On initial socket connection with the console, listen for commands and send out the config.
     _onConnection: function(socket) {
 
+        console.log(socket.handshake.user, 'connected!');
+
         // Responsd to requests for appState updates, but throttle it to _updateConsoleRate.
         var updateConsole = _.bind(this._updateConsole, this);
         socket.on('appStateRequest', _.bind(function() {
@@ -85,6 +87,7 @@ exports.ConsoleState = BaseModel.extend({
         socket.on('rollbackUpdater', _.bind(this.rollbackUpdater, this));
 
         socket.on('restart-app', _.bind(function() {
+            console.log(socket.handshake.user);
             logger.info('Restart requested from console.');
             $$serverState.saveState('runApp', true);
             $$persistence.restartApp(true);
