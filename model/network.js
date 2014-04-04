@@ -61,7 +61,7 @@ exports.Network = BaseModel.extend({
 
 		var user = 'test4';
 		var pass = 'test4';
-
+		// test push
 		var secret = '_notsosecret';
 		var store = new express.session.MemoryStore();
 
