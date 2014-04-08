@@ -125,8 +125,14 @@ exports.Network = BaseModel.extend({
 */
 		// Set up OSC connection from app.
 		this.transports.oscFromApp = new osc.Server(this.get('oscFromAppPort'));
+
+		// handle straight messages
 		this.transports.oscFromApp.on('message', _.bind(function(message, info) {
-			this._handleOsc(this.transports.oscFromApp, message, info);
+			// handle bundles
+			if (message[0] == '#bundle')
+				this._handleOsc(this.transports.oscFromApp, message[2], info);
+			else
+				this._handleOsc(this.transports.oscFromApp, message, info);
 		}, this));
 
 		// Set up OSC connection to app.
@@ -170,6 +176,7 @@ exports.Network = BaseModel.extend({
 
 	// Generic handler to decode and re-post OSC messages as native events.
 	_handleOsc: function(transport, message, info) {
+		//if (String(message) != 'heart') console.log("osc message: " + String(message));
 		var e = message[0].replace('/', '');
 		var data = message[1] ? JSON.parse(message[1]) : null;
 		transport.emit(e, data);

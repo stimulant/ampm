@@ -179,32 +179,42 @@ exports.Logging = BaseModel.extend({
 
 		$$network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
 			// Log on request from the app.
-			socket.on('log', _.bind(function(data) {
-				data.level = this._appLevelToWinstonLevel[data.level];
-				if (logger && logger[data.level]) {
-					logger[data.level](data.message);
-				}
-			}, this));
-
+			socket.on('log', _.bind(this._logMessage, this));
 			// Track events on request from the app.
-			socket.on('event', _.bind(function(data) {
-				this._google.event(data.Category, data.Action, data.Label, data.Value);
-				var queue = _.clone(this._google._queue);
-				this._google.send(_.bind(function(error) {
-					if (!error) {
-						return;
-					}
+			socket.on('event', _.bind(this._logEvent, this));
+		}, this));
 
-					if (error.code === 'ENOTFOUND') {
-						// Couldn't connect -- replace the queue and try next time.
-						// https://github.com/peaksandpies/universal-analytics/issues/12
-						this._google._queue = queue;
-					} else {
-						// Something else bad happened.
-						logger.warn('Error with Google Analytics', error);
-					}
-				}, this));
-			}, this));
+		// Log on request from the app.
+		$$network.transports.oscFromApp.on('log', _.bind(this._logMessage, this));
+		// Track events on request from the app.
+		$$network.transports.oscFromApp.on('event', _.bind(this._logEvent, this));
+	},
+
+	_logMessage: function(data)
+	{
+		data.level = this._appLevelToWinstonLevel[data.level];
+		if (logger && logger[data.level]) {
+			logger[data.level](data.message);
+		}
+	},
+
+	_logEvent: function(data)
+	{
+		this._google.event(data.Category, data.Action, data.Label, data.Value);
+		var queue = _.clone(this._google._queue);
+		this._google.send(_.bind(function(error) {
+			if (!error) {
+				return;
+			}
+
+			if (error.code === 'ENOTFOUND') {
+				// Couldn't connect -- replace the queue and try next time.
+				// https://github.com/peaksandpies/universal-analytics/issues/12
+				this._google._queue = queue;
+			} else {
+				// Something else bad happened.
+				logger.warn('Error with Google Analytics', error);
+			}
 		}, this));
 	},
 
