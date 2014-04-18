@@ -28,6 +28,14 @@
 				"filename": "../../logs/server.log"
 			}
 		},
+		"permissions": {
+			"stimulant": {
+				"password": "stimulant_pass",
+				"app": true,
+				"computer": true,
+				"updaters": true
+			}
+		},
 		"sharedState": "../../../sharedState.js"
 	},
 	"dev": {
@@ -41,6 +49,7 @@
 			"console": {
 				"timestamp": false
 			}
-		}
+		},
+		"permissions": null
 	}
 }
