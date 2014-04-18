@@ -6,6 +6,8 @@
 
 * [Startup](#startup)
 * [Configuration](#configuration)
+ * [Persistence](#configuration-persistence)
+ * [Permissions](#configuration-permissions)
  * [Logging](#configuration-logging)
  * [Content Updater](#configuration-contentupdater)
  * [App Updater](#configuration-appupdater)
