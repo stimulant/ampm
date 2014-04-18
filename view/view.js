@@ -11,6 +11,7 @@ var View = Backbone.View.extend({
 	},
 
 	_socket: null,
+	_config: null,
 
 	initialize: function() {
 		this._socket = io.connect();
@@ -49,7 +50,7 @@ var View = Backbone.View.extend({
 		var template = _.unescape($('#info-template').html()).trim();
 		$('#info').html(_.template(template, message));
 
-		$('#controls-updaters').toggle(!message.isUpdating && (message.updaters.app.source !== null || message.updaters.content.source !== null));
+		$('#controls-updaters fieldset').toggle(!message.isUpdating && (message.updaters.app.source !== null || message.updaters.content.source !== null));
 		$('#shutdown-app').toggle(message.isRunning);
 		$('#start-app').toggle(!message.isRunning);
 		$('#restart-app').toggle(message.isRunning);
@@ -70,8 +71,19 @@ var View = Backbone.View.extend({
 	},
 
 	_onConfig: function(message) {
+		this._config = message;
+		console.log(message);
 		this._makeSources($('#controls-updaters-content .sources'), 'content', message.contentUpdater.remote);
 		this._makeSources($('#controls-updaters-app .sources'), 'app', message.appUpdater.remote);
+
+		if (!message.permissions) {
+			return;
+		}
+
+		$('#controls-app').toggle(message.permissions.app);
+		$('#controls-computer').toggle(message.permissions.computer);
+		$('#controls-updaters').toggle(message.permissions.updaters);
+		$('#controls').toggle(message.permissions.app || message.permissions.computer || message.permissions.updaters);
 	},
 
 	_makeSources: function(buttons, updater, sources) {

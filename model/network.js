@@ -59,10 +59,6 @@ exports.Network = BaseModel.extend({
 
 		this.transports = {};
 
-		// Temp -- move to a hash of user/pass/perm.
-		var user = 'test4';
-		var pass = 'test4';
-
 		//// Set up authentication.
 
 		// A secret used to encrypt session cookies.
@@ -71,19 +67,22 @@ exports.Network = BaseModel.extend({
 		var store = new express.session.MemoryStore();
 
 		// Using digest auth -- http://passportjs.org/guide/basic-digest/
-		passport.use(new DigestStrategy({
-				qop: 'auth'
-			},
-			function(username, done) {
-				if (username == user) {
-					// The username is passed here, return the password for that user.
-					return done(null, user, pass);
-				} else {
-					// Invalid user.
-					return done(null, false);
+		if ($$config.permissions) {
+			passport.use(new DigestStrategy({
+					qop: 'auth'
+				},
+				function(username, done) {
+					var permissions = $$config.permissions ? $$config.permissions[username] : null;
+					if (permissions) {
+						// The username is passed here, return the password for that user.
+						return done(null, username, permissions.password);
+					} else {
+						// Invalid user.
+						return done(null, false);
+					}
 				}
-			}
-		));
+			));
+		}
 
 		// Convert a user to some kind of identifier.
 		passport.serializeUser(function(user, done) {
@@ -112,32 +111,42 @@ exports.Network = BaseModel.extend({
 		app.use(passport.initialize());
 		app.use(passport.session());
 		app.use(app.router);
-		app.get('/', passport.authenticate('digest', {
-			session: true
-		}), function(req, res) {
-			res.sendfile(path.resolve(__dirname + '/../view/index.html'));
-		});
+
+		if ($$config.permissions) {
+			app.get('/', passport.authenticate('digest', {
+				session: true
+			}), function(req, res) {
+				res.sendfile(path.resolve(__dirname + '/../view/index.html'));
+			});
+		} else {
+			app.get('/', function(req, res) {
+				res.sendfile(path.resolve(__dirname + '/../view/index.html'));
+			});
+		}
 
 		///// Set up socket connection to console.
 		this.transports.socketToConsole = ioServer.listen(this.transports.webServer)
 			.set('log level', this.get('socketLogLevel'));
-		this.transports.socketToConsole.configure(_.bind(function() {
-			// Yet more auth stuff.
-			this.transports.socketToConsole.set('authorization', passportSocketIo.authorize({
-				cookieParser: express.cookieParser,
-				key: 'sessionId',
-				secret: secret,
-				store: store,
-				success: function(data, accept) {
-					logger.info('Socket access authorized for user', data.user);
-					accept(null, true);
-				},
-				fail: function(data, message, error, accept) {
-					logger.info('Socket access unauthorized.', message, error);
-					accept(null, false);
-				}
-			}));
-		}, this));
+
+		if ($$config.permissions) {
+			this.transports.socketToConsole.configure(_.bind(function() {
+				// Yet more auth stuff.
+				this.transports.socketToConsole.set('authorization', passportSocketIo.authorize({
+					cookieParser: express.cookieParser,
+					key: 'sessionId',
+					secret: secret,
+					store: store,
+					success: function(data, accept) {
+						logger.info('Socket access authorized for user', data.user);
+						accept(null, true);
+					},
+					fail: function(data, message, error, accept) {
+						logger.info('Socket access unauthorized.', message, error);
+						accept(null, false);
+					}
+				}));
+			}, this));
+		}
 
 		//// Set up OSC connection from app.
 		this.transports.oscFromApp = new osc.Server(this.get('oscFromAppPort'));

@@ -60,20 +60,22 @@ exports.ConsoleState = BaseModel.extend({
 
     // Build an object representing the whole configuration of the server. Sent to the console on
     // initial connection, also useful to spew for documentation.
-    fullConfig: function() {
+    fullConfig: function(user) {
+        var permissions = $$config.permissions ? $$config.permissions[user] : null;
         return {
             network: $$network.attributes,
             contentUpdater: $$contentUpdater.attributes,
             appUpdater: $$appUpdater.attributes,
             persistence: $$persistence.attributes,
-            logging: $$logging.attributes
+            logging: $$logging.attributes,
+            permissions: permissions
         };
     },
 
     // On initial socket connection with the console, listen for commands and send out the config.
     _onConnection: function(socket) {
 
-        console.log(socket.handshake.user, 'connected!');
+        var permissions = $$config.permissions ? $$config.permissions[socket.handshake.user] : null;
 
         // Responsd to requests for appState updates, but throttle it to _updateConsoleRate.
         var updateConsole = _.bind(this._updateConsole, this);
@@ -82,40 +84,83 @@ exports.ConsoleState = BaseModel.extend({
             this._updateConsoleTimeout = setTimeout(updateConsole, this._updateConsoleRate);
         }, this));
 
-        socket.on('setUpdaterSource', _.bind(this.setUpdaterSource, this));
-        socket.on('updateUpdater', _.bind(this.updateUpdater, this));
-        socket.on('rollbackUpdater', _.bind(this.rollbackUpdater, this));
+        socket.on('start', _.bind(function() {
+            if (permissions && !permissions.app) {
+                return;
+            }
+
+            logger.info('Startup requested from console.');
+            $$serverState.saveState('runApp', true);
+            $$persistence.startApp(true);
+        }, this));
 
         socket.on('restart-app', _.bind(function() {
-            console.log(socket.handshake.user);
+            if (permissions && !permissions.app) {
+                return;
+            }
+
             logger.info('Restart requested from console.');
             $$serverState.saveState('runApp', true);
             $$persistence.restartApp(true);
         }, this));
 
         socket.on('shutdown-app', _.bind(function() {
+            if (permissions && !permissions.app) {
+                return;
+            }
+
             logger.info('Shutdown requested from console.');
             $$serverState.saveState('runApp', false);
             $$persistence.shutdownApp();
         }, this));
 
         socket.on('restart-pc', _.bind(function() {
+            if (permissions && !permissions.computer) {
+                return;
+            }
+
             logger.info('Reboot requested from console.');
             $$persistence.restartMachine();
         }, this));
 
         socket.on('shutdown-pc', _.bind(function() {
+            if (permissions && !permissions.computer) {
+                return;
+            }
+
             logger.info('Shutdown requested from console.');
             $$persistence.shutdownMachine();
         }, this));
 
-        socket.on('start', _.bind(function() {
-            logger.info('Startup requested from console.');
-            $$serverState.saveState('runApp', true);
-            $$persistence.startApp(true);
+        socket.on('setUpdaterSource', _.bind(function() {
+            if (permissions && !permissions.updaters) {
+                return;
+            }
+
+            logger.info('Set updater source requested from console.');
+            this.setUpdaterSource();
         }, this));
 
-        $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig());
+        socket.on('updateUpdater', _.bind(function() {
+            if (permissions && !permissions.updaters) {
+                return;
+            }
+
+            logger.info('Set update requested from console.');
+            this.updateUpdater();
+        }, this));
+
+        socket.on('rollbackUpdater', _.bind(function() {
+            if (permissions && !permissions.updaters) {
+                return;
+            }
+
+            logger.info('Rollback requested from console.');
+            this.rollbackUpdater();
+        }, this));
+
+
+        $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig(socket.handshake.user));
     },
 
     // Send the console new data on an interval.
