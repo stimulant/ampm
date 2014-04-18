@@ -58,30 +58,50 @@ exports.Network = BaseModel.extend({
 		this.isMaster = this.get('master') && this.get('master').toLowerCase() == os.hostname().toLowerCase();
 
 		this.transports = {};
-		/*
-		var user = 'test3';
-		var pass = 'test3';
 
-		passport.use(new DigestStrategy({
-				qop: 'auth'
-			},
-			function(username, done) {
-				if (username == user) {
-					return done(null, user, pass);
-				} else {
-					return done(null, false);
-				}
-			}
-		));
+		//// Set up authentication.
 
-		var secret = '_foo';
+		// A secret used to encrypt session cookies.
+		var secret = '_notsosecret';
+		// An object in which sessions are stored.
 		var store = new express.session.MemoryStore();
-*/
-		// Set up web server for console.
+
+		// Using digest auth -- http://passportjs.org/guide/basic-digest/
+		if ($$config.permissions) {
+			passport.use(new DigestStrategy({
+					qop: 'auth'
+				},
+				function(username, done) {
+					var permissions = $$config.permissions ? $$config.permissions[username] : null;
+					if (permissions) {
+						// The username is passed here, return the password for that user.
+						return done(null, username, permissions.password);
+					} else {
+						// Invalid user.
+						return done(null, false);
+					}
+				}
+			));
+		}
+
+		// Convert a user to some kind of identifier.
+		passport.serializeUser(function(user, done) {
+			done(null, user);
+		});
+
+		// Convert an identifier back into a user object.
+		passport.deserializeUser(function(id, done) {
+			done(null, id);
+		});
+
+		//// Set up web server.
 		global.app = express();
 		this.transports.webServer = http.createServer(app).listen(this.get('socketToConsolePort'));
+
+		// Any requests to /static will just get raw files from the view folder.
 		app.use('/static', express.static(path.resolve(__dirname + '/../view')));
-		/*
+
+		// More auth stuff.
 		app.use(express.cookieParser(secret));
 		app.use(express.session({
 			store: store,
@@ -91,39 +111,44 @@ exports.Network = BaseModel.extend({
 		app.use(passport.initialize());
 		app.use(passport.session());
 		app.use(app.router);
-		app.get('/', passport.authenticate('digest', {
-			session: false
-		}), function(req, res) {
-			res.sendfile(path.resolve(__dirname + '/../view/index.html'));
-		});
-*/
-		app.get('/', function(req, res) {
-			res.sendfile(path.resolve(__dirname + '/../view/index.html'));
-		});
 
-		// Set up socket connection to console.
+		if ($$config.permissions) {
+			app.get('/', passport.authenticate('digest', {
+				session: true
+			}), function(req, res) {
+				res.sendfile(path.resolve(__dirname + '/../view/index.html'));
+			});
+		} else {
+			app.get('/', function(req, res) {
+				res.sendfile(path.resolve(__dirname + '/../view/index.html'));
+			});
+		}
+
+		///// Set up socket connection to console.
 		this.transports.socketToConsole = ioServer.listen(this.transports.webServer)
 			.set('log level', this.get('socketLogLevel'));
-		/*
-		this.transports.socketToConsole.configure(_.bind(function() {
-			this.transports.socketToConsole.set('authorization', passportSocketIo.authorize({
-				cookieParser: express.cookieParser,
-				key: 'sessionId',
-				secret: secret,
-				store: store,
-				success: function(data, accept) {
-					console.log('success');
-					accept(null, true);
-				},
-				fail: function(data, message, error, accept) {
-					console.log(message, error);
-					console.log(store);
-					accept(null, true);
-				}
-			}));
-		}, this));
-*/
-		// Set up OSC connection from app.
+
+		if ($$config.permissions) {
+			this.transports.socketToConsole.configure(_.bind(function() {
+				// Yet more auth stuff.
+				this.transports.socketToConsole.set('authorization', passportSocketIo.authorize({
+					cookieParser: express.cookieParser,
+					key: 'sessionId',
+					secret: secret,
+					store: store,
+					success: function(data, accept) {
+						logger.info('Socket access authorized for user', data.user);
+						accept(null, true);
+					},
+					fail: function(data, message, error, accept) {
+						logger.info('Socket access unauthorized.', message, error);
+						accept(null, false);
+					}
+				}));
+			}, this));
+		}
+
+		//// Set up OSC connection from app.
 		this.transports.oscFromApp = new osc.Server(this.get('oscFromAppPort'));
 
 		// handle straight messages
@@ -135,13 +160,14 @@ exports.Network = BaseModel.extend({
 				this._handleOsc(this.transports.oscFromApp, message, info);
 		}, this));
 
-		// Set up OSC connection to app.
+		//// Set up OSC connection to app.
 		this.transports.oscToApp = new osc.Client('127.0.0.1', this.get('oscToAppPort'));
 
-		// Set up socket connection to app.
+		//// Set up socket connection to app.
 		this.transports.socketToApp = ioServer.listen(this.get('socketToAppPort'))
 			.set('log level', this.get('socketLogLevel'));
 
+		//// Load the shared state plugin.
 		if ($$config.sharedState) {
 			var peers = this.get('peers');
 			var myName = os.hostname();

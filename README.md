@@ -6,6 +6,8 @@
 
 * [Startup](#startup)
 * [Configuration](#configuration)
+ * [Persistence](#configuration-persistence)
+ * [Permissions](#configuration-permissions)
  * [Logging](#configuration-logging)
  * [Content Updater](#configuration-contentupdater)
  * [App Updater](#configuration-appupdater)
@@ -102,6 +104,30 @@ The persistence manager is in chage of starting a process, monitoring it, restar
 
     // Restart the app on this schedule -- see cronmaker.com for the format. 
     restartSchedule: null
+}
+```
+
+<a name="configuration-permissions"/>
+## Permissions
+
+If permissions are specified, the console is locked down with a username and password. Multiple users can be defined, each with different sets of permissions. By default, there is no access control.
+
+```JavaScript
+"permissions": {
+    // A username.
+    "test4": {
+        // The password for that user.
+        "password": "test4",
+        
+        // If true, the user can shutdown, start, and restart the app.
+        "app": true,
+        
+        // If true, the user can shutdown and restart the computer.
+        "computer": false,
+        
+        // If true, the user can update the app and content.
+        "updaters": false
+    }
 }
 ```
 
