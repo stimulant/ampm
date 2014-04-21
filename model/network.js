@@ -168,7 +168,7 @@ exports.Network = BaseModel.extend({
 			.set('log level', this.get('socketLogLevel'));
 
 		//// Load the shared state plugin.
-		if ($$config.sharedState) {
+		if ($$config.sharedState && $$sharedState.shared) {
 			var peers = this.get('peers');
 			var myName = os.hostname();
 			if (!this.isMaster) {
