@@ -123,10 +123,13 @@ If permissions are specified, the console is locked down with a username and pas
         "app": true,
         
         // If true, the user can shutdown and restart the computer.
-        "computer": false,
+        "computer": true,
         
         // If true, the user can update the app and content.
-        "updaters": false
+        "updaters": true,
+
+        // If true, the user can toggle the mouse cursor.
+        "cursor": true
     }
 }
 ```

@@ -7,7 +7,9 @@ var View = Backbone.View.extend({
 		'click #restart-pc': '_onRestartPcClicked',
 		'click #start-app': '_onStartClicked',
 		'click .update': '_onUpdateClicked',
-		'click .rollback': '_onRollbackClicked'
+		'click .rollback': '_onRollbackClicked',
+		'click #hide-cursor': '_onCursorClicked',
+		'click #show-cursor': '_onCursorClicked'
 	},
 
 	_socket: null,
@@ -54,6 +56,8 @@ var View = Backbone.View.extend({
 		$('#shutdown-app').toggle(message.isRunning);
 		$('#start-app').toggle(!message.isRunning);
 		$('#restart-app').toggle(message.isRunning);
+		$('#hide-cursor').toggle(message.isCursorShown);
+		$('#show-cursor').toggle(!message.isCursorShown);
 
 		$('#controls').prop('disabled', message.updaters.content.isUpdating || message.updaters.app.isUpdating);
 		this._updateUpdater($('#controls-updaters-content'), message.updaters.content);
@@ -83,7 +87,8 @@ var View = Backbone.View.extend({
 		$('#controls-app').toggle(message.permissions.app);
 		$('#controls-computer').toggle(message.permissions.computer);
 		$('#controls-updaters').toggle(message.permissions.updaters);
-		$('#controls').toggle(message.permissions.app || message.permissions.computer || message.permissions.updaters);
+		$('#controls-cursor').toggle(message.permissions.cursor);
+		$('#controls').toggle(message.permissions.app || message.permissions.computer || message.permissions.updaters || message.permissions.cursor);
 	},
 
 	_makeSources: function(buttons, updater, sources) {
@@ -147,5 +152,9 @@ var View = Backbone.View.extend({
 	_onRollbackClicked: function() {
 		var updater = $(event.target).parents('fieldset').first().attr('id').indexOf('content') != -1 ? 'content' : 'app';
 		this._socket.emit('rollbackUpdater', updater);
+	},
+
+	_onCursorClicked: function() {
+		this._socket.emit('toggleCursor');
 	}
 });

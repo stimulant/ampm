@@ -12,7 +12,6 @@
 			"*.tmp",
 			"node_modules",
 			"logs",
-			"tools",
 			"libs"
 		],
 		"path": "."
