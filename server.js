@@ -2,6 +2,7 @@ var path = require('path'); //http://nodejs.org/api/path.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var os = require('os'); // http://nodejs.org/api/os.html
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
+var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
 
 var ConsoleState = require('./model/consoleState.js').ConsoleState;
 var BaseModel = require('./model/baseModel.js').BaseModel;
@@ -115,6 +116,8 @@ $$persistence.boot();
 if ($$sharedState) {
 	$$sharedState.boot();
 }
+
+var cursorProcess = child_process.spawn('tools/cursor.exe');
 
 logger.info('Server started.');
 console.log('Console is at: http://' + os.hostname() + ':' + $$network.get('socketToConsolePort'));
