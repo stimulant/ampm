@@ -15,6 +15,10 @@ exports.Persistence = BaseModel.extend({
         // {config} will be replaced with the contents of the config file.
         launchCommand: "",
 
+        // A command to run after the first heartbeat to do any additional
+        // system configuration.
+        postLaunchCommand: "",
+
         // Restart the app if it doesn't start up in this much time.
         startupTimeout: 10,
 
@@ -211,6 +215,11 @@ exports.Persistence = BaseModel.extend({
             this._isStartingUp = false;
             this._firstHeart = Date.now();
             logger.info('App started.');
+
+            if (this.get('postLaunchCommand')) {
+                child_process.exec('start ' + this.get('postLaunchCommand'));
+            }
+
             if (this._startupCallback) {
                 this._startupCallback();
                 this._startupCallback = null;

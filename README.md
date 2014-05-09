@@ -81,6 +81,10 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     // example: "../Client.exe {config}"
     launchCommand: "",
 
+    // A command to run after the first heartbeat to do any additional
+    // system configuration.
+    postLaunchCommand: "",
+
     // Restart the app if it doesn't start up in this much time.
     startupTimeout: 10,
 
