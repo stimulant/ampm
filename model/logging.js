@@ -238,7 +238,7 @@ exports.Logging = BaseModel.extend({
 
 			var fileName = this.get('eventFile').filename.replace('{date}', datestring);
 			var timestamp = Math.round(date.getTime() / 1000);
-			var log = util.format('%d\t%s\t%s\t%s\t%s\n', timestamp, data.Category, data.Action, data.Label, data.Value);
+			var log = util.format('%d\t%s\t%s\t%s\t%d\n', timestamp, data.Category || '', data.Action || '', data.Label || '', data.Value || 0);
 			fs.appendFile(fileName, log);
 		}
 	},
