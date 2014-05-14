@@ -1,6 +1,7 @@
 var os = require('os'); // http://nodejs.org/api/os.html
 var path = require('path'); //http://nodejs.org/api/path.html
 var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
+var util = require('util'); // http://nodejs.org/api/util.html
 
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
@@ -16,6 +17,7 @@ exports.Logging = BaseModel.extend({
 
 	// See readme.md for all this.
 	defaults: {
+
 		// Settings for the file logger.
 		file: {
 			enabled: true, // false to turn off
@@ -43,6 +45,12 @@ exports.Logging = BaseModel.extend({
 			enabled: true, // false to turn off
 			accountId: "UA-46432303-2", // The property ID -- this should be unique per project.
 			userId: "3e582629-7aad-4aa3-90f2-9f7cb3f89597" // The user ID -- this should always be the same.
+		},
+
+		// Settings for the event log file.
+		eventFile: {
+			enabled: true, // false to turn off
+			filename: "logs/event-{date}.log" // Path to the log file, relative to server.js. {date} will be replaced by the current date.
 		},
 
 		// Settings for loggly.com.
@@ -154,7 +162,7 @@ exports.Logging = BaseModel.extend({
 			}, this));
 		}
 
-		// Set up Google Analytics. Sort of hacky. Piggy-back on the console logger and log to Google log whenever it does.
+		// Set up Google Analytics. 
 		if (this.get('google').enabled) {
 			this._google = ua(this.get('google').accountId, this.get('google').userId);
 		}
@@ -190,32 +198,49 @@ exports.Logging = BaseModel.extend({
 		$$network.transports.oscFromApp.on('event', _.bind(this._logEvent, this));
 	},
 
-	_logMessage: function(data)
-	{
+	_logMessage: function(data) {
 		data.level = this._appLevelToWinstonLevel[data.level];
 		if (logger && logger[data.level]) {
 			logger[data.level](data.message);
 		}
 	},
 
-	_logEvent: function(data)
-	{
-		this._google.event(data.Category, data.Action, data.Label, data.Value);
-		var queue = _.clone(this._google._queue);
-		this._google.send(_.bind(function(error) {
-			if (!error) {
-				return;
-			}
+	_logEvent: function(data) {
+		if (this._google) {
+			// Log to Google Analytics.
+			this._google.event(data.Category, data.Action, data.Label, data.Value);
+			var queue = _.clone(this._google._queue);
+			this._google.send(_.bind(function(error) {
+				if (!error) {
+					return;
+				}
 
-			if (error.code === 'ENOTFOUND') {
-				// Couldn't connect -- replace the queue and try next time.
-				// https://github.com/peaksandpies/universal-analytics/issues/12
-				this._google._queue = queue;
-			} else {
-				// Something else bad happened.
-				logger.warn('Error with Google Analytics', error);
+				if (error.code === 'ENOTFOUND') {
+					// Couldn't connect -- replace the queue and try next time.
+					// https://github.com/peaksandpies/universal-analytics/issues/12
+					this._google._queue = queue;
+				} else {
+					// Something else bad happened.
+					logger.warn('Error with Google Analytics', error);
+				}
+			}, this));
+		}
+
+		if (this.get('eventFile').enabled && this.get('eventFile').filename) {
+			// Log to the event log file.
+			var date = new Date();
+			var datestring = date.getFullYear() + '-';
+			var month = date.getMonth() + 1;
+			if (month < 10) {
+				month = '0' + month;
 			}
-		}, this));
+			datestring += month + '-' + date.getDate();
+
+			var fileName = this.get('eventFile').filename.replace('{date}', datestring);
+			var timestamp = Math.round(date.getTime() / 1000);
+			var log = util.format('%d\t%s\t%s\t%s\t%d\n', timestamp, data.Category, data.Action, data.Label, data.Value);
+			fs.appendFile(fileName, log);
+		}
 	},
 
 	// Register a Windows event source.
