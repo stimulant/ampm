@@ -79,35 +79,35 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     // The command to run to launch the client, relative to server.js.
     // {config} will be replaced with the contents of the config file.
     // example: "../Client.exe {config}"
-    launchCommand: "",
+    "launchCommand": "",
 
     // A command to run after the first heartbeat to do any additional
     // system configuration.
-    postLaunchCommand: "",
+    "postLaunchCommand": "",
 
     // Restart the app if it doesn't start up in this much time.
-    startupTimeout: 10,
+    "startupTimeout": 10,
 
     // Restart the app this many seconds of no heartbeat messages.
-    heartbeatTimeout: 5,
+    "heartbeatTimeout": 5,
 
     // Restart the machine after this many app restarts.
-    restartMachineAfter: Infinity,
+    "restartMachineAfter": Infinity,
 
     // Shut down the app on this schedule -- see cronmaker.com for the format.
-    shutdownSchedule: null,
+    "shutdownSchedule": null,
 
     // Shut down the PC on this schedule -- see cronmaker.com for the format.
-    shutdownPcSchedule: null,
+    "shutdownPcSchedule": null,
 
     // Start up the app on this schedule -- see cronmaker.com for the format.
-    startupSchedule: null,
+    "startupSchedule": null,
 
     // Update the content and app on this schedule -- see cronmaker.com for the format.
-    updateSchedule: null,
+    "updateSchedule": null,
 
     // Restart the app on this schedule -- see cronmaker.com for the format. 
-    restartSchedule: null
+    "restartSchedule": null
 }
 ```
 
@@ -144,58 +144,64 @@ The logging module sends logs from ampm and the application being monitored to a
 // Settings for the logging module.
 "logging": {
     // Settings for the file logger.
-    file: {
-        enabled: true, // false to turn off
-        filename: "logs/server.log", // Path to the log file, relative to server.js.
-        maxsize: 1048576, // The max size of the log file before rolling over (1MB default)
-        json: false, // Whether to log in JSON format.
-        level: "info" // The logging level to write: info, warn, error.
+    "file": {
+        "enabled": true, // false to turn off
+        "filename": "logs/server.log", // Path to the log file, relative to server.js.
+        "maxsize": 1048576, // The max size of the log file before rolling over (1MB default)
+        "json": false, // Whether to log in JSON format.
+        "level": "info" // The logging level to write: info, warn, error.
     },
 
     // Settings for the console logger.
-    console: {
-        enabled: true, // false to turn off
-        colorize: true, // Colors are fun.
-        timestamp: true, // Include timestamps.
-        level: "info" // The logging level to write: info, warn, error.
+    "console": {
+        "enabled": true, // false to turn off
+        "colorize": true, // Colors are fun.
+        "timestamp": true, // Include timestamps.
+        "level": "info" // The logging level to write: info, warn, error.
     },
 
     // Settings for the Windows event logger.
-    eventLog: {
-        enabled: true // Whether to log Windows events at all.
+    "eventLog": {
+        "enabled": true // Whether to log Windows events at all.
     },
 
     // Settings for Google Analytics.
-    google: {
-        enabled: true, // false to turn off
-        accountId: "UA-46432303-2", // The property ID -- this should be unique per project.
-        userId: "3e582629-7aad-4aa3-90f2-9f7cb3f89597" // The user ID -- this should always be the same.
+    "google": {
+        "enabled": true, // false to turn off
+        "accountId": "UA-46432303-2", // The property ID -- this should be unique per project.
+        "userId": "3e582629-7aad-4aa3-90f2-9f7cb3f89597" // The user ID -- this should always be the same.
+    },
+
+    // Settings for the event log file.
+    "eventFile": {
+        "enabled": true, // false to turn off
+        "filename": "logs/event-{date}.log" // Path to the log file, relative to server.js. {date} will be replaced by the current date.
     },
 
     // Settings for loggly.com.
-    loggly: {
-        enabled: true, // false to turn off
-        subdomain: "stimulant", // The account name. https://stimulant.loggly.com/dashboards
-        inputToken: "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The API token.
-        json: true, // Whether to log as JSON -- this should be true.
-        token: "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The um, other token.
-        tags: "ampm" // A tag to differentiate app logs from one another in loggly.
+    "loggly": {
+        "enabled": true, // false to turn off
+        "subdomain": "stimulant", // The account name. https://stimulant.loggly.com/dashboards
+        "inputToken": "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The API token.
+        "json": true, // Whether to log as JSON -- this should be true.
+        "token": "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The um, other token.
+        "tags": "ampm" // A tag to differentiate app logs from one another in loggly.
     },
 
     // Settings for the email logger.
-    mail: {
-        enabled: true, // false to turn off
-        host: "mail.content.stimulant.io", // The SMTP server to use.
-        ssl: false, // Whether to use SSL.
-        username: "ampm@content.stimulant.io", // The account to log in with.
-        from: "ampm@content.stimulant.io", // Where the emails should appear to be from.
-        password: "JPv5U9N6", // The password to log in with.
-        subject: "ERROR: {hostname}", // The subject of the emails. "{hostname}" is replaced by the output of os.hostname().
-        level: "error", // The logging level to write: info, warn, error.
-        to: "josh@stimulant.io" // Where the emails should go.
+    "mail": {
+        "enabled": true, // false to turn off
+        "host": "mail.content.stimulant.io", // The SMTP server to use.
+        "ssl": false, // Whether to use SSL.
+        "username": "ampm@content.stimulant.io", // The account to log in with.
+        "from": "ampm@content.stimulant.io", // Where the emails should appear to be from.
+        "password": "JPv5U9N6", // The password to log in with.
+        "subject": "ERROR: {hostname}", // The subject of the emails. "{hostname}" is replaced by the output of os.hostname().
+        "level": "error", // The logging level to write: info, warn, error.
+        "to": "josh@stimulant.io" // Where the emails should go.
     },
 
-    cacheAmount: 20 // How many lines of logs and events to show in the web console.
+    "cacheAmount": 20 // How many lines of logs and events to show in the web console.
 }
 ```
 
@@ -210,10 +216,10 @@ The content updater handles downloading and deploying of updated content. It can
     // parse it for additional URLs to fetch. If it's a local/network path, it will use robocopy
     // to fetch a directory. This can also be a mapping of content sources and URLs, such as:
     // {dev: url, live: url }
-    remote: null,
+    "remote": null,
 
     // The local path to deployed content, relative to server.js.
-    local: "content/",
+    "local": "content/",
 }
 ```
 
@@ -228,10 +234,10 @@ The app updater is just about the same as the content updater, except it updates
     // parse it for additional URLs to fetch. If it's a local/network path, it will use robocopy
     // to fetch a directory. This can also be a mapping of content sources and URLs, such as:
     // {dev: url, live: url }
-    remote: null,
+    "remote": null,
 
     // The local path to deployed content, relative to server.js.
-    local: "content/",
+    "local": "content/",
 }
 ```
 
@@ -244,32 +250,32 @@ The networking module coordinates connections between ampm, the application its 
 "network": {
     // The port used to communicate between node and the browser. This is also the URL you'd use
     // to access the console, such as http://localhost:81.
-    socketToConsolePort: 81,
+    "socketToConsolePort": 81,
 
     // The port used to communicate between node and the client app over a TCP socket. This is
     // used for the app to send log messages and event tracking.
-    socketToAppPort: 3001,
+    "socketToAppPort": 3001,
 
     // The port used to communicate from the client app to the server over UDP/OSC. 
-    oscFromAppPort: 3002,
+    "oscFromAppPort": 3002,
 
     // The port used to communicate from the server to the client app over UDP/OSC.
-    oscToAppPort: 3003,
+    "oscToAppPort": 3003,
 
     // The port used to communicate from the server to another peer over UDP/OSC.
-    oscToPeerPort: 3004,
+    "oscToPeerPort": 3004,
 
     // How often in ms to send state changes to peers.
-    stateSyncRate: 1000 / 60,
+    "stateSyncRate": 1000 / 60,
 
     // How much socket.io logging you want to see in the console. Higher is more debug info. 
-    socketLogLevel: 2,
+    "socketLogLevel": 2,
 
     // A listing of hostnames of peers with whom to share state.
-    peers: null,
+    "peers": null,
 
     // Which hostname is the "master" keeper of shared state.
-    master: null
+    "master": null
 }
 ```
 
