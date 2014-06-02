@@ -162,6 +162,7 @@ The logging module sends logs from ampm and the application being monitored to a
 
     // Settings for the Windows event logger.
     "eventLog": {
+        "eventSource": "ampm", // The source to list events under.
         "enabled": true // Whether to log Windows events at all.
     },
 

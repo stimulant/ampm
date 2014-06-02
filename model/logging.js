@@ -37,6 +37,7 @@ exports.Logging = BaseModel.extend({
 
 		// Settings for the Windows event logger.
 		eventLog: {
+			eventSource: 'ampm',
 			enabled: true // Whether to log Windows events at all.
 		},
 
