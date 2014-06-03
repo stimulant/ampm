@@ -176,7 +176,7 @@ The logging module sends logs from ampm and the application being monitored to a
     // Settings for the event log file.
     "eventFile": {
         "enabled": true, // false to turn off
-        "filename": "logs/event-{date}.log" // Path to the log file, relative to server.js. {date} will be replaced by the current date.
+        "filename": "logs/event-{date}.tsv" // Path to the log file, relative to server.js. {date} will be replaced by the current date.
     },
 
     // Settings for loggly.com.

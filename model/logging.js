@@ -51,7 +51,7 @@ exports.Logging = BaseModel.extend({
 		// Settings for the event log file.
 		eventFile: {
 			enabled: true, // false to turn off
-			filename: "logs/event-{date}.log" // Path to the log file, relative to server.js. {date} will be replaced by the current date.
+			filename: "logs/event-{date}.tsv" // Path to the log file, relative to server.js. {date} will be replaced by the current date.
 		},
 
 		// Settings for loggly.com.
@@ -235,7 +235,12 @@ exports.Logging = BaseModel.extend({
 			if (month < 10) {
 				month = '0' + month;
 			}
-			datestring += month + '-' + date.getDate();
+			datestring += month + '-';
+			var day = date.getDate();
+			if (day < 10) {
+				day = '0' + day;
+			}
+			datestring += day;
 
 			var fileName = this.get('eventFile').filename.replace('{date}', datestring);
 			var timestamp = Math.round(date.getTime() / 1000);
