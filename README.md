@@ -170,7 +170,6 @@ The logging module sends logs from ampm and the application being monitored to a
     "google": {
         "enabled": true, // false to turn off
         "accountId": "UA-46432303-2", // The property ID -- this should be unique per project.
-        "userId": "3e582629-7aad-4aa3-90f2-9f7cb3f89597" // The user ID -- this should always be the same.
     },
 
     // Settings for the event log file.

@@ -44,8 +44,7 @@ exports.Logging = BaseModel.extend({
 		// Settings for Google Analytics.
 		google: {
 			enabled: true, // false to turn off
-			accountId: "UA-46432303-2", // The property ID -- this should be unique per project.
-			userId: "3e582629-7aad-4aa3-90f2-9f7cb3f89597" // The user ID -- this should always be the same.
+			accountId: "UA-46432303-2", // The property ID -- this should be unique per project
 		},
 
 		// Settings for the event log file.
@@ -165,7 +164,9 @@ exports.Logging = BaseModel.extend({
 
 		// Set up Google Analytics. 
 		if (this.get('google').enabled) {
-			this._google = ua(this.get('google').accountId, this.get('google').userId);
+			this._google = ua(this.get('google').accountId, os.hostname(), {
+				strictCidFormat: false
+			});
 		}
 
 		// Set up the cache, which is just a history of log messages.
