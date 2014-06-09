@@ -31,9 +31,6 @@ exports.ConsoleState = BaseModel.extend({
     _statHistory: 60,
     _statIndex: 0,
 
-    // A console process in which TASKLIST is run periodically to update memory usage.
-    _memoryConsole: null,
-
     // A console process in which TYPEPERF is run continuously to update CPU usage.
     _cpuConsole: null,
 
@@ -47,9 +44,6 @@ exports.ConsoleState = BaseModel.extend({
     // Set up update loops.
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
-
-        this._memoryConsole = child_process.spawn('cmd.exe');
-        this._memoryConsole.stdout.on('data', _.bind(this._parseMemory, this));
 
         this.set('canUpdate', (($$contentUpdater.get('remote') && true) || ($$appUpdater.get('remote') && true)) === true);
         $$persistence.on('heart', this._onHeart, this);
@@ -242,46 +236,46 @@ exports.ConsoleState = BaseModel.extend({
     _updateMemory: function() {
         var id = $$persistence.processId();
         if (id) {
-            this._memoryConsole.stdin.write('tasklist /FI "PID eq ' + id + '" /FO LIST\n');
-        }
+            child_process.exec('tasklist /FI "PID eq ' + id + '" /FO LIST', _.bind(function(error, stdout, stderror) {
+                /*
+                // tasklist.exe output looks like this:
+                Image Name:   Client.exe
+                PID:          12008
+                Session Name: Console
+                Session#:     1
+                Mem Usage:    39,384 K
+                */
 
-        clearTimeout(this._updateMemoryTimeout);
-        this._updateMemoryTimeout = setTimeout(_.bind(this._updateMemory, this), this._updateStatsRate);
-    },
+                stdout = stdout.toString();
+                var match = XRegExp.exec(stdout, XRegExp('[\\d,]+\\sK'));
+                if (!match) {
+                    return;
+                }
 
-    // Parse the output of the memory console process to update the memory.
-    _parseMemory: function(stdout) {
-        /*
-        // tasklist.exe output looks like this:
-        Image Name:   Client.exe
-        PID:          12008
-        Session Name: Console
-        Session#:     1
-        Mem Usage:    39,384 K
-        */
+                match = match[0]; // "39,384 K"
+                match = match.replace(',', '').replace(' K', ''); // "39384"
+                var memory = parseInt(match) * 1024; // 40329216
 
-        stdout = stdout.toString();
-        var match = XRegExp.exec(stdout, XRegExp('[\\d,]+\\sK'));
-        if (!match) {
-            return;
-        }
+                var memoryHistory = this.get('memory');
 
-        match = match[0]; // "39,384 K"
-        match = match.replace(',', '').replace(' K', ''); // "39384"
-        var memory = parseInt(match) * 1024; // 40329216
+                if (!memoryHistory) {
+                    memoryHistory = [];
+                    this.set({
+                        memory: memoryHistory
+                    });
+                }
 
-        var memoryHistory = this.get('memory');
+                memoryHistory.push(memory);
+                while (memoryHistory.length > this._statHistory) {
+                    memoryHistory.shift();
+                }
 
-        if (!memoryHistory) {
-            memoryHistory = [];
-            this.set({
-                memory: memoryHistory
-            });
-        }
-
-        memoryHistory.push(memory);
-        while (memoryHistory.length > this._statHistory) {
-            memoryHistory.shift();
+                clearTimeout(this._updateMemoryTimeout);
+                this._updateMemoryTimeout = setTimeout(_.bind(this._updateMemory, this), this._updateStatsRate);
+            }, this));
+        } else {
+            clearTimeout(this._updateMemoryTimeout);
+            this._updateMemoryTimeout = setTimeout(_.bind(this._updateMemory, this), this._updateStatsRate);
         }
     },
 
