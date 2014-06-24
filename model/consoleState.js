@@ -18,7 +18,8 @@ exports.ConsoleState = BaseModel.extend({
         cpu: null,
         memory: null,
         canUpdate: false,
-        isUpdating: false
+        isUpdating: false,
+        configs: []
     },
 
     // The interval to update stats.
@@ -159,8 +160,7 @@ exports.ConsoleState = BaseModel.extend({
             this.rollbackUpdater();
         }, this));
 
-
-        $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig(socket.handshake.user));
+        $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig(socket.handshake.user), this.get('configs'));
     },
 
     // Send the console new data on an interval.

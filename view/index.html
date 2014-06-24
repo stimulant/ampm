@@ -68,6 +68,10 @@ legend
     <div id="update-button-template">
         <button id="source">set source to <%- source %></button>
     </div>
+
+    <div id="config-button-template">
+        <button id="config">load <%- config %></button>
+    </div>
 </div>
 
 <fieldset id="controls" style="display:inline-block">
@@ -105,6 +109,10 @@ legend
                 <button class="rollback">rollback</button>
             </div>
         </fieldset>
+    </fieldset>
+    <fieldset id="configs">
+        <legend> configs </legend>        
+        <div id="configs-list"></div>        
     </fieldset>
 </fieldset>
 

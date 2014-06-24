@@ -25,8 +25,8 @@ var View = Backbone.View.extend({
 			this._socket.emit('appStateRequest');
 		}, this));
 
-		this._socket.on('config', _.bind(function(message) {
-			this._onConfig(message);
+		this._socket.on('config', _.bind(function(message, configs) {
+			this._onConfig(message, configs);
 		}, this));
 	},
 
@@ -70,11 +70,12 @@ var View = Backbone.View.extend({
 		}, this));
 	},
 
-	_onConfig: function(message) {
+	_onConfig: function(message, configs) {
 		this._config = message;
 		console.log(message);
 		this._makeSources($('#controls-updaters-content .sources'), 'content', message.contentUpdater.remote);
 		this._makeSources($('#controls-updaters-app .sources'), 'app', message.appUpdater.remote);
+		this._addConfigs($('#configs #configs-list'), configs);
 
 		if (!message.permissions) {
 			return;
@@ -104,6 +105,28 @@ var View = Backbone.View.extend({
 			button.data(data);
 			button.click(click);
 			buttons.append(button);
+		}
+	},
+
+	_addConfigs: function(list, configs) {
+		var template = _.unescape($('#config-button-template').html()).trim();
+
+		var click = _.bind(function(e) {
+			var data = $(e.target).data();
+			this._onConfigClicked(e, data.config);
+		}, this);
+
+		list.empty();
+		for (var i = 0; i < configs.length; i++) {
+			var data = {
+				config: configs[i]
+			};
+
+			var button = $(_.template(template, data));
+			button.addClass(source);
+			button.data(data);
+			button.click(click);
+			list.append(button);
 		}
 	},
 
@@ -137,6 +160,10 @@ var View = Backbone.View.extend({
 
 	_onSetSourceClicked: function(event, updater, source) {
 		this._socket.emit('setUpdaterSource', updater, source);
+	},
+
+	_onConfigClicked: function(event, config) {
+		console.warn(config);
 	},
 
 	_onUpdateClicked: function(event) {

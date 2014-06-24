@@ -18,15 +18,16 @@ process.chdir(path.dirname(process.mainModule.filename));
 global.$$config = {};
 
 // args will be ['node', 'server.js', 'config.json', 'dev.i14']
-var configPath = '';
+var configPaths = '';
 var configScheme = '';
+
 if (process.argv.length > 2) {
-	configPath = process.argv[2];
+	configPaths = process.argv[2].split(',');
 	configScheme = process.argv[3];
 }
 
-if (configPath && fs.existsSync(configPath)) {
-	var config = JSON.parse(fs.readFileSync(configPath));
+if (configPaths && fs.existsSync(configPaths[0])) {
+	var config = JSON.parse(fs.readFileSync(configPaths[0]));
 	if (!config['default']) {
 		// There are no schemes in the config, just ingest it whole.
 		console.log('Using single configuration.');
@@ -103,7 +104,9 @@ global.$$logging = new Logging({
 });
 
 // The back-end for the web console.
-global.$$consoleState = new ConsoleState();
+global.$$consoleState = new ConsoleState({
+	configs: configPaths
+});
 
 $$persistence.boot();
 if ($$sharedState) {
