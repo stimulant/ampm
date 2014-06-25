@@ -163,7 +163,7 @@ var View = Backbone.View.extend({
 	},
 
 	_onConfigClicked: function(event, config) {
-		console.warn(config);
+		this._socket.emit('switchConfig', config);
 	},
 
 	_onUpdateClicked: function(event) {

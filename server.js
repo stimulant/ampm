@@ -20,14 +20,24 @@ global.$$config = {};
 // args will be ['node', 'server.js', 'config.json', 'dev.i14']
 var configPaths = '';
 var configScheme = '';
+var configPath = '';
 
-if (process.argv.length > 2) {
+// A persistent state object, saved to state.json.
+global.$$serverState = new ServerState();
+
+// load from server state if config is stored
+if (global.$$serverState.get('config')) {
+	configPath = $$serverState.get('config');
 	configPaths = process.argv[2].split(',');
 	configScheme = process.argv[3];
+} else if (process.argv.length > 2) {
+	configPaths = process.argv[2].split(',');
+	configScheme = process.argv[3];
+	configPath = configPaths[0];
 }
 
-if (configPaths && fs.existsSync(configPaths[0])) {
-	var config = JSON.parse(fs.readFileSync(configPaths[0]));
+if (configPath && fs.existsSync(configPath)) {
+	var config = JSON.parse(fs.readFileSync(configPath));
 	if (!config['default']) {
 		// There are no schemes in the config, just ingest it whole.
 		console.log('Using single configuration.');
@@ -77,9 +87,6 @@ if ($$config.sharedState && fs.existsSync($$config.sharedState)) {
 global.$$network = new Network({
 	config: $$config.network
 });
-
-// A persistent state object, saved to state.json.
-global.$$serverState = new ServerState();
 
 // The updater which downloads content referenced by an XML file or local/network file path.
 global.$$contentUpdater = new ContentUpdater({

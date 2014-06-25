@@ -78,7 +78,7 @@ exports.ConsoleState = BaseModel.extend({
 
         var permissions = $$config.permissions ? $$config.permissions[socket.handshake.user] : null;
 
-        // Responsd to requests for appState updates, but throttle it to _updateConsoleRate.
+        // Responds to requests for appState updates, but throttle it to _updateConsoleRate.
         var updateConsole = _.bind(this._updateConsole, this);
         socket.on('appStateRequest', _.bind(function() {
             clearTimeout(this._updateConsoleTimeout);
@@ -158,6 +158,13 @@ exports.ConsoleState = BaseModel.extend({
 
             logger.info('Rollback requested from console.');
             this.rollbackUpdater();
+        }, this));
+
+        socket.on('switchConfig', _.bind(function(config) {
+            $$serverState.saveState('config', config);
+            setTimeout(function() {
+                $$persistence.restartServer();
+            }, 1000);
         }, this));
 
         $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig(socket.handshake.user), this.get('configs'));
