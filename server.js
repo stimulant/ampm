@@ -18,9 +18,9 @@ process.chdir(path.dirname(process.mainModule.filename));
 global.$$config = {};
 
 // args will be ['node', 'server.js', 'config.json', 'dev.i14']
-var configPaths = '';
-var configScheme = '';
 var configPath = '';
+var configPaths = process.argv[2].split(',');
+var configScheme = process.argv[3];
 
 // A persistent state object, saved to state.json.
 global.$$serverState = new ServerState();
@@ -28,11 +28,7 @@ global.$$serverState = new ServerState();
 // load from server state if config is stored
 if (global.$$serverState.get('config')) {
 	configPath = $$serverState.get('config');
-	configPaths = process.argv[2].split(',');
-	configScheme = process.argv[3];
 } else if (process.argv.length > 2) {
-	configPaths = process.argv[2].split(',');
-	configScheme = process.argv[3];
 	configPath = configPaths[0];
 }
 

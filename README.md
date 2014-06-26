@@ -33,7 +33,11 @@ You can pass a configuration file path as an argument when starting ampm, like t
 
 ```node server.js ..\..\config.json```
 
-All paths are relative to the location of server.js.
+If you have multiple apps on the same machine, you can also pass paths to multiple configuration files, like this: 
+
+```node server.js ..\..\app1\config.json,..\..\app2\config.json,..\..\app3\config.json ```
+
+These will show up on the console page and allow you to switch between multiple apps. All paths are relative to the location of server.js.
 
 You can include multiple configuration schemes in the same json file. For example.
 

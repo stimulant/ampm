@@ -163,7 +163,9 @@ var View = Backbone.View.extend({
 	},
 
 	_onConfigClicked: function(event, config) {
-		this._socket.emit('switchConfig', config);
+		if (window.confirm('Are you sure you want to shut down the app and launch ' + config + ' ?')) {
+			this._socket.emit('switchConfig', config);
+		}
 	},
 
 	_onUpdateClicked: function(event) {
