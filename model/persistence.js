@@ -46,7 +46,8 @@ exports.Persistence = BaseModel.extend({
         // How many times the app has been restarted.
         restartCount: 0,
 
-        // Whether or not the cursor should be hidden by default.
+        // Whether or not the Windows cursor should be hidden by default.
+        // ctrl-shift-0 will also hide it, and ctrl-shift-1 will show it.
         hideCursor: false,
     },
 

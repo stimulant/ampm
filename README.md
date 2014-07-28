@@ -114,6 +114,7 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     "restartSchedule": null,
 
     // Whether or not the Windows cursor should be hidden by default.
+    // ctrl-shift-0 will also hide it, and ctrl-shift-1 will show it.
     "hideCursor": false
 }
 ```
