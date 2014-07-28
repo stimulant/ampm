@@ -45,6 +45,9 @@ exports.Persistence = BaseModel.extend({
 
         // How many times the app has been restarted.
         restartCount: 0,
+
+        // Whether or not the cursor should be hidden by default.
+        hideCursor: false,
     },
 
     // The spawned application process.
@@ -93,6 +96,8 @@ exports.Persistence = BaseModel.extend({
         }, this));
 
         this._initSchedules();
+
+        this.on('change:hideCursor', _.bind(this.updateHideCursor, this));
     },
 
     boot: function() {
@@ -431,5 +436,12 @@ exports.Persistence = BaseModel.extend({
         // This should cause node-supervisor to reboot us.
         logger.info('Triggering server restart.');
         fs.writeFile('restart.json', new Date().getTime());
+    },
+
+    updateHideCursor: function() {
+        var cmd = this.get('hideCursor') ? 'tools/cursor.hide.ahk' : 'tools/cursor.show.ahk';
+        child_process.spawn('tools/AutoHotKey.exe', [cmd], {
+            detached: true
+        }).unref();
     }
 });

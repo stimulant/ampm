@@ -87,7 +87,7 @@ var View = Backbone.View.extend({
 		}
 
 		$('#controls-app').toggle(message.permissions.app);
-		$('#controls-configs').toggle(message.permissions.app);
+		$('#controls-configs').toggle(message.permissions.app && configs.length > 1);
 		$('#controls-computer').toggle(message.permissions.computer);
 		$('#controls-updaters').toggle(message.permissions.updaters);
 		$('#controls-cursor').toggle(message.permissions.cursor);

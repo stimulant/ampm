@@ -1,14 +1,17 @@
-; Example: Hides the mouse cursor when you press Win+C. To later show the cursor, press Win+C again.
 ; This script is from www.autohotkey.com/forum/topic6107.html
 
-OnExit, ShowCursor  ; Ensure the cursor is made visible when the script exits.
+#SingleInstance force
+
+OnExit, ShowCursor  ; show on exit
 return
 
 ShowCursor:
-SystemCursor("On")
+SystemCursor(1)
 ExitApp
 
-!+^c::SystemCursor("Toggle")  ; Win+C hotkey to toggle the cursor on and off.
+SystemCursor(1)   ; show by default
+^+0::SystemCursor(0)  ; shift-numpad0 to hide
+^+1::SystemCursor(1)  ; shift-numpad1 to show
 
 SystemCursor(OnOff=1)   ; INIT = "I","Init"; OFF = 0,"Off"; TOGGLE = -1,"T","Toggle"; ON = others
 {

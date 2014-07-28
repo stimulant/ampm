@@ -111,7 +111,10 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     "updateSchedule": null,
 
     // Restart the app on this schedule -- see cronmaker.com for the format. 
-    "restartSchedule": null
+    "restartSchedule": null,
+
+    // Whether or not the Windows cursor should be hidden by default.
+    "hideCursor": false
 }
 ```
 

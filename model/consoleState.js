@@ -19,8 +19,7 @@ exports.ConsoleState = BaseModel.extend({
         memory: null,
         canUpdate: false,
         isUpdating: false,
-        configs: [],
-        isCursorShown: true
+        configs: []
     },
 
     // The interval to update stats.
@@ -165,8 +164,9 @@ exports.ConsoleState = BaseModel.extend({
                 return;
             }
 
-            logger.info('Cursor toggle requested from console.');
-            this.toggleCursor();
+            var toggle = $$persistence.get('hideCursor') ? 'show' : 'hide';
+            logger.info('Cursor ' + toggle + ' requested from console.');
+            $$persistence.set('hideCursor', !$$persistence.get('hideCursor'));
         }, this));
 
         $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig(socket.handshake.user), this.get('configs'));
@@ -179,7 +179,7 @@ exports.ConsoleState = BaseModel.extend({
         message.logs = $$logging.get('logCache');
         message.events = $$logging.get('eventCache');
         message.canUpdate = this.get('canUpdate');
-        message.isCursorShown = this.get('isCursorShown');
+        message.isCursorShown = !$$persistence.get('hideCursor');
 
         message.updaters = {
             content: {
@@ -434,10 +434,5 @@ exports.ConsoleState = BaseModel.extend({
                 }
             }, this));
         }, this));
-    },
-
-    toggleCursor: function() {
-        child_process.spawn('tools/cursor.toggle.exe');
-        this.set('isCursorShown', !this.get('isCursorShown'));
     }
 });
