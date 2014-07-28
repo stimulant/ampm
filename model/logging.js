@@ -149,7 +149,10 @@ exports.Logging = BaseModel.extend({
 
 		// Set up loggly.
 		if (this.get('loggly').enabled) {
-			logger.add(require('winston-loggly').Loggly, this.get('loggly'));
+			var opts = this.get('loggly');
+			opts.tags = opts.tags ? [opts.tags] : [];
+			opts.tags.push(os.hostname());
+			logger.add(require('winston-loggly').Loggly, opts);
 		}
 
 		// Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
