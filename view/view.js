@@ -75,13 +75,15 @@ var View = Backbone.View.extend({
 		console.log(message);
 		this._makeSources($('#controls-updaters-content .sources'), 'content', message.contentUpdater.remote);
 		this._makeSources($('#controls-updaters-app .sources'), 'app', message.appUpdater.remote);
-		this._addConfigs($('#configs #configs-list'), configs);
+		this._addConfigs($('#controls-configs #configs-list'), configs);
+		$('#controls-configs').toggle(configs.length > 1);
 
 		if (!message.permissions) {
 			return;
 		}
 
 		$('#controls-app').toggle(message.permissions.app);
+		$('#controls-configs').toggle(message.permissions.app);
 		$('#controls-computer').toggle(message.permissions.computer);
 		$('#controls-updaters').toggle(message.permissions.updaters);
 		$('#controls').toggle(message.permissions.app || message.permissions.computer || message.permissions.updaters);
@@ -117,6 +119,10 @@ var View = Backbone.View.extend({
 		}, this);
 
 		list.empty();
+		if (configs.length <= 1) {
+			return;
+		}
+
 		for (var i = 0; i < configs.length; i++) {
 			var data = {
 				config: configs[i]
