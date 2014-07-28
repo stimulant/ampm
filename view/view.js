@@ -41,7 +41,7 @@ var View = Backbone.View.extend({
 		message.memory = message.memory && message.memory.length ? humanize.filesize(message.memory[message.memory.length - 1]) : '';
 		message.logList = '';
 		_.each(message.logs, function(log) {
-			message.logList += log.level + ': ' + log.msg + '\n';
+			message.logList += log.time + ' ' + log.level + ': ' + log.msg + '\n';
 		});
 
 		message.eventList = '';

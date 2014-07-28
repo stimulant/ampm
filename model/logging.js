@@ -3,6 +3,7 @@ var path = require('path'); //http://nodejs.org/api/path.html
 var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
 var util = require('util'); // http://nodejs.org/api/util.html
 
+var moment = require('moment'); // Date processing. http://momentjs.com/
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
@@ -177,6 +178,7 @@ exports.Logging = BaseModel.extend({
 				if (transport.name == 'console') {
 					var cache = this.get('logCache');
 					cache.push({
+						time: moment().format('YYYY-MM-DD HH:mm:ss'),
 						level: level,
 						msg: msg
 					});

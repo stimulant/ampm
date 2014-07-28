@@ -248,7 +248,13 @@ exports.Persistence = BaseModel.extend({
     _onRestartTimeout: function() {
         var restartCount = this.get('restartCount');
         restartCount++;
-        logger.error('App went away.', restartCount);
+
+        var logList = 'App went away: ' + restartCount + ' times\n\n';
+        _.each($$logging.get('logCache'), function(log) {
+            logList += log.time + ' ' + log.level + ': ' + log.msg + '\n';
+        });
+        logger.error(logList);
+
         this.trigger('crash');
 
         if (restartCount >= this.get('restartMachineAfter')) {
