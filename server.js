@@ -126,14 +126,3 @@ setTimeout(_.bind($$persistence.updateHideCursor, $$persistence), 1000);
 
 logger.info('Server started.');
 console.log('Console is at: http://' + os.hostname() + ':' + $$network.get('socketToConsolePort'));
-
-
-var ping = require("net-ping");
-var session = ping.createSession();
-var target = '8.8.8.8';
-session.pingHost(target, function(error, target) {
-	if (error)
-		console.log(target + ": " + error.toString());
-	else
-		console.log(target + ": Alive");
-});
