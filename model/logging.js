@@ -138,6 +138,10 @@ exports.Logging = BaseModel.extend({
 				fs.mkdirSync(dir);
 			}
 
+			this.get('file').timestamp = function() {
+				return moment().format('YYYY-MM-DD HH:mm:ss');
+			};
+
 			logger.add(winston.transports.DailyRotateFile, this.get('file'));
 		}
 
