@@ -3,6 +3,8 @@ var path = require('path'); //http://nodejs.org/api/path.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
+_.str = require('underscore.string');
+var moment = require('moment'); // Date processing. http://momentjs.com/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var later = require('later'); // Schedule processing. http://bunkat.github.io/later/ 
 
@@ -49,6 +51,12 @@ exports.Persistence = BaseModel.extend({
         // Whether or not the Windows cursor should be hidden by default.
         // ctrl-shift-0 will also hide it, and ctrl-shift-1 will show it.
         hideCursor: false,
+
+        // An array of hosts to ping and send alerts if not responsive.
+        pingList: null,
+
+        // Number of missed pings to the ping list before sending out an alert.
+        pingLostCount: 5
     },
 
     // The spawned application process.
@@ -97,6 +105,7 @@ exports.Persistence = BaseModel.extend({
         }, this));
 
         this._initSchedules();
+        this._initPingList();
 
         this.on('change:hideCursor', _.bind(this.updateHideCursor, this));
     },
@@ -450,5 +459,78 @@ exports.Persistence = BaseModel.extend({
         child_process.spawn('tools/AutoHotKey.exe', [cmd], {
             detached: true
         }).unref();
+    },
+
+    // For each entry in the ping list, set up a process to ping it and an object that represents its status.
+    _initPingList: function() {
+        var pingList = this.get('pingList');
+        if (!pingList) {
+            return;
+        }
+
+        var self = this;
+        this._pingStatus = {};
+        for (var i in pingList) {
+            var host = pingList[i];
+            var p = child_process.spawn('ping', ['-t', host]);
+            p.stdout.on('data', _.bind(function(data) {
+                self._onPingResponse(this, data);
+            }, p));
+
+            this._pingStatus[host] = {
+                up: true,
+                start: Date.now(),
+                last: Date.now(),
+                line: '',
+                lost: 0,
+                process: p
+            };
+        }
+
+    },
+
+    _onPingResponse: function(p, data) {
+        // Figure out what host this response is from.
+        var host = '';
+        for (var i in this._pingStatus) {
+            if (this._pingStatus[i].process.pid == p.pid) {
+                host = i;
+                break;
+            }
+        }
+
+        if (!host) {
+            return;
+        }
+
+        var status = this._pingStatus[host];
+
+        // Add up the buffers until you get a full line.
+        status.line += data;
+        if (!_.str.endsWith(status.line, '\n')) {
+            return;
+        }
+
+        var lastUp = status.up;
+        var lastSeen = status.last;
+        var up = _.str.contains(status.line, 'Reply from');
+        if (up) {
+            status.up = true;
+            status.last = Date.now();
+            status.lost = 0;
+        } else {
+            status.lost++;
+        }
+
+        if (status.lost > this.get('pingLostCount')) {
+            status.up = false;
+        }
+
+        if (status.up != lastUp) {
+            var notice = host + ' ' + (up ? 'returned' : 'went away') + '. Last seen ' + moment(lastSeen).format('YYYY-MM-DD HH:mm:ss');
+            logger.error(notice);
+        }
+
+        status.line = '';
     }
 });

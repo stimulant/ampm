@@ -113,6 +113,12 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     // Restart the app on this schedule -- see cronmaker.com for the format. 
     "restartSchedule": null,
 
+    // A list of hostnames to ping. An error is logged when they go down and return.
+    "pingList": null,
+
+    // The number of pings which can be lost before an error is logged.
+    "pingLostCount": 5,
+
     // Whether or not the Windows cursor should be hidden by default.
     // ctrl-shift-0 will also hide it, and ctrl-shift-1 will show it.
     "hideCursor": false
