@@ -22,10 +22,11 @@ exports.Logging = BaseModel.extend({
 		// Settings for the file logger.
 		file: {
 			enabled: true, // false to turn off
-			filename: "logs/server.log", // Path to the log file, relative to server.js.
+			filename: "logs/server", // Path to the log file, relative to server.js.
 			maxsize: 1048576, // The max size of the log file before rolling over (1MB default)
 			json: false, // Whether to log in JSON format.
-			level: "info" // The logging level to write: info, warn, error.
+			level: "info", // The logging level to write: info, warn, error.,
+			datePattern: ".yyyy-MM-dd.log"
 		},
 
 		// Settings for the console logger.
