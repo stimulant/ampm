@@ -281,6 +281,8 @@ exports.ConsoleState = BaseModel.extend({
 
                 clearTimeout(this._updateMemoryTimeout);
                 this._updateMemoryTimeout = setTimeout(_.bind(this._updateMemory, this), this._updateStatsRate);
+
+                $$persistence.checkMemory(memory);
             }, this));
         } else {
             clearTimeout(this._updateMemoryTimeout);

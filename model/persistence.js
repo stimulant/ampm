@@ -56,7 +56,10 @@ exports.Persistence = BaseModel.extend({
         pingList: null,
 
         // Number of missed pings to the ping list before sending out an alert.
-        pingLostCount: 5
+        pingLostCount: 5,
+
+        // Restart the app if it uses more than this much memory.
+        maxMemory: Infinity
     },
 
     // The spawned application process.
@@ -532,5 +535,12 @@ exports.Persistence = BaseModel.extend({
         }
 
         status.line = '';
+    },
+
+    checkMemory: function(memory) {
+        if (memory > this.get('maxMemory')) {
+            logger.error('App memory is ' + memory + ', max is set to ' + this.get('maxMemory') + ', restarting.');
+            this.restartApp();
+        }
     }
 });

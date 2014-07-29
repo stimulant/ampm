@@ -121,7 +121,10 @@ The persistence manager is in chage of starting a process, monitoring it, restar
 
     // Whether or not the Windows cursor should be hidden by default.
     // ctrl-shift-0 will also hide it, and ctrl-shift-1 will show it.
-    "hideCursor": false
+    "hideCursor": false,
+
+    // Restart the app if it uses more than this much memory.
+    "maxMemory": Infinity
 }
 ```
 
