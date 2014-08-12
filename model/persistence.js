@@ -116,6 +116,8 @@ exports.Persistence = BaseModel.extend({
     boot: function() {
         if ($$serverState.get('runApp')) {
             this.startApp();
+        } else {
+            logger.warn('App was shut down last time, launch it from the console.');
         }
     },
 
