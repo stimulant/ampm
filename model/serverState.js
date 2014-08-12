@@ -7,6 +7,7 @@ var BaseModel = require('./baseModel.js').BaseModel;
 exports.ServerState = BaseModel.extend({
 	_saveTimeout: 0,
 	_stateFile: 'state.json',
+	_callbacks: null,
 
 	defaults: {
 		// False when the admin has shut down the app from the panel. Don't start the app on boot if this is false.
@@ -19,7 +20,7 @@ exports.ServerState = BaseModel.extend({
 	},
 
 	// Write to the state file.
-	saveState: function(key, value) {
+	saveState: function(key, value, callback) {
 		if (this.get(key) == value) {
 			return;
 		}
@@ -27,7 +28,19 @@ exports.ServerState = BaseModel.extend({
 		this.set(key, value);
 		clearTimeout(this._saveTimeout);
 		this._saveTimeout = setTimeout(_.bind(function() {
-			fs.writeFile(this._stateFile, JSON.stringify(this.attributes, null, '\t'));
+			fs.writeFile(this._stateFile, JSON.stringify(this.attributes, null, '\t'), _.bind(function() {
+				while (this._callbacks && this._callbacks.length) {
+					this._callbacks.shift()();
+				}
+			}, this));
 		}, this), 1000);
+
+		if (callback) {
+			if (!this._callbacks) {
+				this._callbacks = [];
+			}
+
+			this._callbacks.push(callback);
+		}
 	}
 });
