@@ -478,9 +478,13 @@ exports.Persistence = BaseModel.extend({
         for (var i in pingList) {
             var host = pingList[i];
             var p = child_process.spawn('ping', ['-t', host]);
+
+            /* jshint ignore:start */
+            // ignore "don't create functions in a loop" warning
             p.stdout.on('data', _.bind(function(data) {
                 self._onPingResponse(this, data);
             }, p));
+            /* jshint ignore:end */
 
             this._pingStatus[host] = {
                 up: true,
