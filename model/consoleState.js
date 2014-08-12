@@ -156,7 +156,9 @@ exports.ConsoleState = BaseModel.extend({
 
         socket.on('switchConfig', _.bind(function(config) {
             $$serverState.saveState('config', config);
-            $$persistence.restartServer();
+            setTimeout(function() {
+                $$persistence.restartServer();
+            }, 1000);
         }, this));
 
         socket.on('toggleCursor', _.bind(function() {
