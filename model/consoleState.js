@@ -127,13 +127,14 @@ exports.ConsoleState = BaseModel.extend({
             $$persistence.shutdownMachine();
         }, this));
 
-        socket.on('setUpdaterSource', _.bind(function() {
+        socket.on('setUpdaterSource', _.bind(function(updater, source) {
+            console.log(arguments);
             if (permissions && !permissions.updaters) {
                 return;
             }
 
             logger.info('Set updater source requested from console.');
-            this.setUpdaterSource();
+            this.setUpdaterSource(updater, source);
         }, this));
 
         socket.on('updateUpdater', _.bind(function() {
