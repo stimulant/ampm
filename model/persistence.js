@@ -294,8 +294,6 @@ exports.Persistence = BaseModel.extend({
             return;
         }
 
-        logger.info(new Error().stack);
-
         this._isShuttingDown = true;
 
         // See if the app is running.
