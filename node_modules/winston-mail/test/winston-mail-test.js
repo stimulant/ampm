@@ -31,4 +31,6 @@ vows.describe('winston-mail').addBatch({
      assert.isTrue(logged);
    })
  }
+}).addBatch({
+  "Tear down": { 'smtp': function () { smtp.end(function () {}) } }
 }).export(module);

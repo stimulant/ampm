@@ -126,3 +126,4 @@ setTimeout(_.bind($$persistence.updateHideCursor, $$persistence), 1000);
 
 logger.info('Server started.');
 console.log('Console is at: http://' + os.hostname() + ':' + $$network.get('socketToConsolePort'));
+console.log($$config);

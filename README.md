@@ -288,9 +288,6 @@ The networking module coordinates connections between ampm, the application its 
     // How often in ms to send state changes to peers.
     "stateSyncRate": 1000 / 60,
 
-    // How much socket.io logging you want to see in the console. Higher is more debug info. 
-    "socketLogLevel": 2,
-
     // A listing of hostnames of peers with whom to share state.
     "peers": null,
 

@@ -15,8 +15,10 @@ config.addColors = function (colors) {
   mixin(allColors, colors);
 };
 
-config.colorize = function (level) {
-  var colorized = level;
+config.colorize = function (level, message) {
+  if (typeof message === 'undefined') message = level;
+
+  var colorized = message;
   if (allColors[level] instanceof Array) {
     for (var i = 0, l = allColors[level].length; i < l; ++i) {
       colorized = colorized[allColors[level][i]];
@@ -43,6 +45,7 @@ config.syslog = require('./config/syslog-config');
 //
 // Add colors for pre-defined config sets
 //
+config.addColors(config.cli.colors);
 config.addColors(config.npm.colors);
 config.addColors(config.syslog.colors);
 

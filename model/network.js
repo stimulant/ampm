@@ -1,11 +1,12 @@
 var os = require('os'); // http://nodejs.org/api/os.html
 var path = require('path'); //http://nodejs.org/api/path.html
 var http = require('http'); // HTTP support. http://nodejs.org/api/http.html
-
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var express = require('express'); // Routing framework. http://expressjs.com/
+var session = require('express-session');
+var cookieParser = require('cookie-parser');
 var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
 var ioServer = require('socket.io'); // Web socket implementation. http://socket.io/
 var ioClient = require('socket.io-client'); // Web socket implementation. http://socket.io/
@@ -39,9 +40,6 @@ exports.Network = BaseModel.extend({
 		// How often in ms to send state changes to peers.
 		stateSyncRate: 1000 / 60,
 
-		// How much socket.io logging you want to see in the console. Higher is more debug info. 
-		socketLogLevel: 2,
-
 		// A listing of hostnames of peers with whom to share state.
 		peers: null,
 
@@ -64,7 +62,7 @@ exports.Network = BaseModel.extend({
 		// A secret used to encrypt session cookies.
 		var secret = '_notsosecret';
 		// An object in which sessions are stored.
-		var store = new express.session.MemoryStore();
+		var store = new session.MemoryStore();
 
 		// Using digest auth -- http://passportjs.org/guide/basic-digest/
 		if ($$config.permissions) {
@@ -102,16 +100,17 @@ exports.Network = BaseModel.extend({
 		app.use('/static', express.static(path.resolve(__dirname + '/../view')));
 
 		// More auth stuff.
-		app.use(express.cookieParser(secret));
-		app.use(express.session({
+		app.use(cookieParser(secret));
+		app.use(session({
 			store: store,
 			key: 'sessionId',
-			secret: secret
+			secret: secret,
+			resave: false,
+			saveUninitialized: true
 		}));
 		app.use(passport.initialize());
 		app.use(passport.session());
-		app.use(app.router);
-
+		
 		if ($$config.permissions) {
 			app.get('/', passport.authenticate('digest', {
 				session: true
@@ -125,8 +124,7 @@ exports.Network = BaseModel.extend({
 		}
 
 		///// Set up socket connection to console.
-		this.transports.socketToConsole = ioServer.listen(this.transports.webServer)
-			.set('log level', this.get('socketLogLevel'));
+		this.transports.socketToConsole = ioServer.listen(this.transports.webServer);
 
 		if ($$config.permissions) {
 			this.transports.socketToConsole.configure(_.bind(function() {
@@ -164,8 +162,7 @@ exports.Network = BaseModel.extend({
 		this.transports.oscToApp = new osc.Client('127.0.0.1', this.get('oscToAppPort'));
 
 		//// Set up socket connection to app.
-		this.transports.socketToApp = ioServer.listen(this.get('socketToAppPort'))
-			.set('log level', this.get('socketLogLevel'));
+		this.transports.socketToApp = ioServer.listen(this.get('socketToAppPort'));
 
 		//// Load the shared state plugin.
 		if ($$config.sharedState && $$sharedState.shared) {
