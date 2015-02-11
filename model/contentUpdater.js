@@ -162,7 +162,7 @@ exports.ContentUpdater = BaseModel.extend({
     // Process the XML file to extract files to load.
     _processContentRoot: function(error, response, body) {
         var source = this.get('source');
-        if (response.statusCode != 200) {
+        if (response && response.statusCode != 200) {
             this._handleError('Error loading root XML -- bad password?');
             return;
         }

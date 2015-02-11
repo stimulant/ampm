@@ -350,7 +350,6 @@ exports.ConsoleState = BaseModel.extend({
 
     // Change the source used by one of the updaters.
     setUpdaterSource: function(updater, source) {
-        console.log(updater, source);
         if (_.isString(updater)) {
             updater = global['$$' + updater + 'Updater'];
         }
