@@ -211,14 +211,14 @@ The logging module sends logs from ampm and the application being monitored to a
     // Settings for the email logger.
     "mail": {
         "enabled": true, // false to turn off
-        "host": "mail.content.stimulant.io", // The SMTP server to use.
         "ssl": false, // Whether to use SSL.
-        "username": "ampm@content.stimulant.io", // The account to log in with.
-        "from": "ampm@content.stimulant.io", // Where the emails should appear to be from.
-        "password": "JPv5U9N6", // The password to log in with.
         "subject": "ERROR: {hostname}", // The subject of the emails. "{hostname}" is replaced by the output of os.hostname().
         "level": "error", // The logging level to write: info, warn, error.
-        "to": "josh@stimulant.io" // Where the emails should go.
+        "host": "", // The SMTP server to use.
+        "username": "", // The account to log in with.
+        "from": "", // Where the emails should appear to be from.
+        "password": "", // The password to log in with.
+        "to": "" // Where the emails should go.
     },
 
     "cacheAmount": 20 // How many lines of logs and events to show in the web console.
