@@ -34,7 +34,7 @@
     "universal-analytics": "*",
     "winston": "^0.9.0",
     "winston-loggly": "*",
-    "winston-mail": "^0.3.0",
+    "winston-mail": "^0.3.2",
     "xregexp": "*"
   }
 }
