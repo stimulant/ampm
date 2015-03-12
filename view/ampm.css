@@ -1,0 +1,101 @@
+@font-face {
+    font-family: "din";
+    src: url('DINWeb-Medium.woff') format("woff");
+}
+@font-face {
+    font-family: "consolas";
+    src: url('Consolas.woff') format("woff");
+}
+body {
+    background-color: #2C2C2C;
+    color: white;
+    max-width: 950px;
+    margin: 20px auto;
+    font-family: consolas, monospace;
+}
+.function {
+    margin-top: 25px;
+}
+.function:after {
+    /* clearfix: http://stackoverflow.com/a/1633170/468472 */
+    
+    content: "";
+    display: table;
+    clear: both;
+}
+.functionHead, .sectionHead {
+    font-family: din, Helvetica, sans-serif;
+    text-transform: uppercase;
+    font-size: 18px;
+    width: 100%;
+    padding-bottom: 5px;
+    border-bottom: 1px white solid;
+    margin-bottom: 7px;
+}
+.section {
+    width: 33.3333%;
+    float: left;
+    padding-bottom: 30px;
+}
+.twoColumn {
+    width: 66.6666%;
+}
+.section:nth-child(3n-1) .sectionContent {
+    margin-right: 10px;
+}
+.section:nth-child(3n) .sectionContent {
+    margin-right: 10px;
+    margin-left: 10px;
+}
+.section:nth-child(3n).twoColumn .sectionContent {
+    margin-left: 10px;
+    margin-right: 0;
+}
+.section:nth-child(3n+1) .sectionContent {
+    margin-left: 10px;
+}
+.sectionContent {} .stimulant {
+    text-align: center;
+    margin-top: 60px;
+}
+@media screen and (max-width: 1000px) {
+    body {
+        margin-left: 20px;
+        margin-right: 20px;
+    }
+    .section {
+        width: 50%;
+    }
+    .section:nth-child(2n+0) .sectionContent {
+        margin-left: 0;
+        margin-right: 10px;
+    }
+    .section:nth-child(2n+1) .sectionContent {
+        margin-left: 10px;
+        margin-right: 0;
+    }
+    .section:nth-child(3n).twoColumn .sectionContent {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .section.twoColumn {
+        width: 100%;
+    }
+}
+@media screen and (max-width: 750px) {
+    .section {
+        width: 100%;
+    }
+    .section:nth-child(2n+0) .sectionContent {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .section:nth-child(2n+1) .sectionContent {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .section:nth-child(3n).twoColumn .sectionContent {
+        margin-left: 0;
+        margin-right: 0;
+    }
+}
