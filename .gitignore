@@ -23,3 +23,5 @@ logs/
 *.lai
 *.la
 *.a
+
+.DS_Store
