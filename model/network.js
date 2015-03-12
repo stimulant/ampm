@@ -115,11 +115,11 @@ exports.Network = BaseModel.extend({
 			app.get('/', passport.authenticate('digest', {
 				session: true
 			}), function(req, res) {
-				res.sendfile(path.resolve(__dirname + '/../view/index.html'));
+				res.sendFile(path.resolve(__dirname + '/../view/index.html'));
 			});
 		} else {
 			app.get('/', function(req, res) {
-				res.sendfile(path.resolve(__dirname + '/../view/index.html'));
+				res.sendFile(path.resolve(__dirname + '/../view/index.html'));
 			});
 		}
 

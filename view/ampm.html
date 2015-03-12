@@ -4,51 +4,136 @@
 <head>
     <title>ampm</title>
     <link rel="stylesheet" type="text/css" href="ampm.css" />
+
+    <script type="text/javascript" src="/static/libs/jquery.js"></script>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript" src="/static/libs/lodash.min.js"></script>
+    <script type="text/javascript" src="/static/libs/underscore.string.js"></script>
+    <script type="text/javascript" src="/static/libs/backbone.js"></script>
+    <script type="text/javascript" src="/static/libs/moment.js"></script>
+    <script type="text/javascript" src="/static/libs/moment-duration-format.js"></script>
+    <script type="text/javascript" src="/static/libs/humanize.js"></script>
+    <script type="text/javascript" src="/static/view.js"></script>
+
+    <script type="text/javascript">
+    $(document).ready(function() {
+        view = new View({
+            el: document.body
+        });
+    });
+    </script>
 </head>
 
 <body>
+
+    <div class="templates">
+        <div id="info-template">
+            <p>isRunning:
+                <%- isRunning %>
+                    <br/>uptime:
+                    <%- uptime %>
+                        <br/>restartCount:
+                        <%- restartCount %>
+                            <br/>fps:
+                            <%- fps %>
+                                <br/>cpu:
+                                <%- cpu %>
+                                    <br/>memory:
+                                    <%- memory %>
+            </p>
+            <hr/>
+            <pre><%- logList %></pre>
+            <hr/>
+            <pre><%- eventList %></pre>
+        </div>
+
+        <div id="update-button-template">
+            <a href="#" id="source">Set Source to
+                <%- source %>
+            </a>
+        </div>
+
+        <div id="config-button-template">
+            <a href="#" class="config">
+                <%- config %>
+            </a>
+        </div>
+    </div>
 
     <div class="logo">
         <a href="https://github.com/stimulant/ampm">
             <img src="ampm.png" alt="ampm" />
         </a>
     </div>
-    <div class="function">
+    <div class="function" id="controls">
         <div class="functionHead">Application Management</div>
-        <div class="section">
+        <div class="section" id="controls-app">
             <div class="sectionContent">
                 <div class="sectionHead">1.</div>
-                <div class="sectionLinks">stuff</div>
+                <div class="sectionLinks">
+                    Application
+                    <br/>
+                    <a href="#" id="shutdown-app">Shut Down App</a>
+                    <a href="#" id="start-app">Start App</a>
+                    <a href="#" id="restart-app">Restart App</a>
+                </div>
             </div>
         </div>
-        <div class="section">
+        <div class="section" id="controls-configs">
             <div class="sectionContent">
                 <div class="sectionHead">2.</div>
-                <div class="sectionLinks">stuff</div>
+                <div class="sectionLinks">
+                    Configs
+                    <br/>
+                    <div id="configs-list"></div>
+                </div>
             </div>
         </div>
         <div class="section">
             <div class="sectionContent">
                 <div class="sectionHead">3.</div>
-                <div class="sectionLinks">stuff</div>
+                <div class="sectionLinks" id="buttons-pc">
+                    Computer
+                    <br/>
+                    <a href="#" id="shutdown-pc">shut down computer</a>
+                    <a href="#" id="restart-pc">restart computer</a>
+                </div>
             </div>
         </div>
         <div class="section">
             <div class="sectionContent">
                 <div class="sectionHead">4.</div>
-                <div class="sectionLinks">stuff</div>
+                <div class="sectionLinks">
+                    Content
+                    <br/>
+                    <div id="controls-updaters-content">
+                        <div class="sources"></div>
+                        <div class="actions">
+                            <a href="#" class="update">Update</a>
+                            <a href="#" class="rollback">Rollback</a>
+                        </div>
+                    </div>
+                    &nbsp;
+                    <br/>App
+                    <br/>
+                    <div id="controls-updaters-app">
+                        <div class="sources"></div>
+                        <div class="actions">
+                            <a href="#" class="update">Update</a>
+                            <a href="#" class="rollback">Rollback</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="section">
             <div class="sectionContent">
                 <div class="sectionHead">5.</div>
-                <div class="sectionLinks">stuff</div>
-            </div>
-        </div>
-        <div class="section">
-            <div class="sectionContent">
-                <div class="sectionHead">6.</div>
-                <div class="sectionLinks">stuff</div>
+                <div class="sectionLinks" id="controls-cursor">Cursor
+                    <br/>
+                    <a href="#" id="hide-cursor">hide (ctrl-shift-0)</a>
+                    <a href="#" id="show-cursor">show (ctrl-shift-1)</a>
+                </div>
             </div>
         </div>
     </div>

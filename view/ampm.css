@@ -12,13 +12,15 @@ body {
     max-width: 950px;
     margin: 20px auto;
     font-family: consolas, monospace;
+    font-size: 15px;
+}
+.templates {
+    display: none;
 }
 .function {
     margin-top: 25px;
 }
 .function:after {
-    /* clearfix: http://stackoverflow.com/a/1633170/468472 */
-    
     content: "";
     display: table;
     clear: both;
@@ -40,6 +42,9 @@ body {
 .twoColumn {
     width: 66.6666%;
 }
+.section:nth-child(3n-1) {
+    clear: both;
+}
 .section:nth-child(3n-1) .sectionContent {
     margin-right: 10px;
 }
@@ -57,6 +62,13 @@ body {
 .sectionContent {} .stimulant {
     text-align: center;
     margin-top: 60px;
+}
+a {
+    color: #ffba00;
+    display: block;
+}
+a:hover {
+    color: #ffefc6;
 }
 @media screen and (max-width: 1000px) {
     body {
@@ -80,6 +92,12 @@ body {
     }
     .section.twoColumn {
         width: 100%;
+    }
+    .section:nth-child(3n-1) {
+        clear: none;
+    }
+    .section:nth-child(2n+0) {
+        clear: both;
     }
 }
 @media screen and (max-width: 750px) {
