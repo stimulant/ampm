@@ -218,6 +218,15 @@ exports.Logging = BaseModel.extend({
 	},
 
 	_logEvent: function(data) {
+		var cache = this.get('eventCache');
+		cache.push({
+			time: moment().format('YYYY-MM-DD HH:mm:ss'),
+			data: data
+		});
+		if (cache.length > this.get('cacheAmount')) {
+			cache.splice(0, cache.length - this.get('cacheAmount'));
+		}
+
 		if (this._google) {
 			// Log to Google Analytics.
 			this._google.event(data.Category, data.Action, data.Label, data.Value);
