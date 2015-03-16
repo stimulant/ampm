@@ -9,7 +9,6 @@ At its most basic you can use it to launch your app, monitor the process, and re
 
 <p align="center">
   <img src="https://github.com/stimulant/ampm/blob/master/console.png?raw=true" width="500"/>
-  <br/><strong>application<br/>management<br/>+<br/>performance<br/>monitoring</strong>
 </p>
 
 If you find these utilities helpful, definitely let us know. If you find a bug or make an improvement, please enter an issue or pull request.
