@@ -36,7 +36,7 @@ exports.ConsoleState = BaseModel.extend({
 
     // A timeout to throttle the speed of updates to the console.
     _updateConsoleTimeout: 0,
-    _updateConsoleRate: 1000 / 30,
+    _updateConsoleRate: 1000 / 1,
 
     // The last time the app was running to compute uptime.
     _startupTime: 0,

@@ -56,10 +56,29 @@ var View = Backbone.View.extend({
         $('#eventList').html(message.eventList);
         $('#isRunning').html(message.isRunning);
         $('#uptime').html(moment.duration(message.uptime, 'milliseconds').format('dd:hh:mm:ss'));
-        $('#fps').html(message.fps && message.fps.length ? message.fps[message.fps.length - 1] : '');
-        $('#cpu').html(message.cpu && message.cpu.length ? message.cpu[message.cpu.length - 1].toFixed(2) + '%' : '');
         $('#restarts').html(message.restartCount);
+
+        // http://omnipotent.net/jquery.sparkline/#s-docs
+        var chartOptions = {
+            width: '100%',
+            lineColor: '#ffba00',
+            fillColor: '#ffefc6',
+            spotRadius: 0,
+            lineWidth: 2
+        };
+
         $('#memory').html(message.memory && message.memory.length ? humanize.filesize(message.memory[message.memory.length - 1]) : '');
+        $('#memoryChart').sparkline(message.memory ? message.memory : [], chartOptions);
+
+        chartOptions.chartRangeMin = 0;
+        chartOptions.chartRangeMax = 60;
+        $('#fps').html(message.fps && message.fps.length ? message.fps[message.fps.length - 1] : '');
+        $('#fpsChart').sparkline(message.fps ? message.fps : [], chartOptions);
+
+        chartOptions.chartRangeMin = 0;
+        chartOptions.chartRangeMax = 100;
+        $('#cpu').html(message.cpu && message.cpu.length ? message.cpu[message.cpu.length - 1].toFixed(2) + '%' : '');
+        $('#cpuChart').sparkline(message.cpu ? message.cpu : [], chartOptions);
 
         $('#controls').prop('disabled', message.updaters.content.isUpdating || message.updaters.app.isUpdating);
         this._updateUpdater($('#controls-updaters-content'), message.updaters.content);

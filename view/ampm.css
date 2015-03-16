@@ -34,6 +34,9 @@ body {
     border-bottom: 1px white solid;
     margin-bottom: 7px;
 }
+.functionHead {
+    margin-bottom: 20px;
+}
 .sectionHead {
     font-size: 12px;
 }
@@ -76,7 +79,15 @@ a:hover {
 #logList {
     margin-bottom: 20px;
 }
-@media screen and (max-width: 768px) {
+.chartLabel {
+    width: 50%;
+    float: left;
+}
+.chart {
+    width: 50%;
+    float: left;
+}
+@media screen and (max-width: 950px) {
     body {
         margin-left: 20px;
         margin-right: 20px;
