@@ -35,22 +35,15 @@ var View = Backbone.View.extend({
     _onAppState: function(message) {
         $(document.body).show();
 
-        message.uptime = moment.duration(message.uptime, 'milliseconds').format('dd:hh:mm:ss');
-        message.fps = message.fps ? message.fps[message.fps.length - 1] : '';
-        message.cpu = message.cpu ? message.cpu[message.cpu.length - 1] : '';
-        message.memory = message.memory && message.memory.length ? humanize.filesize(message.memory[message.memory.length - 1]) : '';
         message.logList = '';
         _.each(message.logs, function(log) {
-            message.logList += log.time + ' ' + log.level + ': ' + log.msg + '\n';
+            message.logList += log.time + ' ' + log.level + ': ' + log.msg + '<br/>';
         });
 
         message.eventList = '';
         _.each(message.events, function(e) {
-            message.eventList += JSON.stringify(e) + '\n';
+            message.eventList += e.time + ' ' + e.data.Category + ', ' + e.data.Action + ', ' + e.data.Label + ', ' + e.data.Value + '<br/>';
         });
-
-        var template = _.unescape($('#info-template').html()).trim();
-        $('#info').html(_.template(template, message));
 
         $('#controls-updaters fieldset').toggle(!message.isUpdating && (message.updaters.app.source !== null || message.updaters.content.source !== null));
         $('#shutdown-app').toggle(message.isRunning);
@@ -58,6 +51,15 @@ var View = Backbone.View.extend({
         $('#restart-app').toggle(message.isRunning);
         $('#hide-cursor').toggle(message.isCursorShown);
         $('#show-cursor').toggle(!message.isCursorShown);
+
+        $('#logList').html(message.logList);
+        $('#eventList').html(message.eventList);
+        $('#isRunning').html(message.isRunning);
+        $('#uptime').html(moment.duration(message.uptime, 'milliseconds').format('dd:hh:mm:ss'));
+        $('#fps').html(message.fps && message.fps.length ? message.fps[message.fps.length - 1] : '');
+        $('#cpu').html(message.cpu && message.cpu.length ? message.cpu[message.cpu.length - 1].toFixed(2) + '%' : '');
+        $('#restarts').html(message.restartCount);
+        $('#memory').html(message.memory && message.memory.length ? humanize.filesize(message.memory[message.memory.length - 1]) : '');
 
         $('#controls').prop('disabled', message.updaters.content.isUpdating || message.updaters.app.isUpdating);
         this._updateUpdater($('#controls-updaters-content'), message.updaters.content);
@@ -76,11 +78,19 @@ var View = Backbone.View.extend({
 
     _onConfig: function(message, configs) {
         this._config = message;
-        console.log(message);
-        this._makeSources($('#controls-updaters-content .sources'), 'content', message.contentUpdater.remote);
-        this._makeSources($('#controls-updaters-app .sources'), 'app', message.appUpdater.remote);
-        this._addConfigs($('#controls-configs #configs-list'), configs);
-        $('#controls-configs').toggle(configs.length > 1);
+
+        if (!message.contentUpdater.remote && !message.appUpdater.remote) {
+            $('#controls-updaters').remove();
+        } else {
+            this._makeSources($('#controls-updaters-content .sources'), 'content', message.contentUpdater.remote);
+            this._makeSources($('#controls-updaters-app .sources'), 'app', message.appUpdater.remote);
+        }
+
+        if (configs.length == 1) {
+            $('#controls-configs').remove();
+        } else {
+            this._addConfigs($('#controls-configs #configs-list'), configs);
+        }
 
         if (!message.permissions) {
             return;
