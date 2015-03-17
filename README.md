@@ -33,7 +33,7 @@ If you find these utilities helpful, definitely let us know. If you find a bug o
 <a name="startup"/>
 # Startup
 
-The simplest way to start ampm is to just run something like ```node server.js```. However, this will use all the default configuration values, which means it won't start or monitor anything. Not super useful. You will likely want to use a specific configuration file and startup script, as shown in [the samples](https://github.com/stimulant/ampm/tree/master/samples). The startup scripts use [node-supervisor](https://github.com/isaacs/node-supervisor) to restart ampm when the configuration is changed (in dev) or when the application is updated (in live).
+The simplest way to start ampm is to just run something like ```node server.js```. However, this will use all the default configuration values, which means it won't start or monitor anything. Not super useful. You will likely want to use a specific configuration file and startup script, as shown in [the samples](https://github.com/stimulant/ampm-samples). The startup scripts use [node-supervisor](https://github.com/isaacs/node-supervisor) to restart ampm when the configuration is changed (in dev) or when the application is updated (in live).
 
 <a name="configuration"/>
 # Configuration
