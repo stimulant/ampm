@@ -34,7 +34,12 @@ if (global.$$serverState.get('config')) {
 }
 
 if (configPath && fs.existsSync(configPath)) {
-	var config = JSON.parse(fs.readFileSync(configPath));
+	var config = fs.readFileSync(configPath, {encoding:'UTF8'});
+        config = config.replace(/%([^%]+)%/g, function(_,n) {
+            return process.env[n];
+        });
+	config = JSON.parse(config);
+
 	if (!config['default']) {
 		// There are no schemes in the config, just ingest it whole.
 		console.log('Using single configuration.');
