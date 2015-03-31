@@ -35,9 +35,12 @@ if (global.$$serverState.get('config')) {
 
 if (configPath && fs.existsSync(configPath)) {
 	var config = fs.readFileSync(configPath, {encoding:'UTF8'});
-        config = config.replace(/%([^%]+)%/g, function(_,n) {
-            return process.env[n];
-        });
+
+	// replace environment variables in the config file with their contents
+    config = config.replace(/%([^%]+)%/g, function(_,n) {
+    	// also escape slashes
+        return (process.env[n] + '').replace(/[\\"']/g, '\\$&').replace(/[\\"']/g, '\\$&');
+    });
 	config = JSON.parse(config);
 
 	if (!config['default']) {
