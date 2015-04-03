@@ -37,6 +37,7 @@ if (configPath && fs.existsSync(configPath)) {
 	var config = fs.readFileSync(configPath, {encoding:'UTF8'});
 
 	// replace environment variables in the config file with their contents
+	process.env['CD'] = process.cwd();
     config = config.replace(/%([^%]+)%/g, function(_,n) {
     	// also escape slashes
         return (process.env[n] + '').replace(/[\\"']/g, '\\$&').replace(/[\\"']/g, '\\$&');
