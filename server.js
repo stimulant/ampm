@@ -20,8 +20,8 @@ global.$$config = {};
 
 // args will be ['node', 'server.js', 'config.json', 'dev.i14']
 var configPath = '';
-var configPaths = process.argv[2].split(',');
-var configScheme = process.argv[3];
+var configPaths = process.argv[2] ? process.argv[2].split(',') : [];
+var configScheme = process.argv[3] ? process.argv[3] : '';
 
 // A persistent state object, saved to state.json.
 global.$$serverState = new ServerState();
@@ -32,7 +32,7 @@ if (global.$$serverState.get('config')) {
 } else if (process.argv.length > 2) {
 	configPath = configPaths[0];
 }
-
+console.log(configPath);
 if (configPath && fs.existsSync(configPath)) {
 	var config = fs.readFileSync(configPath, {encoding:'UTF8'});
 
