@@ -21,11 +21,11 @@ exports.Persistence = BaseModel.extend({
         // system configuration.
         postLaunchCommand: "",
 
-        // Restart the app if it doesn't start up in this much time.
-        startupTimeout: 10,
+        // Restart the app if it doesn't start up in this much time. Set to zero (default) to allow the app to take forever to start up.
+        startupTimeout: 0,
 
-        // Restart the app this many seconds of no heartbeat messages.
-        heartbeatTimeout: 5,
+        // Restart the app this many seconds of no heartbeat messages. Set to zero (default) to never restart due to lack of heartbeats.
+        heartbeatTimeout: 0,
 
         // Restart the machine after this many app restarts.
         restartMachineAfter: Infinity,
@@ -253,6 +253,9 @@ exports.Persistence = BaseModel.extend({
     // Cancel and reset the timeout that restarts the app.
     _resetRestartTimeout: function(time) {
         clearTimeout(this._restartTimeout);
+        if (!time) {
+            return;
+        }
         if (!this._isShuttingDown) {
             this._restartTimeout = setTimeout(_.bind(this._onRestartTimeout, this), time * 1000);
         }
@@ -345,7 +348,10 @@ exports.Persistence = BaseModel.extend({
             return;
         }
 
-        this._isStartingUp = true;
+        if (this.get('startupTimeout')) {
+            this._isStartingUp = true;
+        }
+
         if (this.processId()) {
             // It's already running.
             this._isStartingUp = false;
