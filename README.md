@@ -98,11 +98,13 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     // system configuration.
     "postLaunchCommand": "",
 
-    // Restart the app if it doesn't start up in this much time.
-    "startupTimeout": 10,
+    // Restart the app if it doesn't start up in this much time. Set to
+    // zero (default) to allow the app to take forever to start up.
+    "startupTimeout": 0,
 
-    // Restart the app this many seconds of no heartbeat messages.
-    "heartbeatTimeout": 5,
+    // Restart the app this many seconds of no heartbeat messages. Set to
+    // zero (default) to never restart due to lack of heartbeats.
+    "heartbeatTimeout": 0,
 
     // Restart the machine after this many app restarts.
     "restartMachineAfter": Infinity,
@@ -314,12 +316,12 @@ This barely works right now, but the general idea is that you can include an add
     "sharedState": "../../../sharedState.js"
 ```
 
-This should be a [backbone model](https://github.com/stimulant/ampm-test/blob/master/sharedState.js) called SharedState with a "shared" property which is an object which will be shared across all ampm instances and applications. The other ampm instances and the master server are specified in the ```network.peers``` and ```network.master``` properties.
+This should be a [backbone model](https://github.com/stimulant/ampm-samples/blob/master/sharedState.js) called SharedState with a "shared" property which is an object which will be shared across all ampm instances and applications. The other ampm instances and the master server are specified in the ```network.peers``` and ```network.master``` properties.
 
 <a name="integration"/>
 # Integration with Applications
 
-Your application can talk to ampm in a number of different ways. For specific implementation details and examples, see the [ampm-test](https://github.com/stimulant/ampm-test/) repo.
+Your application can talk to ampm in a number of different ways. For specific implementation details and examples, see the [ampm-samples](https://github.com/stimulant/ampm-samples/) repo.
 
 <a name="integration-including"/>
 ## Including ampm
@@ -375,4 +377,4 @@ To set up event tracking on a new project, it will need to be set up in the Goog
 <a name="integration-state"/>
 ## State Sharing (experimental)
 
-ampm's state sharing is set up to be very flexible depending on the type of application being developed and the type of state you want to share. In your [sharedState.js](https://github.com/stimulant/ampm-test/blob/master/sharedState.js) file, you should set up listeners for the TCP and UDP message you want to get from the app, and update your state accordingly.
+ampm's state sharing is set up to be very flexible depending on the type of application being developed and the type of state you want to share. In your [sharedState.js](https://github.com/stimulant/ampm-samples/blob/master/sharedState.js) file, you should set up listeners for the TCP and UDP message you want to get from the app, and update your state accordingly.
