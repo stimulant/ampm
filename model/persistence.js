@@ -17,14 +17,22 @@ exports.Persistence = BaseModel.extend({
         // {config} will be replaced with the contents of the config file.
         launchCommand: "",
 
+        // The command to run to launch a parallel process, relative to
+        // server.js. {config} will be replaced with the contents of the config
+        // file. This process will be stopped and started at the same time as the
+        // main process.
+        sideCommand: "",
+
         // A command to run after the first heartbeat to do any additional
         // system configuration.
         postLaunchCommand: "",
 
-        // Restart the app if it doesn't start up in this much time. Set to zero (default) to allow the app to take forever to start up.
+        // Restart the app if it doesn't start up in this much time. Set to
+        // zero (default) to allow the app to take forever to start up.
         startupTimeout: 0,
 
-        // Restart the app this many seconds of no heartbeat messages. Set to zero (default) to never restart due to lack of heartbeats.
+        // Restart the app this many seconds of no heartbeat messages. Set to
+        // zero (default) to never restart due to lack of heartbeats.
         heartbeatTimeout: 0,
 
         // Restart the machine after this many app restarts.
@@ -63,7 +71,9 @@ exports.Persistence = BaseModel.extend({
     },
 
     // The spawned application process.
-    appProcess: null,
+    _appProcess: null,
+    // The spawned side process.
+    _sideProcess: null,
 
     // The first heartbeat since startup, in ms since epoch.
     _firstHeart: null,
@@ -286,9 +296,12 @@ exports.Persistence = BaseModel.extend({
         this.restartApp();
     },
 
-    // Determine whether the app is running.
     processId: function() {
         return this._appProcess ? this._appProcess.pid : 0;
+    },
+
+    sideProcessId: function() {
+        return this._sideProcess ? this._sideProcess.pid : 0;
     },
 
     // Kill the app process.
@@ -300,7 +313,7 @@ exports.Persistence = BaseModel.extend({
         this._isShuttingDown = true;
 
         // See if the app is running.
-        if (!this.processId()) {
+        if (!this.processId() && !this.sideProcessId()) {
             this._isShuttingDown = false;
             // Nope, not running.
             if (callback) {
@@ -313,10 +326,11 @@ exports.Persistence = BaseModel.extend({
         // Kill the app.
         clearTimeout(this._restartTimeout);
         this._appProcess.kill();
+        this._sideProcess.kill();
 
         // Check on an interval to see if it's dead.
         var check = setInterval(_.bind(function() {
-            if (this.processId()) {
+            if (this.processId() || this.sideProcessId()) {
                 return;
             }
 
@@ -367,9 +381,42 @@ exports.Persistence = BaseModel.extend({
         this._firstHeart = null;
         this._startupCallback = callback;
 
-        // Parse out the arguments from the launch command.
-        // var cmd = "'my command' arg1 arg2 'long arg' {config}"
-        var cmd = this.get('launchCommand');
+        var parts = this._parseCommand(this.get('launchCommand'));
+
+        if (!fs.existsSync(parts[0])) {
+            this._isStartingUp = false;
+            logger.error('Application not found.');
+            if (callback) {
+                callback(false);
+            }
+            return;
+        }
+
+        // Start the app.
+        logger.info('App starting up.');
+        this._appProcess = child_process.spawn(parts[0], parts.slice(1), {
+            cwd: path.dirname(path.resolve($$appUpdater.get('local')))
+        }).on('exit', _.bind(function() {
+            this._appProcess = null;
+        }, this));
+        this._resetRestartTimeout(this.get('startupTimeout'));
+
+        if (!this.get('sideCommand')) {
+            return;
+        }
+
+        // Start the side process.
+        parts = this._parseCommand(this.get('sideCommand'));
+        this._sideProcess = child_process.spawn(parts[0], parts.slice(1), {
+            cwd: path.dirname(path.resolve($$appUpdater.get('local')))
+        }).on('exit', _.bind(function() {
+            this._sideProcess = null;
+        }, this));
+    },
+
+    // Given a command line, parse into an array where the first item is the executable and the rest are the arguments.
+    // cmd = "'my command' arg1 arg2 'long arg' {config}"
+    _parseCommand: function(cmd) {
         var split = cmd.split(' ');
         var parts = [];
         var i = 0;
@@ -401,24 +448,7 @@ exports.Persistence = BaseModel.extend({
         }
 
         parts[0] = path.resolve(parts[0]);
-
-        if (!fs.existsSync(parts[0])) {
-            this._isStartingUp = false;
-            logger.error('Application not found.');
-            if (callback) {
-                callback(false);
-            }
-            return;
-        }
-
-        // Start the app.
-        logger.info('App starting up.');
-        this._appProcess = child_process.spawn(parts[0], parts.slice(1), {
-            cwd: path.dirname(path.resolve($$appUpdater.get('local')))
-        }).on('exit', _.bind(function() {
-            this._appProcess = null;
-        }, this));
-        this._resetRestartTimeout(this.get('startupTimeout'));
+        return parts;
     },
 
     // Kill the app process, then start it back up.

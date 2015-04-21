@@ -94,6 +94,12 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     // example: "../Client.exe {config}"
     "launchCommand": "",
 
+    // The command to run to launch a parallel process, relative to
+    // server.js. {config} will be replaced with the contents of the config
+    // file. This process will be stopped and started at the same time as the
+    // main process.
+    "sideCommand": "",
+
     // A command to run after the first heartbeat to do any additional
     // system configuration.
     "postLaunchCommand": "",
