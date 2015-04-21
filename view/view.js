@@ -54,7 +54,7 @@ var View = Backbone.View.extend({
 
         $('#logList').html(message.logList);
         $('#eventList').html(message.eventList);
-        $('#isRunning').html(message.isRunning);
+        $('#isRunning').html(message.isRunning.toString());
         $('#uptime').html(moment.duration(message.uptime, 'milliseconds').format('dd:hh:mm:ss'));
         $('#restarts').html(message.restartCount);
 
