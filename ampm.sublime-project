@@ -20,7 +20,8 @@
 			"*test/app*",
 			"content*",
 			"logs",
-			".nuget"
+			".nuget",
+			"Cinder/Cinder"
 		],
 		"file_exclude_patterns": [
 			".gitmodules"
