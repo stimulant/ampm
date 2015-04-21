@@ -25,6 +25,6 @@
 		"file_exclude_patterns": [
 			".gitmodules"
 		],
-		"path": "../ampm-test"
+		"path": "../ampm-samples"
 	}]
 }
