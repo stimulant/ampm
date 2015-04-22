@@ -395,7 +395,7 @@ exports.Persistence = BaseModel.extend({
         // Start the app.
         logger.info('App starting up.');
         this._appProcess = child_process.spawn(parts[0], parts.slice(1), {
-            cwd: path.dirname(path.resolve($$appUpdater.get('local')))
+            cwd: path.dirname(parts[0])
         }).on('exit', _.bind(function() {
             this._appProcess = null;
         }, this));
@@ -408,7 +408,7 @@ exports.Persistence = BaseModel.extend({
         // Start the side process.
         parts = this._parseCommand(this.get('sideCommand'));
         this._sideProcess = child_process.spawn(parts[0], parts.slice(1), {
-            cwd: path.dirname(path.resolve($$appUpdater.get('local')))
+            cwd: path.dirname(parts[0])
         }).on('exit', _.bind(function() {
             this._sideProcess = null;
         }, this));
