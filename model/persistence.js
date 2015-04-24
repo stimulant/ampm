@@ -326,7 +326,9 @@ exports.Persistence = BaseModel.extend({
         // Kill the app.
         clearTimeout(this._restartTimeout);
         this._appProcess.kill();
-        this._sideProcess.kill();
+        if (this._sideProcess) {
+            this._sideProcess.kill();
+        }
 
         // Check on an interval to see if it's dead.
         var check = setInterval(_.bind(function() {
