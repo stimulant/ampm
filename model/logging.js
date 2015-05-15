@@ -314,7 +314,7 @@ exports.Logging = BaseModel.extend({
 		}
 
 		var source = this.get('eventLog').eventSource;
-		var cmd = 'EVENTCREATE /L APPLICATION /T ' + level + ' /SO "' + source + '" /ID 1000 /D "' + msg + '"';
+		var cmd = 'EVENTCREATE /L APPLICATION /T ' + level + ' /SO "' + source + '" /ID 1000 /D "' + msg.substr(0,1000) + '"';
 		this._eventSourceConsole.stdin.write(cmd + '\n');
 	}
 });
