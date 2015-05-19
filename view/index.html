@@ -4,7 +4,6 @@
 <head>
     <title>ampm</title>
     <link rel="stylesheet" type="text/css" href="/static/ampm.css" />
-
     <script type="text/javascript" src="/static/libs/jquery.js"></script>
     <script type="text/javascript" src="/socket.io/socket.io.js"></script>
     <script type="text/javascript" src="/static/libs/lodash.min.js"></script>
@@ -15,7 +14,6 @@
     <script type="text/javascript" src="/static/libs/humanize.js"></script>
     <script type="text/javascript" src="/static/libs/sparkline.js"></script>
     <script type="text/javascript" src="/static/view.js"></script>
-
     <script type="text/javascript">
     $(document).ready(function() {
         view = new View({
@@ -26,21 +24,18 @@
 </head>
 
 <body>
-
     <div class="templates">
         <div id="update-button-template">
             <a href="#" id="source">Set Source to
                 <%- source %>
             </a>
         </div>
-
         <div id="config-button-template">
             <a href="#" class="config">
                 <%- config %>
             </a>
         </div>
     </div>
-
     <div class="logo">
         <a href="https://github.com/stimulant/ampm">
             <svg width="236" height="115">
@@ -144,7 +139,6 @@
             </div>
         </div>
     </div>
-
     <div class="function">
         <div class="functionHead">Performance Monitoring</div>
         <div class="section">
@@ -195,7 +189,6 @@
             </div>
         </div>
     </div>
-
     <div class="stimulant">
         <a href="http://stimulant.com/">
             <svg width="101" height="14">
@@ -211,7 +204,6 @@
             </svg>
         </a>
     </div>
-
 </body>
 
 </html>

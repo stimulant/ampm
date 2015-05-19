@@ -2,10 +2,12 @@
     font-family: "din";
     src: url('DINWeb-Medium.woff') format("woff");
 }
+
 @font-face {
     font-family: "consolas";
     src: url('Consolas.woff') format("woff");
 }
+
 body {
     background-color: #2C2C2C;
     color: white;
@@ -14,18 +16,23 @@ body {
     font-family: consolas, monospace;
     font-size: 15px;
 }
+
 .templates {
     display: none;
 }
+
 .function {
     margin-top: 25px;
 }
+
 .function:after {
     content: "";
     display: table;
     clear: both;
 }
-.functionHead, .sectionHead {
+
+.functionHead,
+.sectionHead {
     font-family: din, Helvetica, sans-serif;
     text-transform: uppercase;
     font-size: 18px;
@@ -34,59 +41,77 @@ body {
     border-bottom: 1px white solid;
     margin-bottom: 7px;
 }
+
 .functionHead {
     margin-bottom: 20px;
 }
+
 .sectionHead {
     font-size: 12px;
 }
+
 .section {
     width: 33.3333%;
     float: left;
     padding-bottom: 30px;
 }
+
 .twoColumn {
     width: 66.6666%;
 }
+
 .section:nth-child(3n-1) {
     clear: both;
 }
+
 .section:nth-child(3n-1) .sectionContent {
     margin-right: 10px;
 }
+
 .section:nth-child(3n) .sectionContent {
     margin-right: 10px;
     margin-left: 10px;
 }
+
 .section:nth-child(3n).twoColumn .sectionContent {
     margin-left: 10px;
     margin-right: 0;
 }
+
 .section:nth-child(3n+1) .sectionContent {
     margin-left: 10px;
 }
-.sectionContent {} .stimulant {
+
+.sectionContent {}
+
+.stimulant {
     text-align: center;
     margin-top: 60px;
 }
+
 a {
     color: #ffba00;
     display: block;
 }
+
 a:hover {
     color: #ffefc6;
 }
+
 #logList {
     margin-bottom: 20px;
 }
+
 .chartLabel {
     width: 50%;
     float: left;
 }
+
 .chart {
     width: 50%;
     float: left;
 }
+
 @media screen and (max-width: 950px) {
     body {
         margin-left: 20px;
@@ -117,6 +142,7 @@ a:hover {
         clear: both;
     }
 }
+
 @media screen and (max-width: 750px) {
     .section {
         width: 100%;
