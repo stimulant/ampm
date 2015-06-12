@@ -56,10 +56,6 @@ exports.Persistence = BaseModel.extend({
         // How many times the app has been restarted.
         restartCount: 0,
 
-        // Whether or not the Windows cursor should be hidden by default.
-        // ctrl-shift-0 will also hide it, and ctrl-shift-1 will show it.
-        hideCursor: false,
-
         // An array of hosts to ping and send alerts if not responsive.
         pingList: null,
 
@@ -119,8 +115,6 @@ exports.Persistence = BaseModel.extend({
 
         this._initSchedules();
         this._initPingList();
-
-        this.on('change:hideCursor', _.bind(this.updateHideCursor, this));
     },
 
     boot: function() {
@@ -495,13 +489,6 @@ exports.Persistence = BaseModel.extend({
         // This should cause node-supervisor to reboot us.
         logger.info('Triggering server restart.');
         fs.writeFile('restart.json', new Date().getTime());
-    },
-
-    updateHideCursor: function() {
-        var cmd = this.get('hideCursor') ? 'tools/cursor.hide.ahk' : 'tools/cursor.show.ahk';
-        child_process.spawn('tools/AutoHotKey.exe', [cmd], {
-            detached: true
-        }).unref();
     },
 
     // For each entry in the ping list, set up a process to ping it and an object that represents its status.

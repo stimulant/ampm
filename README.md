@@ -136,10 +136,6 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     // The number of pings which can be lost before an error is logged.
     "pingLostCount": 5,
 
-    // Whether or not the Windows cursor should be hidden by default.
-    // ctrl-shift-0 will also hide it, and ctrl-shift-1 will show it.
-    "hideCursor": false,
-
     // Restart the app if it uses more than this much memory.
     "maxMemory": Infinity
 }
@@ -164,10 +160,7 @@ If permissions are specified, the console is locked down with a username and pas
         "computer": true,
         
         // If true, the user can update the app and content.
-        "updaters": true,
-
-        // If true, the user can toggle the mouse cursor.
-        "cursor": true
+        "updaters": true
     }
 }
 ```

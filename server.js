@@ -129,12 +129,6 @@ if ($$sharedState) {
     $$sharedState.boot();
 }
 
-// Start up the cursor manager and set the default cursor state.
-child_process.spawn('tools/AutoHotKey.exe', ['tools/cursor.ahk'], {
-    detached: true
-}).unref();
-setTimeout(_.bind($$persistence.updateHideCursor, $$persistence), 1000);
-
 logger.info('Server started.');
 console.log('Console is at: http://' + os.hostname() + ':' + $$network.get('socketToConsolePort'));
 console.log(JSON.stringify($$config, null, 2));

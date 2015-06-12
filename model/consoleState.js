@@ -159,16 +159,6 @@ exports.ConsoleState = BaseModel.extend({
             $$serverState.saveState('config', config, $$persistence.restartServer);
         }, this));
 
-        socket.on('toggleCursor', _.bind(function() {
-            if (permissions && !permissions.cursor) {
-                return;
-            }
-
-            var toggle = $$persistence.get('hideCursor') ? 'show' : 'hide';
-            logger.info('Cursor ' + toggle + ' requested from console.');
-            $$persistence.set('hideCursor', !$$persistence.get('hideCursor'));
-        }, this));
-
         $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig(socket.handshake.user), this.get('configs'));
     },
 
@@ -179,7 +169,6 @@ exports.ConsoleState = BaseModel.extend({
         message.logs = $$logging.get('logCache');
         message.events = $$logging.get('eventCache');
         message.canUpdate = this.get('canUpdate');
-        message.isCursorShown = !$$persistence.get('hideCursor');
 
         message.updaters = {
             content: {
