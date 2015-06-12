@@ -7,6 +7,7 @@ var fs = require('node-fs'); // Recursive directory creation. https://github.com
 var express = require('express'); // Routing framework. http://expressjs.com/
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
+
 var osc = require('node-osc'); // OSC server. https://github.com/TheAlphaNerd/node-osc
 var ioServer = require('socket.io'); // Web socket implementation. http://socket.io/
 var ioClient = require('socket.io-client'); // Web socket implementation. http://socket.io/
@@ -101,6 +102,7 @@ exports.Network = BaseModel.extend({
 
         // More auth stuff.
         app.use(cookieParser(secret));
+
         app.use(session({
             store: store,
             key: 'sessionId',
@@ -127,23 +129,21 @@ exports.Network = BaseModel.extend({
         this.transports.socketToConsole = ioServer.listen(this.transports.webServer);
 
         if ($$config.permissions) {
-            this.transports.socketToConsole.configure(_.bind(function() {
-                // Yet more auth stuff.
-                this.transports.socketToConsole.set('authorization', passportSocketIo.authorize({
-                    cookieParser: express.cookieParser,
-                    key: 'sessionId',
-                    secret: secret,
-                    store: store,
-                    success: function(data, accept) {
-                        logger.info('Socket access authorized for user', data.user);
-                        accept(null, true);
-                    },
-                    fail: function(data, message, error, accept) {
-                        logger.info('Socket access unauthorized.', message, error);
-                        accept(null, false);
-                    }
-                }));
-            }, this));
+            // Yet more auth stuff.
+            this.transports.socketToConsole.use(passportSocketIo.authorize({
+                cookieParser: cookieParser,
+                key: 'sessionId',
+                secret: secret,
+                store: store,
+                success: function(data, accept) {
+                    logger.info('Socket access authorized for user', data.user);
+                    accept(null, true);
+                },
+                fail: function(data, message, error, accept) {
+                    logger.info('Socket access unauthorized.', message, error);
+                    accept(null, false);
+                }
+            }));
         }
 
         //// Set up OSC connection from app.
