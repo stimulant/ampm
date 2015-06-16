@@ -37,10 +37,11 @@ exports.AppUpdater = ContentUpdater.extend({
                 this._processFile(file);
             } else {
                 // We're just going to copy a local file.
+                var isDir = path.parse(remote).ext ? false : true;
                 this._robocopy(
-                    path.dirname(remote),
+                    isDir ? remote : path.dirname(remote),
                     path.dirname(path.resolve(file.get('tempPath'))),
-                    path.basename(remote),
+                    isDir ? '' : path.basename(remote),
                     _.bind(function(code) {
                         this.set('needsUpdate', code > 0 && code <= 8);
                         this._callback(code > 8 ? code : 0);
@@ -76,7 +77,7 @@ exports.AppUpdater = ContentUpdater.extend({
         cmd += '"' + path.resolve(contentFile.get('tempPath')) + '"';
 
         // Output directory
-        cmd += ' -o';
+        cmd += ' -y -o';
         cmd += '"' + path.dirname(path.resolve(contentFile.get('tempPath'))) + '"';
 
         // Crazy trick to suppress most of the output, otherwise the buffer gets exceeded. http://stackoverflow.com/a/11629736/468472

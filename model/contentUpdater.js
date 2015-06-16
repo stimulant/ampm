@@ -236,7 +236,7 @@ exports.ContentUpdater = BaseModel.extend({
                     url: contentFile.get('url'),
                     method: 'HEAD'
                 }, _.bind(function(error, response, body) {
-                    var remoteFileModified = moment(response.headers['last-modified']);
+                    var remoteFileModified = moment(new Date(response.headers['last-modified']));
                     if (remoteFileModified.isAfter(localFileModified)) {
                         // The remote file is newer, go get it.
                         this._downloadFile(contentFile);

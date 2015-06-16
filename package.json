@@ -17,7 +17,7 @@
     "later": "*",
     "lodash": "^3.1.0",
     "moment": "^2.9.0",
-    "ncp": "^1.0.1",
+    "ncp": "^2.0.0",
     "node-fs": "*",
     "node-osc": "^0.3.0",
     "node-windows": "*",

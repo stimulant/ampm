@@ -119,6 +119,7 @@ var View = Backbone.View.extend({
     },
 
     _makeSources: function(buttons, updater, sources) {
+
         var template = _.unescape($('#update-button-template').html()).trim();
         var click = _.bind(function(e) {
             var data = $(e.target).data();
@@ -126,16 +127,18 @@ var View = Backbone.View.extend({
         }, this);
 
         buttons.empty();
-        for (var source in sources) {
-            var data = {
-                updater: updater,
-                source: source
-            };
-            var button = $(_.template(template, data));
-            button.addClass(source);
-            button.data(data);
-            button.click(click);
-            buttons.append(button);
+        if (sources && Object.keys(sources).length > 1) {
+            for (var source in sources) {
+                var data = {
+                    updater: updater,
+                    source: source
+                };
+                var button = $(_.template(template, data));
+                button.addClass(source);
+                button.data(data);
+                button.click(click);
+                buttons.append(button);
+            }
         }
     },
 
@@ -204,12 +207,12 @@ var View = Backbone.View.extend({
     },
 
     _onUpdateClicked: function(event) {
-        var updater = $(event.target).parents('fieldset').first().attr('id').indexOf('content') != -1 ? 'content' : 'app';
+        var updater = $(event.target).parents('#controls-updaters-content').length ? 'content' : 'app';
         this._socket.emit('updateUpdater', updater);
     },
 
-    _onRollbackClicked: function() {
-        var updater = $(event.target).parents('fieldset').first().attr('id').indexOf('content') != -1 ? 'content' : 'app';
+    _onRollbackClicked: function(event) {
+        var updater = $(event.target).parents('#controls-updaters-content').length ? 'content' : 'app';
         this._socket.emit('rollbackUpdater', updater);
     }
 });

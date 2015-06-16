@@ -137,22 +137,22 @@ exports.ConsoleState = BaseModel.extend({
             this.setUpdaterSource(updater, source);
         }, this));
 
-        socket.on('updateUpdater', _.bind(function() {
+        socket.on('updateUpdater', _.bind(function(updater) {
             if (permissions && !permissions.updaters) {
                 return;
             }
 
             logger.info('Set update requested from console.');
-            this.updateUpdater();
+            this.updateUpdater(updater);
         }, this));
 
-        socket.on('rollbackUpdater', _.bind(function() {
+        socket.on('rollbackUpdater', _.bind(function(updater) {
             if (permissions && !permissions.updaters) {
                 return;
             }
 
             logger.info('Rollback requested from console.');
-            this.rollbackUpdater();
+            this.rollbackUpdater(updater);
         }, this));
 
         socket.on('switchConfig', _.bind(function(config) {
@@ -362,6 +362,10 @@ exports.ConsoleState = BaseModel.extend({
     updateUpdater: function(updater, callback) {
         if (_.isString(updater)) {
             updater = global['$$' + updater + 'Updater'];
+        }
+
+        if (!updater) {
+            return;
         }
 
         logger.info('Updating ' + updater.get('name') + ' from ' + updater.get('source'));
