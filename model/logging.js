@@ -193,6 +193,9 @@ exports.Logging = BaseModel.extend({
                     if (cache.length > this.get('cacheAmount')) {
                         cache.splice(0, cache.length - this.get('cacheAmount'));
                     }
+                    if ($$network.transports.socketToConsole) {
+                        $$network.transports.socketToConsole.emit('log', cache[cache.length - 1]);
+                    }
                 }
             }, this));
         }
