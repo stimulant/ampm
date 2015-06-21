@@ -8,8 +8,6 @@ var moment = require('moment'); // Date processing. http://momentjs.com/
 var request = require('request'); // Simpler HTTP. https://github.com/mikeal/request
 var progress = require('request-progress'); // Progress events on downloads. https://github.com/IndigoUnited/node-request-progress
 var XRegExp = require('xregexp').XRegExp; // Fancy regular expressions. http://xregexp.com/
-var ncp = require('ncp').ncp; // Recursive directory copy. https://npmjs.org/package/ncp
-var rimraf = require('rimraf'); // Recursive directory delete. https://github.com/isaacs/rimraf
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
@@ -330,7 +328,8 @@ exports.ContentUpdater = BaseModel.extend({
             fs.unlink(path.join(this.get('temp')[source], '/ampm/restart.json'), _.bind(function() {
 
                 // Copy from temp to local.
-                ncp(this.get('temp')[source], this.get('local'), _.bind(function(error) {
+                this._robocopy(this.get('temp')[source], this.get('local'), _.bind(function(error) {
+
                     this._handleError('Error copying from temp folder.', error);
                     this._completed();
                 }, this));
@@ -341,7 +340,7 @@ exports.ContentUpdater = BaseModel.extend({
             logger.info('Backing up from ' + path.resolve(this.get('local')) + ' to ' + path.resolve(this.get('backup')[source]));
 
             // Copy from local to backup.
-            ncp(this.get('local'), this.get('backup')[source], _.bind(function(error) {
+            this._robocopy(this.get('local'), this.get('backup')[source], _.bind(function(error) {
                 this._handleError('Error copying to backup folder.', error);
                 if (error) {
                     this._completed();
@@ -442,7 +441,7 @@ exports.ContentUpdater = BaseModel.extend({
         logger.info('Rolling back, copying from ' + this.get('backup')[source] + ' to ' + this.get('temp')[source]);
 
         // Copy from backup to temp.
-        ncp(this.get('backup')[source], this.get('temp')[source], _.bind(function(error) {
+        this._robocopy(this.get('backup')[source], this.get('temp')[source], _.bind(function(error) {
             this._handleError('Error copying to temp folder.', error);
             logger.info('Rolling back, copying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
 
@@ -450,14 +449,19 @@ exports.ContentUpdater = BaseModel.extend({
             fs.unlink(path.join(this.get('temp')[source], '/ampm/restart.json'), _.bind(function() {
 
                 // Copy from temp to local.
-                ncp(this.get('temp')[source], this.get('local'), _.bind(function(error) {
+                this._robocopy(this.get('temp')[source], this.get('local'), _.bind(function(error) {
                     this._handleError('Error copying to deploy folder.', error);
 
                     // Delete old backup.
-                    rimraf(this.get('backup')[source], _.bind(function(error) {
+                    child_process.exec('rmdir /s /q ' + this.get('backup')[source], _.bind(function(error) {
                         this._handleError('Error deleting backup.', error);
-                        this.set('isUpdating', false);
-                        this.set('canRollback', false);
+
+                        // Delete old temp.
+                        child_process.exec('rmdir /s /q ' + this.get('temp')[source], _.bind(function(error) {
+                            this._handleError('Error deleting temp.', error);
+                            this.set('isUpdating', false);
+                            this.set('canRollback', false);
+                        }, this));
                     }, this));
                     callback(error);
                 }, this));
