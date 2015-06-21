@@ -341,7 +341,7 @@ exports.ContentUpdater = BaseModel.extend({
             // Copy from local to backup.
             this._robocopy(this.get('local'), this.get('backup')[source], null, _.bind(function(error) {
                 this._handleError('Error copying to backup folder.', error > 8);
-                if (error) {
+                if (error > 8) {
                     this._completed();
                     return;
                 }
