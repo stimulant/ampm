@@ -328,9 +328,8 @@ exports.ContentUpdater = BaseModel.extend({
             fs.unlink(path.join(this.get('temp')[source], '/ampm/restart.json'), _.bind(function() {
 
                 // Copy from temp to local.
-                this._robocopy(this.get('temp')[source], this.get('local'), _.bind(function(error) {
-
-                    this._handleError('Error copying from temp folder.', error);
+                this._robocopy(this.get('temp')[source], this.get('local'), null, _.bind(function(error) {
+                    this._handleError('Error copying from temp folder.', error > 8);
                     this._completed();
                 }, this));
             }, this));
@@ -340,8 +339,8 @@ exports.ContentUpdater = BaseModel.extend({
             logger.info('Backing up from ' + path.resolve(this.get('local')) + ' to ' + path.resolve(this.get('backup')[source]));
 
             // Copy from local to backup.
-            this._robocopy(this.get('local'), this.get('backup')[source], _.bind(function(error) {
-                this._handleError('Error copying to backup folder.', error);
+            this._robocopy(this.get('local'), this.get('backup')[source], null, _.bind(function(error) {
+                this._handleError('Error copying to backup folder.', error > 8);
                 if (error) {
                     this._completed();
                     return;
@@ -441,16 +440,16 @@ exports.ContentUpdater = BaseModel.extend({
         logger.info('Rolling back, copying from ' + this.get('backup')[source] + ' to ' + this.get('temp')[source]);
 
         // Copy from backup to temp.
-        this._robocopy(this.get('backup')[source], this.get('temp')[source], _.bind(function(error) {
-            this._handleError('Error copying to temp folder.', error);
+        this._robocopy(this.get('backup')[source], this.get('temp')[source], null, _.bind(function(error) {
+            this._handleError('Error copying to temp folder.', error > 8);
             logger.info('Rolling back, copying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
 
             // Delete restart file.
             fs.unlink(path.join(this.get('temp')[source], '/ampm/restart.json'), _.bind(function() {
 
                 // Copy from temp to local.
-                this._robocopy(this.get('temp')[source], this.get('local'), _.bind(function(error) {
-                    this._handleError('Error copying to deploy folder.', error);
+                this._robocopy(this.get('temp')[source], this.get('local'), null, _.bind(function(error) {
+                    this._handleError('Error copying to deploy folder.', error > 8);
 
                     // Delete old backup.
                     child_process.exec('rmdir /s /q ' + this.get('backup')[source], _.bind(function(error) {
