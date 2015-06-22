@@ -89,7 +89,7 @@ exports.AppUpdater = ContentUpdater.extend({
             }
 
             this._handleError('Error unzipping app.', error);
-            fs.unlinkSync(contentFile)
+            fs.unlinkSync(contentFile.get('tempPath'));
             ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
         }, this));
     }
