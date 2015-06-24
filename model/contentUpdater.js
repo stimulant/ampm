@@ -387,6 +387,7 @@ exports.ContentUpdater = BaseModel.extend({
             targetDir,
             file,
             '/e', // Copies subdirectories. Note that this option includes empty directories.
+            '/purge', // Deletes destination files and directories that no longer exist in the source.
             '/v', // Produces verbose output, and shows all skipped files.
             '/np', // Specifies that the progress of the copying operation (the number of files or directories copied so far) will not be displayed.
             '/njs', // Specifies that there is no job summary.
