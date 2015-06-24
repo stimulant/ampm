@@ -148,7 +148,35 @@ exports.Logging = BaseModel.extend({
 
         // Set up email.
         if (this.get('mail').enabled) {
-            this.get('mail').subject = this.get('mail').subject ? this.get('mail').subject.replace('{hostname}', os.hostname()) : os.hostname();
+            var subject = this.get('mail').subject;
+            if (subject) {
+                subject = subject.replace('{hostname}', os.hostname());
+            } else {
+                subject = os.hostname();
+            }
+
+            function deepFind(obj, path) {
+                var paths = path.split('.');
+                var current = obj;
+                var i;
+
+                for (i = 0; i < paths.length; ++i) {
+                    if (current[paths[i]] == undefined) {
+                        return undefined;
+                    } else {
+                        current = current[paths[i]];
+                    }
+                }
+                return current;
+            }
+
+            subject = subject.replace(/\{([^\}]+)\}/g, function(mustache, param) {
+                var configProp = deepFind($$config, param);
+                return configProp === undefined ? mustache : configProp;
+            });
+
+            this.get('mail').subject = subject;
+            console.log(subject);
             logger.add(require('winston-mail').Mail, this.get('mail'));
         }
 

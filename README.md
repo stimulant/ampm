@@ -222,7 +222,7 @@ The logging module sends logs from ampm and the application being monitored to a
     "mail": {
         "enabled": true, // false to turn off
         "ssl": false, // Whether to use SSL.
-        "subject": "ERROR: {hostname}", // The subject of the emails. "{hostname}" is replaced by the output of os.hostname().
+        "subject": "ERROR: {hostname}", // The subject of the emails. "{hostname}" is replaced by the output of os.hostname(). Paths to anything in the config object can be used as well.
         "level": "error", // The logging level to write: info, warn, error.
         "host": "", // The SMTP server to use.
         "username": "", // The account to log in with.
