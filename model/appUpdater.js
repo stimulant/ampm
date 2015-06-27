@@ -3,6 +3,8 @@ var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
 var util = require('util');
+var recursive = require('recursive-readdir'); // https://www.npmjs.com/package/recursive-readdir
+var async = require('async');
 
 var cu = require('./contentUpdater.js');
 var ContentUpdater = cu.ContentUpdater;
@@ -96,20 +98,21 @@ exports.AppUpdater = ContentUpdater.extend({
 
             // delete temp file
             fs.unlink(contentFile.get('tempPath'), _.bind(function(err) {
-                // if there's an ampm.zip file, unzip that too
-                inputFile = path.join(path.dirname(path.resolve(contentFile.get('tempPath'))), 'ampm.zip');
-                fs.exists(inputFile, _.bind(function(exists) {
-                    if (!exists) {
-                        ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
-                        return;
-                    }
 
-                    logger.info('Unzipping ampm');
-                    child_process.exec(util.format(cmd, inputFile, outputDir), _.bind(function(error, stdout, stderr) {
-                        if (stdout.toLowerCase().indexOf('error') != -1) {
-                            error = stdout;
-                        }
-                        this._handleError('Error unzipping ampm.', error);
+                // Unzip any zip files in the build
+                recursive(outputDir, _.bind(function(err, files) {
+                    files = _.filter(files, function(file) {
+                        return path.extname(file) == '.zip';
+                    });
+                    async.eachSeries(files, _.bind(function(file, callback) {
+                        logger.info('Unzipping ' + file);
+                        outputDir = file.replace('.zip', '');
+                        child_process.exec(util.format(cmd, file, outputDir), _.bind(function() {
+                            fs.unlink(file, _.bind(function() {
+                                callback();
+                            }, this));
+                        }, this));
+                    }, this), _.bind(function(err) {
                         ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
                     }, this));
                 }, this));
