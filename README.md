@@ -137,7 +137,10 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     "pingLostCount": 5,
 
     // Restart the app if it uses more than this much memory.
-    "maxMemory": Infinity
+    "maxMemory": Infinity,
+
+    // Whether to let ampm die if it throws an unhandled exception.
+    "exitOnError": true
 }
 ```
 

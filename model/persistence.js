@@ -63,7 +63,10 @@ exports.Persistence = BaseModel.extend({
         pingLostCount: 5,
 
         // Restart the app if it uses more than this much memory.
-        maxMemory: Infinity
+        maxMemory: Infinity,
+
+        // Whether to let ampm crash if an unhandled exception is encountered.
+        exitOnError: true,
     },
 
     // The spawned application process.

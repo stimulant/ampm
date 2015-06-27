@@ -112,7 +112,9 @@ exports.Logging = BaseModel.extend({
 
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
-        global.logger = new winston.Logger();
+        global.logger = new winston.Logger({
+            exitOnError: $$persistence.get('exitOnError')
+        });
 
         logger.setLevels({
             info: 0,
@@ -128,6 +130,7 @@ exports.Logging = BaseModel.extend({
 
         // Set up console logger.
         if (this.get('console').enabled) {
+            this.get('console').handleExceptions = true;
             logger.add(winston.transports.Console, this.get('console'));
         }
 
@@ -143,6 +146,7 @@ exports.Logging = BaseModel.extend({
                 return moment().format('YYYY-MM-DD HH:mm:ss');
             };
 
+            this.get('file').handleExceptions = true;
             logger.add(winston.transports.DailyRotateFile, this.get('file'));
         }
 
@@ -176,7 +180,6 @@ exports.Logging = BaseModel.extend({
             });
 
             this.get('mail').subject = subject;
-            console.log(subject);
             logger.add(require('winston-mail').Mail, this.get('mail'));
         }
 
