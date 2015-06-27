@@ -282,6 +282,11 @@ exports.Logging = BaseModel.extend({
         }
 
         if (this.get('eventFile').enabled && this.get('eventFile').filename) {
+            var dir = path.dirname(this.get('eventFile').filename);
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir);
+            }
+
             // Log to the event log file.
             var date = new Date();
             var datestring = date.getFullYear() + '-';
