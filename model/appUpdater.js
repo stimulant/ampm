@@ -95,10 +95,10 @@ exports.AppUpdater = ContentUpdater.extend({
             this._handleError('Error unzipping app.', error);
 
             // delete temp file
-            fs.unlink(contentFile.get('tempPath'), function(err) {
+            fs.unlink(contentFile.get('tempPath'), _.bind(function(err) {
                 // if there's an ampm.zip file, unzip that too
                 inputFile = path.join(path.dirname(path.resolve(contentFile.get('tempPath'))), 'ampm.zip');
-                fs.exists(inputFile, function(exists) {
+                fs.exists(inputFile, _.bind(function(exists) {
                     if (!exists) {
                         ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
                         return;
@@ -112,8 +112,8 @@ exports.AppUpdater = ContentUpdater.extend({
                         this._handleError('Error unzipping ampm.', error);
                         ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
                     }, this));
-                });
-            });
+                }, this));
+            }, this));
         }, this));
     }
 });
