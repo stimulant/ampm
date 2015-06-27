@@ -2,6 +2,7 @@ var path = require('path'); // File path processing. http://nodejs.org/api/path.
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
+var util = require('util');
 
 var cu = require('./contentUpdater.js');
 var ContentUpdater = cu.ContentUpdater;
@@ -74,23 +75,45 @@ exports.AppUpdater = ContentUpdater.extend({
 
         // Extract
         cmd += ' x ';
-        cmd += '"' + path.resolve(contentFile.get('tempPath')) + '"';
+        cmd += '"%s"';
 
         // Output directory
         cmd += ' -y -o';
-        cmd += '"' + path.dirname(path.resolve(contentFile.get('tempPath'))) + '"';
+        cmd += '"%s"';
 
         // Crazy trick to suppress most of the output, otherwise the buffer gets exceeded. http://stackoverflow.com/a/11629736/468472
         cmd += ' | FIND /V "ing  "';
 
-        child_process.exec(cmd, _.bind(function(error, stdout, stderr) {
+        var inputFile = path.resolve(contentFile.get('tempPath'));
+        var outputDir = path.dirname(path.resolve(contentFile.get('tempPath')));
+
+        child_process.exec(util.format(cmd, inputFile, outputDir), _.bind(function(error, stdout, stderr) {
             if (stdout.toLowerCase().indexOf('error') != -1) {
                 error = stdout;
             }
 
             this._handleError('Error unzipping app.', error);
-            fs.unlinkSync(contentFile.get('tempPath'));
-            ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
+
+            // delete temp file
+            fs.unlink(contentFile.get('tempPath'), function(err) {
+                // if there's an ampm.zip file, unzip that too
+                inputFile = path.join(path.dirname(path.resolve(contentFile.get('tempPath'))), 'ampm.zip');
+                fs.exists(inputFile, function(exists) {
+                    if (!exists) {
+                        ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
+                        return;
+                    }
+
+                    logger.info('Unzipping ampm');
+                    child_process.exec(util.format(cmd, inputFile, outputDir), _.bind(function(error, stdout, stderr) {
+                        if (stdout.toLowerCase().indexOf('error') != -1) {
+                            error = stdout;
+                        }
+                        this._handleError('Error unzipping ampm.', error);
+                        ContentUpdater.prototype._onFileLoaded.call(this, contentFile);
+                    }, this));
+                });
+            });
         }, this));
     }
 });
