@@ -394,7 +394,9 @@ exports.ContentUpdater = BaseModel.extend({
             '/njh', // Specifies that there is no job header.
             '/bytes', // Prints sizes, as bytes.
             '/fft', // Assumes FAT file times (two-second precision).
-            '/ndl' // Specifies that directory names are not to be logged.
+            '/ndl', // Specifies that directory names are not to be logged.
+            '/r:2', // Only retry twice
+            '/w:2 ' // Only wait two seconds between retries
         ];
 
         if (!file) {
