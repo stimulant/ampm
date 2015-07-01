@@ -278,10 +278,12 @@ exports.ContentUpdater = BaseModel.extend({
             }, this));
 
         }, this))).on('progress', function(state) {
-
-            // Set progress properties on the file.
             contentFile.set('receivedBytes', state.received);
             contentFile.set('totalBytes', state.total);
+            if (state.percent >= 99) {
+                // don't say it's done, let _writeFile do that
+                return;
+            }
             contentFile.set('progress', state.percent / 100);
         });
     },
