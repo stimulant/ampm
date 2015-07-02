@@ -188,6 +188,10 @@ exports.Persistence = BaseModel.extend({
             }
 
             this._restartInterval = later.setInterval(_.bind(function() {
+                if (this._isStartingUp || this._isShuttingDown) {
+                    return;
+                }
+
                 logger.info('Restart time has arrived. ' + new Date());
                 if (!$$serverState.get('runApp')) {
                     logger.info('Startup disabled by console.');
@@ -303,7 +307,7 @@ exports.Persistence = BaseModel.extend({
 
     // Kill the app process.
     shutdownApp: function(callback) {
-        if (this._isShuttingDown) {
+        if (this._isShuttingDown || this._isStartingUp) {
             return;
         }
 
