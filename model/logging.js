@@ -130,7 +130,7 @@ exports.Logging = BaseModel.extend({
 
         // Set up console logger.
         if (this.get('console').enabled) {
-            this.get('console').handleExceptions = true;
+            this.get('console').handleExceptions = !$$persistence.get('exitOnError');
             logger.add(winston.transports.Console, this.get('console'));
         }
 
@@ -146,7 +146,7 @@ exports.Logging = BaseModel.extend({
                 return moment().format('YYYY-MM-DD HH:mm:ss');
             };
 
-            this.get('file').handleExceptions = true;
+            this.get('file').handleExceptions = !$$persistence.get('exitOnError');
             logger.add(winston.transports.DailyRotateFile, this.get('file'));
         }
 
