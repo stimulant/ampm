@@ -331,7 +331,7 @@ exports.ContentUpdater = BaseModel.extend({
 
                 // Copy from temp to local.
                 this._robocopy(this.get('temp')[source], this.get('local'), null, _.bind(function(error) {
-                    this._handleError('Error copying from temp folder.', error > 8);
+                    this._handleError('Error copying from temp folder. ' + error, error > 8);
                     this._completed();
                 }, this));
             }, this));
@@ -342,7 +342,7 @@ exports.ContentUpdater = BaseModel.extend({
 
             // Copy from local to backup.
             this._robocopy(this.get('local'), this.get('backup')[source], null, _.bind(function(error) {
-                this._handleError('Error copying to backup folder.', error > 8);
+                this._handleError('Error copying to backup folder. ' + error, error > 8);
                 if (error > 8) {
                     this._completed();
                     return;
@@ -446,7 +446,7 @@ exports.ContentUpdater = BaseModel.extend({
 
         // Copy from backup to temp.
         this._robocopy(this.get('backup')[source], this.get('temp')[source], null, _.bind(function(error) {
-            this._handleError('Error copying to temp folder.', error > 8);
+            this._handleError('Error copying to temp folder. ' + error, error > 8);
             logger.info('Rolling back, copying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
 
             // Delete restart file.
@@ -454,7 +454,7 @@ exports.ContentUpdater = BaseModel.extend({
 
                 // Copy from temp to local.
                 this._robocopy(this.get('temp')[source], this.get('local'), null, _.bind(function(error) {
-                    this._handleError('Error copying to deploy folder.', error > 8);
+                    this._handleError('Error copying to deploy folder. ' + error, error > 8);
 
                     // Delete old backup.
                     child_process.exec('rmdir /s /q ' + this.get('backup')[source], _.bind(function(error) {
