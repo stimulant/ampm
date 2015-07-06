@@ -394,7 +394,6 @@ exports.ContentUpdater = BaseModel.extend({
             targetDir,
             file,
             '/e', // Copies subdirectories. Note that this option includes empty directories.
-            '/purge', // Deletes destination files and directories that no longer exist in the source.
             '/v', // Produces verbose output, and shows all skipped files.
             '/np', // Specifies that the progress of the copying operation (the number of files or directories copied so far) will not be displayed.
             '/njs', // Specifies that there is no job summary.
@@ -402,6 +401,7 @@ exports.ContentUpdater = BaseModel.extend({
             '/bytes', // Prints sizes, as bytes.
             '/fft', // Assumes FAT file times (two-second precision).
             '/ndl', // Specifies that directory names are not to be logged.
+            '/purge', // Deletes destination files and directories that no longer exist in the source.
             '/r:2', // Only retry twice
             '/w:2 ' // Only wait two seconds between retries
         ];
