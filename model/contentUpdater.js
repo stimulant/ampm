@@ -126,11 +126,14 @@ exports.ContentUpdater = BaseModel.extend({
                 // We're going to just robocopy from another folder instead.
                 this._robocopy(remote, path.resolve(this.get('temp')[source]), null, _.bind(function(code) {
                     this.set('needsUpdate', code > 0 && code <= 8);
+                    this._callback(0);
+                    /*
                     this._callback(code > 8 ? code : 0);
                     if (code > 8) {
                         // Something bad happened.
                         logger.error('Robocopy failed with code ' + code);
                     }
+                    */
                 }, this));
             }
         }, this));
@@ -331,7 +334,7 @@ exports.ContentUpdater = BaseModel.extend({
 
                 // Copy from temp to local.
                 this._robocopy(this.get('temp')[source], this.get('local'), null, _.bind(function(error) {
-                    this._handleError('Error copying from temp folder. ' + error, error > 8);
+                    // this._handleError('Error copying from temp folder. ' + error, error > 8);
                     this._completed();
                 }, this));
             }, this));
@@ -342,12 +345,14 @@ exports.ContentUpdater = BaseModel.extend({
 
             // Copy from local to backup.
             this._robocopy(this.get('local'), this.get('backup')[source], null, _.bind(function(error) {
+                this._completed();
+                /*
                 this._handleError('Error copying to backup folder. ' + error, error > 8);
                 if (error > 8) {
                     this._completed();
                     return;
                 }
-
+                */
                 this.set('canRollback', true);
                 deployFromTemp();
             }, this));
@@ -446,7 +451,7 @@ exports.ContentUpdater = BaseModel.extend({
 
         // Copy from backup to temp.
         this._robocopy(this.get('backup')[source], this.get('temp')[source], null, _.bind(function(error) {
-            this._handleError('Error copying to temp folder. ' + error, error > 8);
+            // this._handleError('Error copying to temp folder. ' + error, error > 8);
             logger.info('Rolling back, copying from ' + this.get('temp')[source] + ' to ' + this.get('local'));
 
             // Delete restart file.
@@ -454,7 +459,7 @@ exports.ContentUpdater = BaseModel.extend({
 
                 // Copy from temp to local.
                 this._robocopy(this.get('temp')[source], this.get('local'), null, _.bind(function(error) {
-                    this._handleError('Error copying to deploy folder. ' + error, error > 8);
+                    // this._handleError('Error copying to deploy folder. ' + error, error > 8);
 
                     // Delete old backup.
                     child_process.exec('rmdir /s /q ' + this.get('backup')[source], _.bind(function(error) {

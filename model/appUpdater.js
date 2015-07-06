@@ -47,11 +47,14 @@ exports.AppUpdater = ContentUpdater.extend({
                     isDir ? '' : path.basename(remote),
                     _.bind(function(code) {
                         this.set('needsUpdate', code > 0 && code <= 8);
+                        this._callback(0);
+                        /*
                         this._callback(code > 8 ? code : 0);
                         if (code > 8) {
                             // Something bad happened.
                             logger.error('Robocopy failed with code ' + code);
                         }
+                        */
                     }, this));
             }
         }, this));
