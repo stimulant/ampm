@@ -311,8 +311,13 @@ exports.ContentUpdater = BaseModel.extend({
         logger.info(contentFile.get('url') + ' ' + style + ', ' + filesToGo + ' to go');
 
         if (!filesToGo) {
-            this.set('isUpdating', false);
-            this._callback();
+            // unblock files so Windows doesn't ask for confirmation on running things
+            var cmd = 'tools\\streams.exe -s -d /accepteula ' + this.get('temp')[this.get('source')];
+            logger.info('Unblocking files... ' + cmd);
+            child_process.exec(cmd, _.bind(function(error, stdout, stderr) {
+                this.set('isUpdating', false);
+                this._callback();
+            }, this));
         }
     },
 

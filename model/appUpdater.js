@@ -108,9 +108,11 @@ exports.AppUpdater = ContentUpdater.extend({
                         return path.extname(file) == '.zip';
                     });
                     async.eachSeries(files, _.bind(function(file, callback) {
+                        // unzip the file
                         logger.info('Unzipping ' + file);
                         outputDir = file.replace('.zip', '');
                         child_process.exec(util.format(cmd, file, outputDir), _.bind(function() {
+                            // delete the temp file
                             fs.unlink(file, _.bind(function() {
                                 callback();
                             }, this));
