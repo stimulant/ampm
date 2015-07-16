@@ -70,7 +70,8 @@ exports.ConsoleState = BaseModel.extend({
     // On initial socket connection with the console, listen for commands and send out the config.
     _onConnection: function(socket) {
 
-        var permissions = $$config.permissions ? $$config.permissions[socket.handshake.user] : null;
+        var username = socket.handshake.headers.authorization.match(/username="([^"]+)"/)[1];
+        var permissions = $$config.permissions ? $$config.permissions[username] : null;
 
         // Responds to requests for appState updates, but throttle it to _updateConsoleRate.
         var updateConsole = _.bind(this._updateConsole, this);
@@ -128,7 +129,6 @@ exports.ConsoleState = BaseModel.extend({
         }, this));
 
         socket.on('setUpdaterSource', _.bind(function(updater, source) {
-            console.log(arguments);
             if (permissions && !permissions.updaters) {
                 return;
             }
@@ -159,7 +159,7 @@ exports.ConsoleState = BaseModel.extend({
             $$serverState.saveState('config', config, $$persistence.restartServer);
         }, this));
 
-        $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig(socket.handshake.user), this.get('configs'));
+        $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig(username), this.get('configs'));
     },
 
     // Send the console new data on an interval.
