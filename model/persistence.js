@@ -463,6 +463,10 @@ exports.Persistence = BaseModel.extend({
 
     // Shut down the whole PC.
     shutdownMachine: function() {
+
+        // Thinking we should just never do this, disabling the code for now.
+        return;
+
         if (this._isShuttingDown) {
             return;
         }
