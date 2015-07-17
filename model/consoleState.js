@@ -70,8 +70,12 @@ exports.ConsoleState = BaseModel.extend({
     // On initial socket connection with the console, listen for commands and send out the config.
     _onConnection: function(socket) {
 
-        var username = socket.handshake.headers.authorization.match(/username="([^"]+)"/)[1];
-        var permissions = $$config.permissions ? $$config.permissions[username] : null;
+        var username = null;
+        var permissions = null;
+        if (socket.handshake.headers.authorization) {
+            username = socket.handshake.headers.authorization.match(/username="([^"]+)"/)[1];
+            permissions = $$config.permissions ? $$config.permissions[username] : null;
+        }
 
         // Responds to requests for appState updates, but throttle it to _updateConsoleRate.
         var updateConsole = _.bind(this._updateConsole, this);
