@@ -111,11 +111,6 @@ var View = Backbone.View.extend({
             return;
         }
 
-        // Default permissions to true.
-        ['app', 'computer', 'updaters'].forEach(function(permission) {
-            message.permissions[permission] = message.permissions[permission] !== undefined ? message.permissions[permission] : true;
-        });
-
         $('#controls-app').toggle(message.permissions.app);
         $('#controls-configs').toggle(message.permissions.app && configs.length > 1);
         $('#controls-computer').toggle(message.permissions.computer);
