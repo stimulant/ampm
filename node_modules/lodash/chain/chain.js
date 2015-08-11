@@ -8,7 +8,7 @@ var lodash = require('./lodash');
  * @memberOf _
  * @category Chain
  * @param {*} value The value to wrap.
- * @returns {Object} Returns the new `lodash` object.
+ * @returns {Object} Returns the new `lodash` wrapper instance.
  * @example
  *
  * var users = [
@@ -19,7 +19,9 @@ var lodash = require('./lodash');
  *
  * var youngest = _.chain(users)
  *   .sortBy('age')
- *   .map(function(chr) { return chr.user + ' is ' + chr.age; })
+ *   .map(function(chr) {
+ *     return chr.user + ' is ' + chr.age;
+ *   })
  *   .first()
  *   .value();
  * // => 'pebbles is 1'

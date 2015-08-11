@@ -6,6 +6,7 @@ module.exports = {
   'dropRight': require('./array/dropRight'),
   'dropRightWhile': require('./array/dropRightWhile'),
   'dropWhile': require('./array/dropWhile'),
+  'fill': require('./array/fill'),
   'findIndex': require('./array/findIndex'),
   'findLastIndex': require('./array/findLastIndex'),
   'first': require('./array/first'),
@@ -34,8 +35,10 @@ module.exports = {
   'uniq': require('./array/uniq'),
   'unique': require('./array/unique'),
   'unzip': require('./array/unzip'),
+  'unzipWith': require('./array/unzipWith'),
   'without': require('./array/without'),
   'xor': require('./array/xor'),
   'zip': require('./array/zip'),
-  'zipObject': require('./array/zipObject')
+  'zipObject': require('./array/zipObject'),
+  'zipWith': require('./array/zipWith')
 };

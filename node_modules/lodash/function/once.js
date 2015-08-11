@@ -3,11 +3,10 @@ var before = require('./before');
 /**
  * Creates a function that is restricted to invoking `func` once. Repeat calls
  * to the function return the value of the first call. The `func` is invoked
- * with the `this` binding of the created function.
+ * with the `this` binding and arguments of the created function.
  *
  * @static
  * @memberOf _
- * @type Function
  * @category Function
  * @param {Function} func The function to restrict.
  * @returns {Function} Returns the new restricted function.
@@ -19,7 +18,7 @@ var before = require('./before');
  * // `initialize` invokes `createApplication` once
  */
 function once(func) {
-  return before(func, 2);
+  return before(2, func);
 }
 
 module.exports = once;
