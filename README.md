@@ -211,6 +211,12 @@ The logging module sends logs from ampm and the application being monitored to a
         "filename": "logs/event-{date}.tsv" // Path to the log file, relative to server.js. {date} will be replaced by the current date.
     },
 
+    // Settings for screenshots taken after crashes.
+    "screenshots": {
+        "enabled": true, // false to turn off
+        "filename": "logs/capture-{date}.jpg" // Path to save screen shots, relative to server.js. {date} will be replaced by the current date.
+    },
+
     // Settings for loggly.com.
     "loggly": {
         "enabled": true, // false to turn off

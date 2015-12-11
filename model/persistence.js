@@ -274,27 +274,42 @@ exports.Persistence = BaseModel.extend({
 
     // When a heartbeat hasn't been received for a while, restart the app or the whole machine.
     _onRestartTimeout: function() {
-        var restartCount = this.get('restartCount');
-        restartCount++;
-
-        var logList = 'App went away: ' + restartCount + ' times\n\n';
-        _.each($$logging.get('logCache'), function(log) {
-            logList += log.time + ' ' + log.level + ': ' + log.msg + '\n';
-        });
-        logger.error(logList);
-
-        this.trigger('crash');
-
-        if (restartCount >= this.get('restartMachineAfter')) {
-            logger.info('Already restarted app ' + this.get('restartMachineAfter') + ' times, rebooting machine.');
-            this.restartMachine();
-            return;
+        var that = this;
+        if($$config.logging.screenshots.enabled) {
+            var filename = $$config.logging.screenshots.filename.replace('{date}', moment().format('YYYYMMDDhhmmss'));
+            logger.info('Saving screenshot to ' + filename);
+            var nircmd = child_process.spawn(path.join(__dirname, "../tools", "nircmd.exe"), ["savescreenshotfull", filename]); 
+            nircmd.on('close', function(code, signal) {
+                logger.info('Screenshot saved, restarting.');
+                restart();
+            });
+        } else {
+            restart();
         }
 
-        this.set('restartCount', restartCount);
-        this._isStartingUp = false;
-        this._isShuttingDown = false;
-        this.restartApp();
+        function restart() {
+            var restartCount = that.get('restartCount');
+            restartCount++;
+
+            var logList = 'App went away: ' + restartCount + ' times\n\n';
+            _.each($$logging.get('logCache'), function(log) {
+                logList += log.time + ' ' + log.level + ': ' + log.msg + '\n';
+            });
+            logger.error(logList);
+
+            that.trigger('crash');
+
+            if (restartCount >= that.get('restartMachineAfter')) {
+                logger.info('Already restarted app ' + that.get('restartMachineAfter') + ' times, rebooting machine.');
+                that.restartMachine();
+                return;
+            }
+
+            that.set('restartCount', restartCount);
+            that._isStartingUp = false;
+            that._isShuttingDown = false;
+            that.restartApp();
+        }
     },
 
     processId: function() {
