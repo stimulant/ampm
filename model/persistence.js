@@ -47,9 +47,6 @@ exports.Persistence = BaseModel.extend({
         // Start up the app on this schedule -- see cronmaker.com for the format.
         startupSchedule: null,
 
-        // Update the content and app on this schedule -- see cronmaker.com for the format.
-        updateSchedule: null,
-
         // Restart the app on this schedule -- see cronmaker.com for the format. 
         restartSchedule: null,
 
@@ -97,9 +94,6 @@ exports.Persistence = BaseModel.extend({
     // The timeout which starts up the app on the appointed schedule.
     _startupSchedule: null,
     _startupInterval: null,
-    // The timeout which triggers the content updater on the appointed schedule.
-    _updateSchedule: null,
-    _updateInterval: null,
     // The timeout which restarts the app on the appointed schedule.
     _restartSchedule: null,
     _restartInterval: null,
@@ -201,30 +195,6 @@ exports.Persistence = BaseModel.extend({
                 this.set('restartCount', 0);
                 this.restartApp();
             }, this), this._restartSchedule);
-        }
-
-        // Update content on schedule.
-        if (this.get('updateSchedule')) {
-            this._updateSchedule = later.parse.cron(this.get('updateSchedule'));
-            if (this._updateInterval) {
-                this._updateInterval.clear();
-            }
-
-            this._updateInterval = later.setInterval(_.bind(function() {
-                logger.info('Update time has arrived. ' + new Date());
-                this.set('restartCount', 0);
-                var isRunning = this.get('appState').get('isRunning');
-                this.shutdownApp(_.bind(function() {
-                    consoleState.update(appUpdater, _.bind(function() {
-                        consoleState.update(contentUpdater, _.bind(function() {
-                            if (isRunning) {
-                                this.restartServer();
-                            }
-                        }, this));
-                    }, this));
-                }, this));
-
-            }, this), this._updateSchedule);
         }
     },
 

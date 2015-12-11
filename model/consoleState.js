@@ -17,8 +17,6 @@ exports.ConsoleState = BaseModel.extend({
         fps: null,
         cpu: null,
         memory: null,
-        canUpdate: false,
-        isUpdating: false,
         configs: []
     },
 
@@ -45,7 +43,6 @@ exports.ConsoleState = BaseModel.extend({
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
 
-        this.set('canUpdate', (($$contentUpdater.get('remote') && true) || ($$appUpdater.get('remote') && true)) === true);
         $$persistence.on('heart', this._onHeart, this);
         this._updateStats();
         this._updateCpu();
@@ -59,8 +56,6 @@ exports.ConsoleState = BaseModel.extend({
         var permissions = $$config.permissions ? $$config.permissions[user] : null;
         return {
             network: $$network.attributes,
-            contentUpdater: $$contentUpdater.attributes,
-            appUpdater: $$appUpdater.attributes,
             persistence: $$persistence.attributes,
             logging: $$logging.attributes,
             permissions: permissions
@@ -132,33 +127,6 @@ exports.ConsoleState = BaseModel.extend({
             $$persistence.shutdownMachine();
         }, this));
 
-        socket.on('setUpdaterSource', _.bind(function(updater, source) {
-            if (permissions && !permissions.updaters) {
-                return;
-            }
-
-            logger.info('Set updater source requested from console.');
-            this.setUpdaterSource(updater, source);
-        }, this));
-
-        socket.on('updateUpdater', _.bind(function(updater) {
-            if (permissions && !permissions.updaters) {
-                return;
-            }
-
-            logger.info('Set update requested from console.');
-            this.updateUpdater(updater);
-        }, this));
-
-        socket.on('rollbackUpdater', _.bind(function(updater) {
-            if (permissions && !permissions.updaters) {
-                return;
-            }
-
-            logger.info('Rollback requested from console.');
-            this.rollbackUpdater(updater);
-        }, this));
-
         socket.on('switchConfig', _.bind(function(config) {
             $$serverState.saveState('config', config, $$persistence.restartServer);
         }, this));
@@ -172,20 +140,6 @@ exports.ConsoleState = BaseModel.extend({
         message.restartCount = $$persistence.get('restartCount');
         message.logs = $$logging.get('logCache');
         message.events = $$logging.get('eventCache');
-        message.canUpdate = this.get('canUpdate');
-
-        message.updaters = {
-            content: {
-                isUpdating: $$contentUpdater.get('isUpdating'),
-                canRollback: $$contentUpdater.get('canRollback'),
-                source: $$contentUpdater.get('source')
-            },
-            app: {
-                isUpdating: $$appUpdater.get('isUpdating'),
-                canRollback: $$appUpdater.get('canRollback'),
-                source: $$appUpdater.get('source')
-            }
-        };
 
         $$network.transports.socketToConsole.sockets.emit('appState', message);
     },
@@ -339,99 +293,5 @@ exports.ConsoleState = BaseModel.extend({
         if (++this._tickIndex == this._maxTicks) {
             this._tickIndex = 0;
         }
-    },
-
-    // Change the source used by one of the updaters.
-    setUpdaterSource: function(updater, source) {
-        if (_.isString(updater)) {
-            updater = global['$$' + updater + 'Updater'];
-        }
-
-        if (source == updater.get('source')) {
-            return;
-        }
-
-        updater.set('source', source);
-
-        fs.exists(updater.get('temp')[source], _.bind(function(exists) {
-            if (exists) {
-                this._deployUpdater(updater, true);
-            } else {
-                this.updateUpdater(updater);
-            }
-        }, this));
-    },
-
-    // Trigger an update on one of the updaters.
-    updateUpdater: function(updater, callback) {
-        if (_.isString(updater)) {
-            updater = global['$$' + updater + 'Updater'];
-        }
-
-        if (!updater) {
-            return;
-        }
-
-        logger.info('Updating ' + updater.get('name') + ' from ' + updater.get('source'));
-
-        updater.download(_.bind(function(error) {
-            if (error) {
-                return;
-            }
-
-            logger.info(updater.get('name') + ' download complete! ' + (updater.get('needsUpdate') ? '' : 'Nothing new was found.'));
-            if (!updater.get('needsUpdate')) {
-                if (callback) {
-                    callback();
-                }
-                return;
-            }
-
-            this._deployUpdater(updater, false);
-        }, this));
-    },
-
-    // Deploy content downloaded by one of the updaters.
-    _deployUpdater: function(updater, force) {
-        if (_.isString(updater)) {
-            updater = global['$$' + updater + 'Updater'];
-        }
-
-        $$persistence.shutdownApp(_.bind(function() {
-            updater.deploy(force, _.bind(function(error) {
-                if (error) {
-                    return;
-                }
-
-                logger.info(updater.get('name') + ' deploy complete!');
-                if (updater.get('name') == 'app') {
-                    $$persistence.restartServer();
-                } else {
-                    $$persistence.restartApp();
-                }
-            }, this));
-        }, this));
-    },
-
-    // Shut down the app, roll back content, and restart it.
-    rollbackUpdater: function(updater) {
-        if (_.isString(updater)) {
-            updater = global['$$' + updater + 'Updater'];
-        }
-
-        $$persistence.shutdownApp(_.bind(function() {
-            updater.rollBack(_.bind(function(error) {
-                if (error) {
-                    return;
-                }
-
-                logger.info('Rollback complete!');
-                if (updater.get('name') == 'app') {
-                    $$persistence.restartServer();
-                } else {
-                    $$persistence.restartApp();
-                }
-            }, this));
-        }, this));
     }
 });

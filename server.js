@@ -7,8 +7,6 @@ var child_process = require('child_process'); // http://nodejs.org/api/child_pro
 var ConsoleState = require('./model/consoleState.js').ConsoleState;
 var BaseModel = require('./model/baseModel.js').BaseModel;
 var Network = require('./model/network.js').Network;
-var ContentUpdater = require('./model/contentUpdater.js').ContentUpdater;
-var AppUpdater = require('./model/appUpdater.js').AppUpdater;
 var Persistence = require('./model/persistence.js').Persistence;
 var ServerState = require('./model/serverState.js').ServerState;
 var Logging = require('./model/logging.js').Logging;
@@ -94,18 +92,6 @@ if ($$config.sharedState && fs.existsSync($$config.sharedState)) {
 // A container for all the network transports, generally accessed via $$network.transports.
 global.$$network = new Network({
     config: $$config.network
-});
-
-// The updater which downloads content referenced by an XML file or local/network file path.
-global.$$contentUpdater = new ContentUpdater({
-    name: 'content',
-    config: $$config.contentUpdater
-});
-
-// The updater which downloads a zip file and decompresses it.
-global.$$appUpdater = new AppUpdater({
-    name: 'app',
-    config: $$config.appUpdater
 });
 
 // The manager of the application process, controlling restarts and heartbeats.

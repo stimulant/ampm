@@ -5,9 +5,7 @@ var View = Backbone.View.extend({
         'click #restart-app': '_onRestartAppClicked',
         'click #shutdown-pc': '_onShutdownPcClicked',
         'click #restart-pc': '_onRestartPcClicked',
-        'click #start-app': '_onStartClicked',
-        'click .update': '_onUpdateClicked',
-        'click .rollback': '_onRollbackClicked'
+        'click #start-app': '_onStartClicked'
     },
 
     _socket: null,
@@ -43,7 +41,6 @@ var View = Backbone.View.extend({
             message.eventList += e.time + ' ' + e.data.Category + ', ' + e.data.Action + ', ' + e.data.Label + ', ' + e.data.Value + '<br/>';
         });
 
-        $('#controls-updaters fieldset').toggle(!message.isUpdating && (message.updaters.app.source !== null || message.updaters.content.source !== null));
         $('#shutdown-app').toggle(message.isRunning);
         $('#start-app').toggle(!message.isRunning);
         $('#restart-app').toggle(message.isRunning);
@@ -75,31 +72,10 @@ var View = Backbone.View.extend({
         chartOptions.chartRangeMax = 100;
         $('#cpu').html(message.cpu && message.cpu.length ? message.cpu[message.cpu.length - 1].toFixed(2) + '%' : '');
         $('#cpuChart').sparkline(message.cpu ? message.cpu : [], chartOptions);
-
-        $('#controls').prop('disabled', message.updaters.content.isUpdating || message.updaters.app.isUpdating);
-        this._updateUpdater($('#controls-updaters-content'), message.updaters.content);
-        this._updateUpdater($('#controls-updaters-app'), message.updaters.app);
-    },
-
-    _updateUpdater: function(container, state) {
-        container.toggle(state.source !== null);
-        $('.rollback', container).toggle(state.canRollback);
-        $('.current', container).html(state.source);
-        $('.sources button', container).each(_.bind(function(index, value) {
-            var button = $(value);
-            button.toggle(!button.hasClass(state.source));
-        }, this));
     },
 
     _onConfig: function(message, configs) {
         this._config = message;
-
-        if (!message.contentUpdater.remote && !message.appUpdater.remote) {
-            $('#controls-updaters').remove();
-        } else {
-            this._makeSources($('#controls-updaters-content .sources'), 'content', message.contentUpdater.remote);
-            this._makeSources($('#controls-updaters-app .sources'), 'app', message.appUpdater.remote);
-        }
 
         if (configs.length == 1) {
             $('#controls-configs').remove();
@@ -114,32 +90,7 @@ var View = Backbone.View.extend({
         $('#controls-app').toggle(message.permissions.app);
         $('#controls-configs').toggle(message.permissions.app && configs.length > 1);
         $('#controls-computer').toggle(message.permissions.computer);
-        $('#controls-updaters').toggle(message.permissions.updaters);
-        $('#controls').toggle(message.permissions.app || message.permissions.computer || message.permissions.updaters);
-    },
-
-    _makeSources: function(buttons, updater, sources) {
-
-        var template = _.unescape($('#update-button-template').html()).trim();
-        var click = _.bind(function(e) {
-            var data = $(e.target).data();
-            this._onSetSourceClicked(e, data.updater, data.source);
-        }, this);
-
-        buttons.empty();
-        if (sources && Object.keys(sources).length > 1) {
-            for (var source in sources) {
-                var data = {
-                    updater: updater,
-                    source: source
-                };
-                var button = $(_.template(template, data));
-                button.addClass(source);
-                button.data(data);
-                button.click(click);
-                buttons.append(button);
-            }
-        }
+        $('#controls').toggle(message.permissions.app || message.permissions.computer);
     },
 
     _addConfigs: function(list, configs) {
@@ -196,23 +147,9 @@ var View = Backbone.View.extend({
         this._socket.emit('start');
     },
 
-    _onSetSourceClicked: function(event, updater, source) {
-        this._socket.emit('setUpdaterSource', updater, source);
-    },
-
     _onConfigClicked: function(event, config) {
         if (window.confirm('Are you sure you want to shut down the app and launch ' + config + ' ?')) {
             this._socket.emit('switchConfig', config);
         }
-    },
-
-    _onUpdateClicked: function(event) {
-        var updater = $(event.target).parents('#controls-updaters-content').length ? 'content' : 'app';
-        this._socket.emit('updateUpdater', updater);
-    },
-
-    _onRollbackClicked: function(event) {
-        var updater = $(event.target).parents('#controls-updaters-content').length ? 'content' : 'app';
-        this._socket.emit('rollbackUpdater', updater);
     }
 });

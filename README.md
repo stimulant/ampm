@@ -18,8 +18,6 @@ If you find these utilities helpful, definitely let us know. If you find a bug o
  * [Persistence](#configuration-persistence)
  * [Permissions](#configuration-permissions)
  * [Logging](#configuration-logging)
- * [Content Updater](#configuration-contentupdater)
- * [App Updater](#configuration-appupdater)
  * [Networking](#configuration-networking)
  * [State Sharing (experimental)](#configuration-statesharing)
 * [Integration with Applications](#integration)
@@ -124,9 +122,6 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     // Start up the app on this schedule -- see cronmaker.com for the format.
     "startupSchedule": null,
 
-    // Update the content and app on this schedule -- see cronmaker.com for the format.
-    "updateSchedule": null,
-
     // Restart the app on this schedule -- see cronmaker.com for the format. 
     "restartSchedule": null,
 
@@ -160,10 +155,7 @@ If permissions are specified, the console is locked down with a username and pas
         "app": true,
         
         // If true, the user can shutdown and restart the computer.
-        "computer": true,
-        
-        // If true, the user can update the app and content.
-        "updaters": true
+        "computer": true
     }
 }
 ```
@@ -241,42 +233,6 @@ The logging module sends logs from ampm and the application being monitored to a
     },
 
     "cacheAmount": 20 // How many lines of logs and events to show in the web console.
-}
-```
-
-<a name="configuration-contentupdater"/>
-## Content Updater
-
-The content updater handles downloading and deploying of updated content. It can also handle content from different sources (such as dev and live environments) and perform rollbacks of bad content.
-
-```JavaScript
-"contentUpdater": {
-    // The path to fetch new content from. If this is a URL, ampm will look for an XML file and
-    // parse it for additional URLs to fetch. If it's a local/network path, it will use robocopy
-    // to fetch a directory. This can also be a mapping of content sources and URLs, such as:
-    // {dev: url, live: url }
-    "remote": null,
-
-    // The local path to deployed content, relative to server.js.
-    "local": "content/",
-}
-```
-
-<a name="configuration-appupdater"/>
-## App Updater
-
-The app updater is just about the same as the content updater, except it updates the application (and ampm) itself.
-
-```JavaScript
-"appUpdater": {
-    // The path to fetch new content from. If this is a URL, ampm will look for an XML file and
-    // parse it for additional URLs to fetch. If it's a local/network path, it will use robocopy
-    // to fetch a directory. This can also be a mapping of content sources and URLs, such as:
-    // {dev: url, live: url }
-    "remote": null,
-
-    // The local path to deployed content, relative to server.js.
-    "local": "content/",
 }
 ```
 
