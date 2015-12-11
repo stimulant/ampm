@@ -9,7 +9,6 @@ var Backbone = require('backbone'); // Data model utilities. http://backbonejs.o
 var winston = require('winston'); // Logging. https://github.com/flatiron/winston
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var ua = require('universal-analytics'); // Google Analytics. https://npmjs.org/package/universal-analytics
-var wincmd = require('node-windows'); // Windows utilities. https://github.com/coreybutler/node-windows
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
@@ -35,12 +34,6 @@ exports.Logging = BaseModel.extend({
             colorize: true, // Colors are fun.
             timestamp: true, // Include timestamps.
             level: "info" // The logging level to write: info, warn, error.
-        },
-
-        // Settings for the Windows event logger.
-        eventLog: {
-            eventSource: 'ampm',
-            enabled: true // Whether to log Windows events at all.
         },
 
         // Settings for Google Analytics.
@@ -93,23 +86,6 @@ exports.Logging = BaseModel.extend({
         eventCache: null,
     },
 
-    // Whether the windows event source has been initialized.
-    _eventSourceReady: false,
-
-    // Mappings from the Winston levels to what Event Viewer wants.
-    _winstonLevelToWindowsLevel: {
-        info: 'Information',
-        warn: 'Warning',
-        error: 'Error'
-    },
-
-    // Mappings from MS.Diagnostics.Tracing.EventLevel to the Winston levels.
-    _appLevelToWinstonLevel: {
-        Informational: 'info',
-        Warning: 'warn',
-        Error: 'error'
-    },
-
     // The Google Analytics client.
     _google: null,
 
@@ -120,18 +96,6 @@ exports.Logging = BaseModel.extend({
         BaseModel.prototype.initialize.apply(this);
         global.logger = new winston.Logger({
             exitOnError: $$persistence.get('exitOnError')
-        });
-
-        logger.setLevels({
-            info: 0,
-            warn: 1,
-            error: 2
-        });
-
-        winston.addColors({
-            info: 'green',
-            warn: 'yellow',
-            error: 'red'
         });
 
         // Set up console logger.
@@ -153,7 +117,7 @@ exports.Logging = BaseModel.extend({
             };
 
             this.get('file').handleExceptions = !$$persistence.get('exitOnError');
-            logger.add(winston.transports.DailyRotateFile, this.get('file'));
+            logger.add(require('winston-daily-rotate-file'), this.get('file'));
         }
 
         // Set up email.
@@ -195,17 +159,6 @@ exports.Logging = BaseModel.extend({
             opts.tags = opts.tags ? [opts.tags] : [];
             opts.tags.push(os.hostname());
             logger.add(require('winston-loggly').Loggly, opts);
-        }
-
-        // Set up Windows event log. Sort of hacky. Piggy-back on the console logger and log to the event log whenever it does.
-        if (this.get('eventLog').enabled) {
-            this.registerEventSource();
-            logger.on('logging', _.bind(function(transport, level, msg, meta) {
-                if (transport.name == 'console') {
-                    level = this._winstonLevelToWindowsLevel[level];
-                    this.writeEventLog(level, msg, meta);
-                }
-            }, this));
         }
 
         // Set up Google Analytics. 
@@ -251,7 +204,6 @@ exports.Logging = BaseModel.extend({
     },
 
     _logMessage: function(data) {
-        data.level = this._appLevelToWinstonLevel[data.level];
         if (logger && logger[data.level]) {
             logger[data.level](data.message);
         }
@@ -312,54 +264,5 @@ exports.Logging = BaseModel.extend({
             var log = util.format('%d\t%s\t%s\t%s\t%d\n', timestamp, data.Category || '', data.Action || '', data.Label || '', data.Value || 0);
             fs.appendFile(fileName, log);
         }
-    },
-
-    // Register a Windows event source.
-    registerEventSource: function(callback) {
-        var source = this.get('eventLog').eventSource;
-        var key = 'HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentcontrolSet\\Services\\EventLog\\Application\\' + source;
-        child_process.exec('REG QUERY ' + key, _.bind(function(error, stdout, stderr) {
-            if (!error) {
-                this._eventSourceConsole = child_process.spawn('cmd.exe');
-                this._eventSourceReady = true;
-                return;
-            }
-
-            var cmd = 'EVENTCREATE /L APPLICATION /T Information /SO "' + source + '" /ID 1000 /D "Set up event source."';
-            wincmd.elevate(cmd, null, _.bind(function(error, stdout, stderr) {
-                if (!error) {
-                    this._eventSourceConsole = child_process.spawn('cmd.exe');
-                    this._eventSourceReady = true;
-                }
-
-                if (callback) {
-                    callback(error, stdout, stderr);
-                }
-            }, this));
-        }, this));
-    },
-
-    // Log a message to the Windows event log.
-    writeEventLog: function(level, msg, meta, callback) {
-        if (!this._eventSourceReady || !msg || !level) {
-            return;
-        }
-
-        msg = msg.trim();
-        level = level.trim();
-        if (!msg || !level) {
-            return;
-        }
-
-        if (meta) {
-            meta = JSON.stringify(meta);
-            if (meta != '{}') {
-                msg += ' ' + meta;
-            }
-        }
-
-        var source = this.get('eventLog').eventSource;
-        var cmd = 'EVENTCREATE /L APPLICATION /T ' + level + ' /SO "' + source + '" /ID 1000 /D "' + msg.substr(0, 1000) + '"';
-        this._eventSourceConsole.stdin.write(cmd + '\n');
     }
 });

@@ -1,3 +1,61 @@
+1.12.1 / 2015-10-29
+===================
+
+  * deps: cookie@0.2.3
+    - Fix cookie `Max-Age` to never be a floating point number
+
+1.12.0 / 2015-10-25
+===================
+
+  * Support the value `'auto'` in the `cookie.secure` option
+  * deps: cookie@0.2.2
+    - Throw on invalid values provided to `serialize`
+  * deps: depd@~1.1.0
+    - Enable strict mode in more places
+    - Support web browser loading
+  * deps: on-headers@~1.0.1
+    - perf: enable strict mode
+
+1.11.3 / 2015-05-22
+===================
+
+  * deps: cookie@0.1.3
+    - Slight optimizations
+  * deps: crc@3.3.0
+
+1.11.2 / 2015-05-10
+===================
+
+  * deps: debug@~2.2.0
+    - deps: ms@0.7.1
+  * deps: uid-safe@~2.0.0
+
+1.11.1 / 2015-04-08
+===================
+
+  * Fix mutating `options.secret` value
+
+1.11.0 / 2015-04-07
+===================
+
+  * Support an array in `secret` option for key rotation
+  * deps: depd@~1.0.1
+
+1.10.4 / 2015-03-15
+===================
+
+  * deps: debug@~2.1.3
+    - Fix high intensity foreground color for bold
+    - deps: ms@0.7.0
+
+1.10.3 / 2015-02-16
+===================
+
+  * deps: cookie-signature@1.0.6
+  * deps: uid-safe@1.1.0
+    - Use `crypto.randomBytes`, if available
+    - deps: base64-url@1.2.1
+
 1.10.2 / 2015-01-31
 ===================
 

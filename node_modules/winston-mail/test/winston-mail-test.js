@@ -1,8 +1,5 @@
 /*
  * winston-mail-test.js: Tests for instances of the Mail transport
- *
- * (C) 2011 Marc Harter
- * MIT LICENSE
  */
 var vows = require('vows');
 var assert = require('assert');

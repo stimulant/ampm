@@ -2,7 +2,7 @@
   "transports": {
     "loggly": {
       "subdomain": "your-subdomain",
-      "inputToken": "really-long-token-you-got-from-loggly",
+      "token": "really-long-token-you-got-from-loggly",
       "auth": {
         "username": "your-username",
         "password": "your-password"

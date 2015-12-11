@@ -185,12 +185,6 @@ The logging module sends logs from ampm and the application being monitored to a
         "level": "info" // The logging level to write: info, warn, error.
     },
 
-    // Settings for the Windows event logger.
-    "eventLog": {
-        "eventSource": "ampm", // The source to list events under.
-        "enabled": true // Whether to log Windows events at all.
-    },
-
     // Settings for Google Analytics.
     "google": {
         "enabled": true, // false to turn off

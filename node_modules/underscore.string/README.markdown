@@ -7,7 +7,7 @@ The stable release documentation can be found here https://epeli.github.io/under
 # Underscore.string [![Build Status](https://secure.travis-ci.org/epeli/underscore.string.png?branch=master)](http://travis-ci.org/epeli/underscore.string) #
 
 Javascript lacks complete string manipulation operations.
-This an attempt to fill that gap. List of build-in methods can be found
+This is an attempt to fill that gap. List of build-in methods can be found
 for example from [Dive Into JavaScript][d].
 Originally started as an Underscore.js extension but is a full standalone
 library nowadays.
@@ -16,7 +16,7 @@ Upgrading from 2.x to 3.x? Please read the [changelog][c].
 
 [c]: https://github.com/epeli/underscore.string/blob/master/CHANGELOG.markdown#300
 
-## Usage 
+## Usage
 
 ### In Node.js and Browserify
 
@@ -48,6 +48,26 @@ use.
 
 [Browserify]: http://browserify.org/
 
+### In Meteor
+
+From your [Meteor][] project folder
+
+```shell
+    meteor add underscorestring:underscore.string
+```
+
+and you'll be able to access the library with the ***s*** global from both the server and the client.
+
+```javascript
+s.slugify("Hello world!");
+// => hello-world
+
+s("   epeli  ").trim().capitalize().value();
+// => "Epeli"
+```
+
+[Meteor]: http://www.meteor.com/
+
 ### Others
 
 The `dist/underscore.string.js` file is an [UMD][] build. You can load it using
@@ -64,8 +84,27 @@ It is still possible use as Underscore.js/Lo-Dash extension
 ```javascript
 _.mixin(s.exports());
 ```
-But it's not recommended since `include`, `contains`, `reverse` and `join` 
+But it's not recommended since `include`, `contains`, `reverse` and `join`
 are dropped because they collide with the functions already defined by Underscore.js.
+
+### Lo-Dash-FP/Ramda integration
+
+If you want to use underscore.string with [ramdajs](http://ramdajs.com/) or [Lo-Dash-FP](https://github.com/lodash/lodash-fp) you can use [underscore.string.fp](https://github.com/stoeffel/underscore.string.fp).
+
+    npm install underscore.string.fp
+
+```javascript
+var S = require('underscore.string.fp');
+var filter = require('lodash-fp').filter;
+var filter = require('ramda').filter;
+
+filter(S.startsWith('.'), [
+  '.vimrc',
+  'foo.md',
+  '.zshrc'
+]);
+// => ['.vimrc', '.zshrc']
+```
 
 ## Download
 
@@ -99,13 +138,17 @@ levenshtein("kitten", "kittah");
 // => 2
 ```
 
-#### capitalize(string) => string
+#### capitalize(string, [lowercaseRest=false]) => string
 
-Converts first letter of the string to uppercase.
+Converts first letter of the string to uppercase. If `true` is passed as second argument the rest
+of the string will be converted to lower case.
 
 ```javascript
 capitalize("foo Bar");
 // => "Foo Bar"
+
+capitalize("FOO Bar", true);
+// => "Foo bar"
 ```
 
 #### decapitalize(string) => string
@@ -131,6 +174,21 @@ Trim and replace multiple spaces with a single space.
 ```javascript
 clean(" foo    bar   ");
 // => "foo bar"
+```
+
+#### cleanDiacritics(string) => string
+
+Replace [diacritic][dc] characters with closest ASCII equivalents. Check the
+[source][s] for supported characters. [Pull requests][p] welcome for missing
+characters!
+
+[dc]: https://en.wikipedia.org/wiki/Diacritic
+[s]: https://github.com/epeli/underscore.string/blob/master/cleanDiacritics.js
+[p]: https://github.com/epeli/underscore.string/blob/master/CONTRIBUTING.markdown
+
+```javascript
+cleanDiacritics("ääkkönen");
+// => "aakkonen"
 ```
 
 #### chars(string) => array
@@ -160,6 +218,8 @@ include("foobar", "ob");
 
 #### count(string, substring) => number
 
+Returns number of occurrences of substring in string.
+
 ```javascript
 count("Hello world", "l");
 // => 3
@@ -168,6 +228,7 @@ count("Hello world", "l");
 #### escapeHTML(string) => string
 
 Converts HTML special characters to their entity equivalents.
+This function supports cent, yen, euro, pound, lt, gt, copy, reg, quote, amp, apos.
 
 ```javascript
 escapeHTML("<div>Blah blah blah</div>");
@@ -177,9 +238,10 @@ escapeHTML("<div>Blah blah blah</div>");
 #### unescapeHTML(string) => string
 
 Converts entity characters to HTML equivalents.
+This function supports cent, yen, euro, pound, lt, gt, copy, reg, quote, amp, apos, nbsp.
 
 ```javascript
-unescapeHTML("&lt;div&gt;Blah blah blah&lt;/div&gt;");
+unescapeHTML("&lt;div&gt;Blah&nbsp;blah blah&lt;/div&gt;");
 // => "<div>Blah blah blah</div>"
 ```
 
@@ -222,6 +284,25 @@ Split lines to an array
 ```javascript
 lines("Hello\nWorld");
 // => ["Hello", "World"]
+```
+
+#### wrap(str, options) => string
+
+Splits a line `str` (default '') into several lines of size `options.width` (default 75) using a `options.seperator` (default '\n'). If `options.trailingSpaces` is true, make each line at least `width` long using trailing spaces. If `options.cut` is true, create new lines in the middle of words. If `options.preserveSpaces` is true, preserve the space that should be there at the end of a line (only works if options.cut is false).
+
+```javascript
+wrap("Hello World", { width:5 })
+// => "Hello\nWorld"
+
+wrap("Hello World", { width:6, seperator:'.', trailingSpaces: true })
+// => "Hello .World "
+
+wrap("Hello World", { width:5, seperator:'.', cut:true, trailingSpaces: true })
+// => "Hello. Worl.d    "
+
+wrap("Hello World", { width:5, seperator:'.', preserveSpaces: true })
+// => "Hello .World"
+
 ```
 
 #### dedent(str, [pattern]) => string
@@ -397,7 +478,7 @@ Left trim. Similar to trim, but only for left side.
 
 Right trim. Similar to trim, but only for right side.
 
-#### truncate(string, length, truncateString) => string
+#### truncate(string, length, [truncateString = '...']) => string
 
 ```javascript
 truncate("Hello world", 5);
@@ -565,10 +646,10 @@ strLeftBack("This_is_a_test_string", "_");
 Removes all html tags from string.
 
 ```javascript
-stripTags("a <a href="#">link</a>");
+stripTags("a <a href=\"#\">link</a>");
 // => "a link"
 
-stripTags("a <a href="#">link</a><script>alert("hello world!")</script>");
+stripTags("a <a href=\"#\">link</a><script>alert(\"hello world!\")</script>");
 // => "a linkalert("hello world!")"
 ```
 
@@ -580,7 +661,7 @@ Join an array into a human readable sentence.
 toSentence(["jQuery", "Mootools", "Prototype"]);
 // => "jQuery, Mootools and Prototype";
 
-toSentence(["jQuery", "Mootools", "Prototype"], ", ", " unt ');
+toSentence(["jQuery", "Mootools", "Prototype"], ", ", " unt ");
 // => "jQuery, Mootools unt Prototype";
 ```
 
@@ -595,7 +676,7 @@ toSentenceSerial(["jQuery", "Mootools"]);
 toSentenceSerial(["jQuery", "Mootools", "Prototype"]);
 // => "jQuery, Mootools, and Prototype"
 
-toSentenceSerial(["jQuery", "Mootools", "Prototype"], ", ", " unt ');
+toSentenceSerial(["jQuery", "Mootools", "Prototype"], ", ", " unt ");
 // => "jQuery, Mootools, unt Prototype"
 ```
 

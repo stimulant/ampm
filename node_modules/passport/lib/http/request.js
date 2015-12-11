@@ -1,9 +1,11 @@
 /**
  * Module dependencies.
  */
-var http = require('http')
-  , req = http.IncomingMessage.prototype;
+//var http = require('http')
+//  , req = http.IncomingMessage.prototype;
 
+
+var req = exports = module.exports = {};
 
 /**
  * Intiate a login session for `user`.
@@ -47,7 +49,14 @@ req.logIn = function(user, options, done) {
     var self = this;
     this._passport.instance.serializeUser(user, this, function(err, obj) {
       if (err) { self[property] = null; return done(err); }
+      if (!self._passport.session) {
+        self._passport.session = {};
+      }
       self._passport.session.user = obj;
+      if (!self.session) {
+        self.session = {};
+      }
+      self.session[self._passport.instance._key] = self._passport.session;
       done();
     });
   } else {

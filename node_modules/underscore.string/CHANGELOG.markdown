@@ -1,6 +1,40 @@
 
 # Changelog
 
+### 3.2.2
+
+* Fix `slugify`regression [#448](https://github.com/epeli/underscore.string/pull/448)
+* [Full changelog](https://github.com/epeli/underscore.string/compare/3.2.1...3.2.2)
+
+### 3.2.1
+
+* Export `cleanDiacritics` in index.js
+* [Full changelog](https://github.com/epeli/underscore.string/compare/3.2.0...3.2.1)
+
+### 3.2.0
+
+* Add `cleanDiacritics` [#444](https://github.com/epeli/underscore.string/pull/444)
+* Add `wrap` [#410](https://github.com/epeli/underscore.string/pull/410)
+* `lines`: add support to CR ending lines [#440](https://github.com/epeli/underscore.string/pull/440)
+* Documentation improvements
+* Small performance improvements
+* [Full changelog](https://github.com/epeli/underscore.string/compare/3.1.1...3.2.0)
+
+
+### 3.1.1
+
+* Add coverage folder to npmignore
+* [Full changelog](https://github.com/epeli/underscore.string/compare/3.1.0...3.1.1)
+
+### 3.1.0
+
+* Meteor integration [baeb0da](https://github.com/epeli/underscore.string/commit/baeb0da0053549e5346184630a7e0c5007b8be4f)
+* Add flag to capitalize to lowercase remaining characters [#408](https://github.com/epeli/underscore.string/pull/408)
+* Move to mocha [#409](https://github.com/epeli/underscore.string/pull/409)
+* Add support for more htmlEntites in escapeHTML and unescapeHTML [#417](https://github.com/epeli/underscore.string/pull/417)
+* Performance improvement in levenshtein [#427](https://github.com/epeli/underscore.string/pull/427)
+* [Full changelog](https://github.com/epeli/underscore.string/compare/3.0.3...3.1.0)
+
 ### 3.0.3
 
 * Provide `dist` in npm package [#402](https://github.com/epeli/underscore.string/pull/402)
@@ -87,7 +121,7 @@
 ## 2.2.0
 
 * Capitalize method behavior changed
-* Various perfomance tweaks
+* Various performance tweaks
 
 ## 2.1.1
 
