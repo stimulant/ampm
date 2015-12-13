@@ -108,6 +108,9 @@ exports.Persistence = BaseModel.extend({
         $$network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
             socket.on('heart', _.bind(this._onHeart, this));
             socket.emit('config', $$config);
+            socket.on('configRequest', function(){
+                socket.emit('configRequest', $$config);
+            });
         }, this));
 
         this._initSchedules();
