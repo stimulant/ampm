@@ -108,7 +108,7 @@ exports.Persistence = BaseModel.extend({
         $$network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
             socket.on('heart', _.bind(this._onHeart, this));
             socket.emit('config', $$config);
-            socket.on('configRequest', function(){
+            socket.on('configRequest', function() {
                 socket.emit('configRequest', $$config);
             });
         }, this));
@@ -248,10 +248,10 @@ exports.Persistence = BaseModel.extend({
     // When a heartbeat hasn't been received for a while, restart the app or the whole machine.
     _onRestartTimeout: function() {
         var that = this;
-        if($$config.logging.screenshots.enabled) {
+        if ($$config.logging.screenshots.enabled) {
             var filename = $$config.logging.screenshots.filename.replace('{date}', moment().format('YYYYMMDDhhmmss'));
             logger.info('Saving screenshot to ' + filename);
-            var nircmd = child_process.spawn(path.join(__dirname, "../tools", "nircmd.exe"), ["savescreenshotfull", filename]); 
+            var nircmd = child_process.spawn(path.join(__dirname, "../tools", "nircmd.exe"), ["savescreenshotfull", filename]);
             nircmd.on('close', function(code, signal) {
                 logger.info('Screenshot saved, restarting.');
                 restart();
