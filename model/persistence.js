@@ -248,10 +248,14 @@ exports.Persistence = BaseModel.extend({
     // When a heartbeat hasn't been received for a while, restart the app or the whole machine.
     _onRestartTimeout: function() {
         var that = this;
-        if ($$config.logging.screenshots.enabled) {
-            var filename = $$config.logging.screenshots.filename.replace('{date}', moment().format('YYYYMMDDhhmmss'));
+
+        // Save a screenshot.
+        if ($$logging.get('screenshots').enabled) {
+            var filename = $$logging.get('screenshots').filename.replace('{date}', moment().format('YYYYMMDDhhmmss'));
             logger.info('Saving screenshot to ' + filename);
-            var nircmd = child_process.spawn(path.join(__dirname, "../tools", "nircmd.exe"), ["savescreenshotfull", filename]);
+            var nircmd = child_process.spawn(path.join(__dirname, '../tools', 'nircmd.exe'), ["savescreenshotfull", filename], {
+                cwd: path.join(__dirname, '../../')
+            });
             nircmd.on('close', function(code, signal) {
                 logger.info('Screenshot saved, restarting.');
                 restart();
