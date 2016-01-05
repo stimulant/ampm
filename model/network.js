@@ -33,19 +33,7 @@ exports.Network = BaseModel.extend({
         oscFromAppPort: 3002,
 
         // The port used to communicate from the server to the client app over UDP/OSC.
-        oscToAppPort: 3003,
-
-        // The port used to communicate from the server to another peer over UDP/OSC.
-        oscToPeerPort: 3004,
-
-        // How often in ms to send state changes to peers.
-        stateSyncRate: 1000 / 60,
-
-        // A listing of hostnames of peers with whom to share state.
-        peers: null,
-
-        // Which hostname is the "master" keeper of shared state.
-        master: null
+        oscToAppPort: 3003
     },
 
     transports: null,
@@ -53,8 +41,6 @@ exports.Network = BaseModel.extend({
 
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
-
-        this.isMaster = this.get('master') && this.get('master').toLowerCase() == os.hostname().toLowerCase();
 
         this.transports = {};
 
@@ -163,38 +149,6 @@ exports.Network = BaseModel.extend({
 
         //// Set up socket connection to app.
         this.transports.socketToApp = ioServer.listen(this.get('socketToAppPort'));
-
-        //// Load the shared state plugin.
-        if ($$config.sharedState && $$sharedState.shared) {
-            var peers = this.get('peers');
-            var myName = os.hostname();
-            if (!this.isMaster) {
-                peers = [this.get('master')];
-            }
-
-            // The master will continuously send state to all peers.
-            // If not master, it'll just send state to the master.
-            this.transports.peers = {};
-            for (var i in peers) {
-                this.transports.peers[i] = new osc.Client(peers[i], this.get('oscToPeerPort'));
-            }
-            setInterval(_.bind(function() {
-                var state = JSON.stringify($$sharedState.shared);
-                for (var i in this.transports.peers) {
-                    this.transports.peers[i].send('/sharedState', state);
-                }
-            }, this), this.get('stateSyncRate'));
-
-            // Process state updates from the master and send on to the app.
-            this.transports.oscFromPeer = new osc.Server(this.get('oscToPeerPort'));
-            this.transports.oscFromPeer.on('message', _.bind(function(message, info) {
-                this._handleOsc(this.transports.oscFromPeer, message, info);
-            }, this));
-            this.transports.oscFromPeer.on('sharedState', _.bind(function(data) {
-                _.merge($$sharedState.shared, data);
-                this.transports.oscToApp.send('/sharedState', JSON.stringify($$sharedState.shared));
-            }, this));
-        }
     },
 
     // Generic handler to decode and re-post OSC messages as native events.

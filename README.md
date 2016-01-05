@@ -19,14 +19,12 @@ If you find these utilities helpful, definitely let us know. If you find a bug o
  * [Permissions](#configuration-permissions)
  * [Logging](#configuration-logging)
  * [Networking](#configuration-networking)
- * [State Sharing (experimental)](#configuration-statesharing)
 * [Integration with Applications](#integration)
  * [Including ampm](#integration-including)
  * [Configuration Parsing](#integration-configuration)
  * [Heartbeat Monitoring](#integration-monitoring)
  * [Logging](#integration-logging)
  * [Event Tracking](#integration-state)
- * [State Sharing (experimental)](#integration-state)
 
 <a name="startup"/>
 # Startup
@@ -243,32 +241,9 @@ The networking module coordinates connections between ampm, the application its 
     "oscFromAppPort": 3002,
 
     // The port used to communicate from the server to the client app over UDP/OSC.
-    "oscToAppPort": 3003,
-
-    // The port used to communicate from the server to another peer over UDP/OSC.
-    "oscToPeerPort": 3004,
-
-    // How often in ms to send state changes to peers.
-    "stateSyncRate": 1000 / 60,
-
-    // A listing of hostnames of peers with whom to share state.
-    "peers": null,
-
-    // Which hostname is the "master" keeper of shared state.
-    "master": null
+    "oscToAppPort": 3003
 }
 ```
-
-<a name="configuration-statesharing"/>
-## State Sharing (experimental)
-
-This barely works right now, but the general idea is that you can include an additional file via the configuration, like this:
-
-```JavaScript
-    "sharedState": "../../../sharedState.js"
-```
-
-This should be a [backbone model](https://github.com/stimulant/ampm-samples/blob/master/sharedState.js) called SharedState with a "shared" property which is an object which will be shared across all ampm instances and applications. The other ampm instances and the master server are specified in the ```network.peers``` and ```network.master``` properties.
 
 <a name="integration"/>
 # Integration with Applications
@@ -323,10 +298,3 @@ ampm can track events indicating normal usage, such as button clicks or accesses
 ```
 
 More information about the types of data to include in the event tracking message can be found on the [Google Analytics](https://developers.google.com/analytics/devguides/collection/gajs/eventTrackerGuide#Anatomy) site.
-
-To set up event tracking on a new project, it will need to be set up in the Google Analytics portal -- talk to Josh about that.
-
-<a name="integration-state"/>
-## State Sharing (experimental)
-
-ampm's state sharing is set up to be very flexible depending on the type of application being developed and the type of state you want to share. In your [sharedState.js](https://github.com/stimulant/ampm-samples/blob/master/sharedState.js) file, you should set up listeners for the TCP and UDP message you want to get from the app, and update your state accordingly.
