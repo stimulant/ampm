@@ -53,12 +53,6 @@ exports.Persistence = BaseModel.extend({
         // How many times the app has been restarted.
         restartCount: 0,
 
-        // An array of hosts to ping and send alerts if not responsive.
-        pingList: null,
-
-        // Number of missed pings to the ping list before sending out an alert.
-        pingLostCount: 5,
-
         // Restart the app if it uses more than this much memory.
         maxMemory: Infinity,
 
@@ -114,7 +108,6 @@ exports.Persistence = BaseModel.extend({
         }, this));
 
         this._initSchedules();
-        this._initPingList();
     },
 
     boot: function() {
@@ -492,83 +485,6 @@ exports.Persistence = BaseModel.extend({
         // This should cause node-supervisor to reboot us.
         logger.info('Triggering server restart.');
         fs.writeFile('restart.json', new Date().getTime());
-    },
-
-    // For each entry in the ping list, set up a process to ping it and an object that represents its status.
-    _initPingList: function() {
-        var pingList = this.get('pingList');
-        if (!pingList) {
-            return;
-        }
-
-        var self = this;
-        this._pingStatus = {};
-        for (var i in pingList) {
-            var host = pingList[i];
-            var p = child_process.spawn('ping', ['-t', host]);
-
-            /* jshint ignore:start */
-            // ignore "don't create functions in a loop" warning
-            p.stdout.on('data', _.bind(function(data) {
-                self._onPingResponse(this, data);
-            }, p));
-            /* jshint ignore:end */
-
-            this._pingStatus[host] = {
-                up: true,
-                start: Date.now(),
-                last: Date.now(),
-                line: '',
-                lost: 0,
-                process: p
-            };
-        }
-
-    },
-
-    _onPingResponse: function(p, data) {
-        // Figure out what host this response is from.
-        var host = '';
-        for (var i in this._pingStatus) {
-            if (this._pingStatus[i].process.pid == p.pid) {
-                host = i;
-                break;
-            }
-        }
-
-        if (!host) {
-            return;
-        }
-
-        var status = this._pingStatus[host];
-
-        // Add up the buffers until you get a full line.
-        status.line += data;
-        if (!_.str.endsWith(status.line, '\n')) {
-            return;
-        }
-
-        var lastUp = status.up;
-        var lastSeen = status.last;
-        var up = _.str.contains(status.line, 'Reply from');
-        if (up) {
-            status.up = true;
-            status.last = Date.now();
-            status.lost = 0;
-        } else {
-            status.lost++;
-        }
-
-        if (status.lost > this.get('pingLostCount')) {
-            status.up = false;
-        }
-
-        if (status.up != lastUp) {
-            var notice = host + ' ' + (up ? 'returned' : 'went away') + '. Last seen ' + moment(lastSeen).format('YYYY-MM-DD HH:mm:ss');
-            logger.error(notice);
-        }
-
-        status.line = '';
     },
 
     checkMemory: function(memory) {

@@ -125,12 +125,6 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     // Restart the app on this schedule -- see cronmaker.com for the format. 
     "restartSchedule": null,
 
-    // A list of hostnames to ping. An error is logged when they go down and return.
-    "pingList": null,
-
-    // The number of pings which can be lost before an error is logged.
-    "pingLostCount": 5,
-
     // Restart the app if it uses more than this much memory.
     "maxMemory": Infinity,
 
