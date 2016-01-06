@@ -19,6 +19,7 @@ If you find these utilities helpful, definitely let us know. If you find a bug o
  * [Permissions](#configuration-permissions)
  * [Logging](#configuration-logging)
  * [Networking](#configuration-networking)
+ * [Custom Plugins](#configuration-plugin)
 * [Integration with Applications](#integration)
  * [Including ampm](#integration-including)
  * [Configuration Parsing](#integration-configuration)
@@ -244,6 +245,17 @@ The networking module coordinates connections between ampm, the application its 
     "oscToAppPort": 3003
 }
 ```
+
+<a name="configuration-plugin"/>
+## Custom Plugins
+
+You can have ampm run custom code by including the path to a module in the plugin attribute:
+
+```JavaScript
+    "plugin": "../plugin.js"
+```
+
+This should be a [backbone model](https://github.com/stimulant/ampm-samples/blob/master/web/server/server.js) called Plugin. It will be instantiated and it's `boot()` method called at startup.
 
 <a name="integration"/>
 # Integration with Applications

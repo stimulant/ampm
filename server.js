@@ -83,10 +83,10 @@ if (configPath && fs.existsSync(configPath)) {
 console.log('Server starting up.');
 
 // Load the shared state plugin file.
-global.$$sharedState = null;
-if ($$config.sharedState && fs.existsSync($$config.sharedState)) {
-    var SharedState = require($$config.sharedState).SharedState;
-    global.$$sharedState = new SharedState();
+global.$$plugin = null;
+if ($$config.plugin && fs.existsSync($$config.plugin)) {
+    var plugin = require($$config.plugin).Plugin;
+    global.$$plugin = new plugin();
 }
 
 // A container for all the network transports, generally accessed via $$network.transports.
@@ -111,8 +111,8 @@ global.$$consoleState = new ConsoleState({
 
 // Start up components which depend on other components.
 $$persistence.boot();
-if ($$sharedState) {
-    $$sharedState.boot();
+if ($$plugin) {
+    $$plugin.boot();
 }
 
 logger.info('Server started.');
