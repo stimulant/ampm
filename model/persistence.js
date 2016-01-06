@@ -488,7 +488,7 @@ exports.Persistence = BaseModel.extend({
     },
 
     checkMemory: function(memory) {
-        if (memory > this.get('maxMemory')) {
+        if (this.get('maxMemory') > 0 && memory > this.get('maxMemory')) {
             logger.error('App memory is ' + memory + ', max is set to ' + this.get('maxMemory') + ', restarting.');
             this.restartApp();
         }
