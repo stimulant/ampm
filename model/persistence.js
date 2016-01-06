@@ -246,9 +246,7 @@ exports.Persistence = BaseModel.extend({
         if ($$logging.get('screenshots').enabled) {
             var filename = $$logging.get('screenshots').filename.replace('{date}', moment().format('YYYYMMDDhhmmss'));
             logger.info('Saving screenshot to ' + filename);
-            var nircmd = child_process.spawn(path.join(__dirname, '../tools', 'nircmd.exe'), ["savescreenshotfull", filename], {
-                cwd: path.join(__dirname, '../../')
-            });
+            var nircmd = child_process.spawn(path.join(process.cwd(), 'tools', 'nircmd.exe'), ["savescreenshotfull", filename]);
             nircmd.on('close', function(code, signal) {
                 logger.info('Screenshot saved, restarting.');
                 restart();
