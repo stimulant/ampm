@@ -362,7 +362,6 @@ exports.Persistence = BaseModel.extend({
             return;
         }
 
-        // Config length limited to 8191 characters. (DOT was about 1200)
         this._lastHeart = null;
         this._firstHeart = null;
         this._startupCallback = callback;

@@ -30,18 +30,18 @@ If you find these utilities helpful, definitely let us know. If you find a bug o
 <a name="startup"/>
 # Startup
 
-The simplest way to start ampm is to just run something like ```node server.js```. However, this will use all the default configuration values, which means it won't start or monitor anything. Not super useful. You will likely want to use a specific configuration file and startup script, as shown in [the samples](https://github.com/stimulant/ampm-samples). The startup scripts use [node-supervisor](https://github.com/isaacs/node-supervisor) to restart ampm when the configuration is changed (in dev) or when the application is updated (in live).
+The simplest way to start ampm is to just run something like `node server.js`. However, this will use all the default configuration values, which means it won't start or monitor anything. Not super useful. You will likely want to use a specific configuration file and startup script, as shown in [the samples](https://github.com/stimulant/ampm-samples). The startup scripts use [node-supervisor](https://github.com/isaacs/node-supervisor) to restart ampm when the configuration is changed (in dev) or when the application is updated (in live).
 
 <a name="configuration"/>
 # Configuration
 
 You can pass a configuration file path as an argument when starting ampm, like this:
 
-```node server.js ..\..\config.json```
+`node server.js ..\..\config.json`
 
 If you have multiple apps on the same machine, you can also pass paths to multiple configuration files, like this: 
 
-```node server.js ..\..\app1\config.json,..\..\app2\config.json,..\..\app3\config.json ```
+`node server.js ..\..\app1\config.json,..\..\app2\config.json,..\..\app3\config.json`
 
 These will show up on the console page and allow you to switch between multiple apps. All paths are relative to the location of server.js.
 
@@ -69,9 +69,9 @@ You can include multiple configuration schemes in the same json file. For exampl
 
 You can specify which configurations to use as an argument to node:
 
-* use the default: ```supervisor server.js ..\..\config.json```
-* use the dev configuration: ```supervisor server.js ..\..\config.json dev```
-* use the dev.foo configuration: ```supervisor server.js ..\..\config.json dev.foo```
+* use the default: `supervisor server.js ..\..\config.json`
+* use the dev configuration: `supervisor server.js ..\..\config.json dev`
+* use the dev.foo configuration: `supervisor server.js ..\..\config.json dev.foo`
 
 You don't have to explicitly specify the usage of machine-specific configurations, that will happen automatically if the current machine name matches a configuration. 
 
@@ -270,19 +270,19 @@ ampm should be included as a submodule at the root of your application. Then you
 <a name="integration-configuration"/>
 ## Configuration Parsing
 
-The contents of the ampm configuration will be passed to the application as a command line argument. You should parse this argument as JSON to get your configuration data.
+The contents of the ampm configuration can be passed to the application by emitting at `configRequest` command over the web socket. ampm will respond with a `configRequest` event containing the config data. For specific implementation details and examples, see the [ampm-samples](https://github.com/stimulant/ampm-samples/) repo.
 
 <a name="integration-monitoring"/>
 ## Heartbeat Monitoring
 
-The persistence layer works by listening for a heartbeat message from the app on an interval. If it doesn't get one, it will restart the app (or the machine, if you want). To send a heartbeat message, send an OSC message over UDP to localhost on the port specified in ```network.oscFromAppPort``` (default is 3003) that's simply the string ```heart```. You should probably do this when every frame is rendered.
+The persistence layer works by listening for a heartbeat message from the app on an interval. If it doesn't get one, it will restart the app (or the machine, if you want). To send a heartbeat message, send an OSC message over UDP to localhost on the port specified in `network.oscFromAppPort` (default is 3003) that's simply the string `heart`. You should probably do this when every frame is rendered.
 
-For web applications, use a TCP message to ```network.socketToAppPort``` (default is 3002) via a web socket that is also just ```heart```.
+For web applications, use a TCP message to `network.socketToAppPort` (default is 3002) via a web socket that is also just `heart`.
 
 <a name="integration-logging"/>
 ## Logging
 
-You can log any message to ampm and it will go through its logging mechanism, including emailing errors out, etc. To send a log message, send a TCP message over a web socket on ```network.socketToAppPort``` (default is 3002). The event name should be ```log``` and the payload should be an object like this:
+You can log any message to ampm and it will go through its logging mechanism, including emailing errors out, etc. To send a log message, send a TCP message over a web socket on `network.socketToAppPort` (default is 3002). The event name should be `log` and the payload should be an object like this:
 
 ```JavaScript
 {
@@ -291,14 +291,14 @@ You can log any message to ampm and it will go through its logging mechanism, in
 }
 ```
 
-The ```level``` can be ```error```, ```warning```, or ```info```. ```error``` is the most severe, and is emailed out by default. This can be configured with ```logging.mail.level```.
+The `level` can be `error`, `warning`, or `info`. `error` is the most severe, and is emailed out by default. This can be configured with `logging.mail.level`.
 
 It is probably a good idea to log very severe things like crashes to the local machine on your own if possible, in case the app is in such a bad state that it can't even send messages to ampm. (However in a basic test, a .NET app can get crash call stack to ampm before it goes down.)
 
 <a name="integration-events"/>
 ## Event Tracking
 
-ampm can track events indicating normal usage, such as button clicks or accesses to various content. These are sent to Google Analytics and configured via ```logging.google```. To track an event, send a TCP message over a web socket on ```network.socketToAppPort``` (default is 3002). The event name should be ```event``` and the payload should be an object like this: 
+ampm can track events indicating normal usage, such as button clicks or accesses to various content. These are sent to Google Analytics and configured via `logging.google`. To track an event, send a TCP message over a web socket on `network.socketToAppPort` (default is 3002). The event name should be `event` and the payload should be an object like this: 
 
 ```JavaScript
 {
