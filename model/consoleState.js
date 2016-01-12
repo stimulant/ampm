@@ -239,6 +239,7 @@ exports.ConsoleState = BaseModel.extend({
 
     // Run typeperf to get total CPU usage -- haven't figured out how to get it per process.
     _updateCpu: function() {
+        return;
         this._cpuConsole = child_process.spawn('typeperf', ['\\Processor(_Total)\\% Processor Time']);
         this._cpuConsole.stdout.on('data', _.bind(function(stdout) {
 
