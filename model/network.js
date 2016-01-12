@@ -22,8 +22,8 @@ var BaseModel = require('./baseModel.js').BaseModel;
 exports.Network = BaseModel.extend({
     defaults: {
         // The port used to communicate between node and the browser. This is also the URL you'd use
-        // to access the console, such as http://localhost:81.
-        socketToConsolePort: 81,
+        // to access the console, such as http://localhost:8888.
+        socketToConsolePort: 8888,
 
         // The port used to communicate between node and the client app over a TCP socket. This is
         // used for the app to send log messages and event tracking.
