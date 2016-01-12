@@ -190,6 +190,7 @@ exports.ConsoleState = BaseModel.extend({
 
     // Request to update the memory.
     _updateMemory: function() {
+        return;
         var id = $$persistence.processId();
         if (id) {
             child_process.exec('tasklist /FI "PID eq ' + id + '" /FO LIST', _.bind(function(error, stdout, stderror) {
