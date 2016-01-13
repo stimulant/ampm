@@ -29,8 +29,11 @@ exports.ConsoleState = BaseModel.extend({
     _statHistory: 60,
     _statIndex: 0,
 
-    // A console process in which TYPEPERF is run continuously to update CPU usage.
+    // A console process in which TYPEPERF is run continuously to update CPU usage on Windows.
     _cpuConsole: null,
+
+    // A console process in which 'top' is run continuously to update CPU and memory usage on Mac.
+    _topConsole: null,
 
     // A timeout to throttle the speed of updates to the console.
     _updateConsoleTimeout: 0,
@@ -45,8 +48,9 @@ exports.ConsoleState = BaseModel.extend({
 
         $$persistence.on('heart', this._onHeart, this);
         this._updateStats();
-        this._updateCpu();
-        this._updateMemory();
+        this._updateCpuWin();
+        this._updateMemoryWin();
+        this._updateMemoryCpuMac();
         $$network.transports.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
@@ -189,8 +193,11 @@ exports.ConsoleState = BaseModel.extend({
     },
 
     // Request to update the memory.
-    _updateMemory: function() {
-        return;
+    _updateMemoryWin: function() {
+        if (process.platform !== 'win32') {
+            return;
+        }
+
         var id = $$persistence.processId();
         if (id) {
             child_process.exec('tasklist /FI "PID eq ' + id + '" /FO LIST', _.bind(function(error, stdout, stderror) {
@@ -212,55 +219,113 @@ exports.ConsoleState = BaseModel.extend({
                 match = match[0]; // "39,384 K"
                 match = match.replace(',', '').replace(' K', ''); // "39384"
                 var memory = parseInt(match) * 1024; // 40329216
+                this._memoryFrame(memory);
 
-                var memoryHistory = this.get('memory');
-
-                if (!memoryHistory) {
-                    memoryHistory = [];
-                    this.set({
-                        memory: memoryHistory
-                    });
-                }
-
-                memoryHistory.push(memory);
-                while (memoryHistory.length > this._statHistory) {
-                    memoryHistory.shift();
-                }
-
-                clearTimeout(this._updateMemoryTimeout);
-                this._updateMemoryTimeout = setTimeout(_.bind(this._updateMemory, this), this._updateStatsRate);
+                clearTimeout(this._updateMemoryWinTimeout);
+                this._updateMemoryWinTimeout = setTimeout(_.bind(this._updateMemoryWin, this), this._updateStatsRate);
 
                 $$persistence.checkMemory(memory);
             }, this));
         } else {
-            clearTimeout(this._updateMemoryTimeout);
-            this._updateMemoryTimeout = setTimeout(_.bind(this._updateMemory, this), this._updateStatsRate);
+            clearTimeout(this._updateMemoryWinTimeout);
+            this._updateMemoryWinTimeout = setTimeout(_.bind(this._updateMemoryWin, this), this._updateStatsRate);
         }
     },
 
     // Run typeperf to get total CPU usage -- haven't figured out how to get it per process.
-    _updateCpu: function() {
-        return;
+    _updateCpuWin: function() {
+        if (process.platform !== 'win32') {
+            return;
+        }
+
         this._cpuConsole = child_process.spawn('typeperf', ['\\Processor(_Total)\\% Processor Time']);
         this._cpuConsole.stdout.on('data', _.bind(function(stdout) {
 
             stdout = stdout.toString();
             if (stdout && stdout.indexOf(',') === 0) {
                 var cpu = parseFloat(stdout.substr(2, stdout.length - 3));
-                if (!isNaN(cpu)) {
-                    var cpuHistory = this.get('cpu');
-                    if (!cpuHistory) {
-                        cpuHistory = [];
-                        this.set('cpu', cpuHistory);
-                    }
-
-                    cpuHistory.push(cpu);
-                    while (cpuHistory.length > this._statHistory) {
-                        cpuHistory.shift();
-                    }
-                }
+                this._cpuFrame(cpu);
             }
         }, this));
+    },
+
+    // Run 'top' to get the CPU and memory usage of the app process on Mac.
+    _updateMemoryCpuMac: function() {
+        if (process.platform !== 'darwin') {
+            return;
+        }
+
+        // top is running in logging mode, spewing process info to stdout every second.
+        this._topConsole = child_process.spawn('/usr/bin/top', ['-l', '0', '-stats', 'pid,cpu,mem,command']);
+        this._topConsole.stdout.on('data', _.bind(function(stdout) {
+            var id = $$persistence.processId();
+            if (!id) {
+                return;
+            }
+
+            // Find the line with the process id that matches what we're watching.
+            stdout = stdout.toString();
+            var lines = stdout.split('\n');
+            var line = lines.filter(function(line) {
+                return line.indexOf(id) === 0;
+            })[0];
+            if (!line) {
+                return;
+            }
+            var parts = line.split(/\s+/g);
+
+            // Add to the CPU history.
+            var cpu = parseFloat(parts[1]);
+            this._cpuFrame(cpu);
+
+            // Add to the memory history.
+            var memory = parts[2];
+            var unit = 1;
+            if (memory.indexOf('K') !== -1) {
+                unit = 1024;
+            } else if (memory.indexOf('M') !== -1) {
+                unit = 1024 * 1024;
+            } else if (memory.indexOf('G') !== -1) {
+                unit = 1024 * 1024 * 1024;
+            }
+            memory = memory.replace(/[\D]/g, '');
+            memory = parseInt(memory) * unit;
+            this._memoryFrame(memory);
+
+        }, this));
+    },
+
+    // Add a CPU sample to the history.
+    _cpuFrame: function(cpu) {
+        if (!isNaN(cpu)) {
+            var cpuHistory = this.get('cpu');
+            if (!cpuHistory) {
+                cpuHistory = [];
+                this.set('cpu', cpuHistory);
+            }
+
+            cpuHistory.push(cpu);
+            while (cpuHistory.length > this._statHistory) {
+                cpuHistory.shift();
+            }
+        }
+    },
+
+    // Add a memory usage sample to the history.
+    _memoryFrame: function(memory) {
+        var memoryHistory = this.get('memory');
+
+        if (!memoryHistory) {
+            memoryHistory = [];
+            this.set({
+                memory: memoryHistory
+            });
+        }
+
+        memoryHistory.push(memory);
+        while (memoryHistory.length > this._statHistory) {
+            memoryHistory.shift();
+        }
     },
 
     // Compute FPS in a fast way. http://stackoverflow.com/a/87732/468472
