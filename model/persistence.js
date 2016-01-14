@@ -459,7 +459,10 @@ exports.Persistence = BaseModel.extend({
         // -C - shutdown message
         // -T 0 - shutdown now
         // -F - don't wait for anything to shut down gracefully
-        setTimeout(child_process.exec('shutdown -S -T 0 -F -C "ampm shutdown"'), 3000);
+        var winCmd = 'shutdown -S -T 0 -F -C "ampm shutdown"';
+        var macCmd = 'shutdown now';
+        var cmd = process.platform === 'win32' ? winCmd : macCmd;
+        setTimeout(child_process.exec(cmd), 3000);
     },
 
     // Reboot the whole PC.
@@ -474,7 +477,10 @@ exports.Persistence = BaseModel.extend({
         // -C - shutdown message
         // -T 0 - shutdown now
         // -F - don't wait for anything to shut down gracefully
-        setTimeout(child_process.exec('shutdown -R -T 0 -F -C "ampm restart"'), 3000);
+        var winCmd = 'shutdown -R -T 0 -F -C "ampm restart"';
+        var macCmd = 'shutdown -r now';
+        var cmd = process.platform === 'win32' ? winCmd : macCmd;
+        setTimeout(child_process.exec(cmd), 3000);
     },
 
     // Restart the ampm server via node-administrator.
