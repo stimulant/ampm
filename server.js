@@ -101,7 +101,7 @@ console.log('Server starting up.');
 // Load the shared state plugin file.
 global.$$plugin = null;
 if ($$config.plugin && fs.existsSync($$config.plugin)) {
-    var plugin = require($$config.plugin).Plugin;
+    var plugin = require(path.resolve($$config.plugin)).Plugin;
     global.$$plugin = new plugin();
 }
 
