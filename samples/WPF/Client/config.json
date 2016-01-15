@@ -1,7 +1,7 @@
 {
   "default": {
     "persistence": {
-      "launchCommand": "../ampm-samples/WPF/Client/bin/Debug/Client.exe",
+      "launchCommand": "samples/WPF/Client/bin/Debug/Client.exe",
       "maxMemory": 0,
       "startupTimeout": 10,
       "heartbeatTimeout": 5
@@ -15,13 +15,13 @@
     },
     "logging": {
       "file": {
-        "filename": "../ampm-samples/WPF/Client/bin/Debug/logs/server"
+        "filename": "samples/WPF/Client/bin/Debug/logs/server"
       },
       "eventFile": {
-        "filename": "../ampm-samples/WPF/Client/bin/Debug/logs/event-{date}.tsv"
+        "filename": "samples/WPF/Client/bin/Debug/logs/event-{date}.tsv"
       },
       "screenshots": {
-        "filename": "../ampm-samples/WPF/Client/bin/Debug/logs/capture-{date}.jpg"
+        "filename": "samples/WPF/Client/bin/Debug/logs/capture-{date}.jpg"
       },
       "loggly": {
         "tags": "ampm-samples"
