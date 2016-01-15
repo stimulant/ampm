@@ -7,8 +7,6 @@
 			"README.png"
 		],
 		"folder_exclude_patterns": [
-			"client",
-			"content",
 			"*.tmp",
 			"node_modules",
 			"logs",
@@ -22,10 +20,6 @@
 			"logs",
 			".nuget",
 			"Cinder/Cinder"
-		],
-		"file_exclude_patterns": [
-			".gitmodules"
-		],
-		"path": "../ampm-samples"
+		]
 	}]
 }

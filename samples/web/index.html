@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ampm template</title>
+
+    <script type="text/javascript" src="libs/jquery-2.1.4.js"></script>
+    <script type="text/javascript" src="libs/socket.io.js"></script>
+    <script type="text/javascript" src="libs/underscore.js"></script>
+    <script type="text/javascript" src="libs/backbone.js"></script>
+    <script type="text/javascript" src="libs/ampm.js"></script>
+    <script type="text/javascript" src="app/app.js"></script>
+    <script type="text/javascript" src="app/model.js"></script>
+    <script type="text/javascript" src="app/models/someModel.js"></script>
+    <script type="text/javascript" src="app/view.js"></script>
+    <script type="text/javascript" src="app/views/someView.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+
+    <script>
+
+    $(document).ready(function() {
+        APP.initialize();
+    });
+
+    </script>
+
+</head>
+<body>
+<p>
+	<button id="crash">crash</button>
+	<button id="hang">hang</button>
+	<button id="log">log</button>
+	<button id="event">event</button>
+    <button id="console">console</button>
+</p>
+<pre id="config">
+</pre>
+</body>
+</html>

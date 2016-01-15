@@ -1,0 +1,38 @@
+{
+	"default": {
+		"persistence": {
+			"launchCommand": "../ClientApp.exe {config}",
+			"startupTimeout": 1000,
+			"heartbeatTimeout": 5
+		},
+		"logging": {
+			"loggly": {
+				"tags": "Cinder-test"
+			},
+			"file": {
+				"filename": "../../logs/server.log"
+			}
+		},
+		"sharedState": "../../../sharedState.js"
+	},
+	"dev": {
+		"persistence": {
+			"launchCommand": "../ampm-samples/Cinder/Client/vc11/Debug/Client.exe {config}"
+		},
+		"logging": {
+			"loggly": {
+				"enabled": false
+			},
+			"mail": {
+				"enabled": false
+			},
+			"console": {
+				"timestamp": false
+			},
+			"file": {
+				"enabled": false
+			}
+		},
+		"sharedState": "../ampm-samples/sharedState.js"
+	}
+}

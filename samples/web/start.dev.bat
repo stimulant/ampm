@@ -1,0 +1,3 @@
+@ECHO OFF
+SET AMPMMODE=dev
+CALL start.bat

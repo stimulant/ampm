@@ -1,0 +1,55 @@
+{
+  "default": {
+    "persistence": {
+      "launchCommand": "../ampm-samples/WPF/Client/bin/Debug/Client.exe",
+      "maxMemory": 0,
+      "startupTimeout": 10,
+      "heartbeatTimeout": 5
+    },
+    "permissions": {
+      "username": {
+        "password": "password",
+        "app": true,
+        "computer": true
+      }
+    },
+    "logging": {
+      "file": {
+        "filename": "../ampm-samples/WPF/Client/bin/Debug/logs/server"
+      },
+      "eventFile": {
+        "filename": "../ampm-samples/WPF/Client/bin/Debug/logs/event-{date}.tsv"
+      },
+      "screenshots": {
+        "filename": "../ampm-samples/WPF/Client/bin/Debug/logs/capture-{date}.jpg"
+      },
+      "loggly": {
+        "tags": "ampm-samples"
+      },
+      "mail": {
+        "enabled": false
+      }
+    }
+  },
+  "dev": {
+    "persistence": {
+      "maxMemory": 0,
+      "startupTimeout": 0,
+      "heartbeatTimeout": 0
+    },
+    "logging": {
+      "file": {
+        "enabled": false
+      },
+      "eventFile": {
+        "enabled": false
+      },
+      "screenshots": {
+        "enabled": false
+      },
+      "loggly": {
+        "enabled": false
+      }
+    }
+  }
+}

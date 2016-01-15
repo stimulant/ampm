@@ -1,0 +1,3 @@
+@ECHO OFF
+SET AMPMMODE=live
+CALL start.bat
