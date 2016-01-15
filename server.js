@@ -11,6 +11,22 @@ var Persistence = require('./model/persistence.js').Persistence;
 var ServerState = require('./model/serverState.js').ServerState;
 var Logging = require('./model/logging.js').Logging;
 
+// Spawn debugging trick: http://stackoverflow.com/a/27883443
+/*
+(function() {
+    var childProcess = require("child_process");
+    var oldSpawn = childProcess.spawn;
+
+    function mySpawn() {
+        console.log('spawn called');
+        console.log(arguments);
+        var result = oldSpawn.apply(this, arguments);
+        return result;
+    }
+    childProcess.spawn = mySpawn;
+})();
+*/
+
 // Set the current working directory to the location of server.js so it's always consistent.
 process.chdir(path.dirname(process.mainModule.filename));
 
