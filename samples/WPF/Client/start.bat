@@ -1,7 +1,7 @@
 @ECHO OFF
 
 :: The ampm config file to load.
-SET CONFIGFILE=..\ampm-samples\WPF\Client\bin\Debug\config.json
+SET CONFIGFILE=samples\WPF\Client\bin\Debug\config.json
 
 :: The version of node to check for.
 SET TESTEDNODE=v4.2.4
@@ -32,7 +32,7 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Start ampm, watch the config.json file for changes.
 :START
-CD ..\..\..\..\..\ampm
+CD ..\..\..\..\..\
 SET RESTARTFILE=restart.json
 nodemon ^
 	--verbose ^
