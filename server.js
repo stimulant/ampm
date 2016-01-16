@@ -1,3 +1,5 @@
+#! /usr/bin/env node
+
 var path = require('path'); //http://nodejs.org/api/path.html
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
 var os = require('os'); // http://nodejs.org/api/os.html
@@ -28,7 +30,6 @@ var Logging = require('./model/logging.js').Logging;
 */
 
 // Set the current working directory to the location of server.js so it's always consistent.
-process.chdir(path.dirname(process.mainModule.filename));
 
 global.$$config = {};
 
@@ -46,7 +47,7 @@ if (global.$$serverState.get('config')) {
 } else if (process.argv.length > 2) {
     configPath = configPaths[0];
 }
-console.log(configPath);
+
 if (configPath && fs.existsSync(configPath)) {
     var config = fs.readFileSync(configPath, {
         encoding: 'UTF8'

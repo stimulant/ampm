@@ -15,13 +15,13 @@
         },
         "logging": {
             "file": {
-                "filename": "samples/web/logs/server"
+                "filename": "logs/foo/server"
             },
             "eventFile": {
-                "filename": "samples/web/logs/event-{date}.tsv"
+                "filename": "logs/event-{date}.tsv"
             },
             "screenshots": {
-                "filename": "samples/web/logs/capture-{date}.jpg"
+                "filename": "logs/capture-{date}.jpg"
             },
             "loggly": {
                 "tags": "ampm-samples"
@@ -30,7 +30,7 @@
                 "enabled": false
             }
         },
-        "plugin": "samples/web/server/server.js"
+        "plugin": "server/server.js"
     },
     "dev": {
         "persistence": {
