@@ -6,13 +6,14 @@ var nodemon = require('nodemon');
 var path = require('path');
 
 var configFile = process.argv[2] || 'config.json';
+var mode = process.argv[3] || '';
 var appPath = path.resolve(path.dirname(configFile));
 
 function start() {
     nodemon({
         script: path.join(__dirname, 'server.js'), // Run ampm's server.js
         verbose: true, // verbose doesn't seem to work?
-        args: process.argv.slice(2), // Pass arguments on to ampm
+        args: [configFile, mode], // Pass arguments on to ampm
         watch: [
             configFile.indexOf(',') !== -1 ? configFile.split(',') : configFile, // Restart when the ampm config file changes
             path.join(appPath, 'restart.json'), // Restart when ampm tries to tigger a restart itself.
