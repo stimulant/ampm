@@ -15,7 +15,7 @@
         },
         "logging": {
             "file": {
-                "filename": "logs/foo/server"
+                "filename": "logs/server"
             },
             "eventFile": {
                 "filename": "logs/event-{date}.tsv"

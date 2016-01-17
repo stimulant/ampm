@@ -4,6 +4,7 @@
 			"*.sublime-workspace",
 			"*.log",
 			"restart.json",
+			"state.json",
 			"README.png"
 		],
 		"folder_exclude_patterns": [

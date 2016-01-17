@@ -26,3 +26,4 @@ logs/
 *.a
 
 .DS_Store
+restart.json

@@ -10,7 +10,7 @@
     },
     "preferGlobal": true,
     "bin": {
-        "ampm": "server.js"
+        "ampm": "start.js"
     },
     "dependencies": {
         "async": "^1.5.0",
