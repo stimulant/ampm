@@ -3,17 +3,16 @@
   <br/><strong>application<br/>management<br/>+<br/>performance<br/>monitoring</strong>
 </p>
 
-At [Stimulant](http://stimulant.com) we consider it very important to know how our installations are doing out in the wild, whether they are permanent or temporary. To that end we’ve developed a toolkit referred to as “ampm”, which quickly adds monitoring and management functions to our applications without much work from the application developer. It’s now standard practice to integrate these tools into our deployments, and they’re out in the wild on projects at [tourist attractions](http://stimulant.com/portfolio-item/space-needle/) and [trade shows](http://stimulant.com/portfolio-item/pipeline-explorer/).
-
-At its most basic you can use it to launch your app, monitor the process, and restart it if it crashes. You can also schedule intentional restarts, do all sorts of logging/analytics, and view current status such as frames/second and CPU usage via a basic web interface. There are [samples](https://github.com/stimulant/ampm-samples) of how to use it with Cinder apps, web apps, and WPF apps. 
+At [Stimulant](http://stimulant.com) we consider it very important to know how our installations are doing out in the wild, whether they are permanent or temporary. To that end we’ve developed a utility referred to as “ampm”, which quickly adds monitoring and management functions to our applications without much work from the application developer. It’s now standard practice to integrate these tools into our deployments, and they’re out in the wild on projects at [tourist attractions](http://stimulant.com/portfolio-item/space-needle/), [trade shows](http://stimulant.com/portfolio-item/pipeline-explorer/), and more.
 
 <p align="center">
   <img src="https://github.com/stimulant/ampm/blob/master/console.png?raw=true" width="500"/>
 </p>
 
-If you find these utilities helpful, definitely let us know. If you find a bug or make an improvement, please enter an issue or pull request.
+At its most basic you can use it to launch your app, monitor the process, and restart it if it crashes. You can also schedule intentional restarts, do all sorts of logging/analytics, and view current status such as frames/second and CPU usage via a basic web interface. There are [samples](https://github.com/stimulant/ampm/tree/master/samples) of how to use it with apps built using [web technologies](https://github.com/stimulant/ampm/tree/master/samples/web), [Cinder](https://github.com/stimulant/ampm/tree/master/samples/cinder), [WPF](https://github.com/stimulant/ampm/tree/master/WPF), [Processing](https://github.com/stimulant/ampm/tree/master/processing), and [Unity](https://github.com/stimulant/ampm/tree/master/unity).
 
-* [Startup](#startup)
+* [Installation](#installation)
+* [Execution](#execution)
 * [Configuration](#configuration)
  * [Persistence](#configuration-persistence)
  * [Permissions](#configuration-permissions)
@@ -21,29 +20,34 @@ If you find these utilities helpful, definitely let us know. If you find a bug o
  * [Networking](#configuration-networking)
  * [Custom Plugins](#configuration-plugin)
 * [Integration with Applications](#integration)
- * [Including ampm](#integration-including)
- * [Configuration Parsing](#integration-configuration)
+ * [Application Configuration](#application-configuration)
  * [Heartbeat Monitoring](#integration-monitoring)
  * [Logging](#integration-logging)
  * [Event Tracking](#integration-state)
 
-<a name="startup"/>
-# Startup
+<a name="installation"></a>
+# Installation
+To install ampm from [npm](https://www.npmjs.com/package/ampm), just do `npm install -g ampm` from an administrator-level command prompt.
 
-The simplest way to start ampm is to just run something like `node server.js`. However, this will use all the default configuration values, which means it won't start or monitor anything. Not super useful. You will likely want to use a specific configuration file and startup script, as shown in [the samples](https://github.com/stimulant/ampm-samples). The startup scripts use [node-supervisor](https://github.com/isaacs/node-supervisor) to restart ampm when the configuration is changed (in dev) or when the application is updated (in live).
+To install from source, clone the repo, and do `npm link` from the root of the repo. This is the best way to do development on ampm itself.
 
-<a name="configuration"/>
+<a name="exectuion"></a>
+# Execution
+
+After installing, the `ampm` command should be available on your system. The command only has two arguments, one for a configuration file, and one for the mode to run in. With no arguments, `ampm` will use the `ampm.json` configuration file and the default configuration within it.
+
+To use a different configuration file or mode (explained further below), you can use:
+
+`ampm ampm.json dev`
+
+You can also specify multiple configuration files. The first one will be the one used, but you can then switch between them using the web console.
+
+`ampm app1.json,app2.json,app3.json live`
+
+<a name="configuration"></a>
 # Configuration
 
-You can pass a configuration file path as an argument when starting ampm, like this:
-
-`node server.js ..\..\ampm.json`
-
-If you have multiple apps on the same machine, you can also pass paths to multiple configuration files, like this: 
-
-`node server.js ..\..\app1\ampm.json,..\..\app2\ampm.json,..\..\app3\ampm.json`
-
-These will show up on the console page and allow you to switch between multiple apps. All paths are relative to the location of server.js.
+ampm requires a configuration file in order to monitor your application. Start with a file called `ampm.json`, placed somewhere near your application binary.
 
 You can include multiple configuration schemes in the same json file. For example.
 
@@ -69,30 +73,28 @@ You can include multiple configuration schemes in the same json file. For exampl
 
 You can specify which configurations to use as an argument to node:
 
-* use the default: `supervisor server.js ..\..\ampm.json`
-* use the dev configuration: `supervisor server.js ..\..\ampm.json dev`
-* use the dev.foo configuration: `supervisor server.js ..\..\ampm.json dev.foo`
+* use the default: `ampm ampm.json`, or just `ampm`
+* use the dev configuration: `ampm ampm.json dev`
+* use the dev.foo configuration: `ampm ampm.json dev.foo`
 
 You don't have to explicitly specify the usage of machine-specific configurations, that will happen automatically if the current machine name matches a configuration. 
 
-The contents of the final configuration can be passed on to the application being monitored, so you can store all configuration in one file, and take advantage of its cascading nature in the application as well.
-
 The configuration is broken into a number of modules. You only need to specify the defaults you want to override.
 
-<a name="configuration-persistence"/>
+<a name="configuration-persistence"></a>
 ## Persistence
 
 The persistence manager is in chage of starting a process, monitoring it, restarting it if it dies, and triggering updates on a schedule. At a minimum you'll need to set the launchCommand here in order to monitor anything.
 
 ```JavaScript
 "persistence": {
-    // The command to run to launch the client, relative to server.js.
+    // The command to run to launch the client, relative to the config file.
     // {config} will be replaced with the contents of the config file.
     // example: "../Client.exe {config}"
     "launchCommand": "",
 
     // The command to run to launch a parallel process, relative to
-    // server.js. {config} will be replaced with the contents of the config
+    // the config file. {config} will be replaced with the contents of the config
     // file. This process will be stopped and started at the same time as the
     // main process.
     "sideCommand": "",
@@ -125,14 +127,11 @@ The persistence manager is in chage of starting a process, monitoring it, restar
     "restartSchedule": null,
 
     // Restart the app if it uses more than this much memory.
-    "maxMemory": Infinity,
-
-    // Whether to let ampm die if it throws an unhandled exception.
-    "exitOnError": true
+    "maxMemory": Infinity
 }
 ```
 
-<a name="configuration-permissions"/>
+<a name="configuration-permissions"></a>
 ## Permissions
 
 If permissions are specified, the console is locked down with a username and password. Multiple users can be defined, each with different sets of permissions. By default, there is no access control.
@@ -147,13 +146,13 @@ If permissions are specified, the console is locked down with a username and pas
         // If true, the user can shutdown, start, and restart the app.
         "app": true,
         
-        // If true, the user can shutdown and restart the computer.
+        // If true, the user can restart the computer.
         "computer": true
     }
 }
 ```
 
-<a name="configuration-logging"/>
+<a name="configuration-logging"></a>
 ## Logging
 
 The logging module sends logs from ampm and the application being monitored to a number of places. In a dev environment you probably want to turn most of the logging off.
@@ -164,7 +163,7 @@ The logging module sends logs from ampm and the application being monitored to a
     // Settings for the file logger.
     "file": {
         "enabled": true, // false to turn off
-        "filename": "logs/server", // Path to the log file, relative to server.js.
+        "filename": "logs/server", // Path to the log file, relative to the config file.
         "maxsize": 1048576, // The max size of the log file before rolling over (1MB default)
         "json": false, // Whether to log in JSON format.
         "level": "info" // The logging level to write: info, warn, error.
@@ -187,22 +186,22 @@ The logging module sends logs from ampm and the application being monitored to a
     // Settings for the event log file.
     "eventFile": {
         "enabled": true, // false to turn off
-        "filename": "logs/event-{date}.tsv" // Path to the log file, relative to server.js. {date} will be replaced by the current date.
+        "filename": "logs/event-{date}.tsv" // Path to the log file, relative to the config file. {date} will be replaced by the current date.
     },
 
     // Settings for screenshots taken after crashes.
     "screenshots": {
         "enabled": true, // false to turn off
-        "filename": "logs/capture-{date}.jpg" // Path to save screen shots, relative to server.js. {date} will be replaced by the current date.
+        "filename": "logs/capture-{date}.jpg" // Path to save screen shots, relative to the config file. {date} will be replaced by the current date.
     },
 
     // Settings for loggly.com.
     "loggly": {
-        "enabled": true, // false to turn off
-        "subdomain": "stimulant", // The account name. https://stimulant.loggly.com/dashboards
-        "inputToken": "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The API token.
+        "enabled": false, // false to turn off
+        "subdomain": "", // The account name. https://stimulant.loggly.com/dashboards
+        "inputToken": "", // The API token.
         "json": true, // Whether to log as JSON -- this should be true.
-        "token": "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The um, other token.
+        "token": "", // The um, other token.
         "tags": "ampm" // A tag to differentiate app logs from one another in loggly.
     },
 
@@ -223,7 +222,7 @@ The logging module sends logs from ampm and the application being monitored to a
 }
 ```
 
-<a name="configuration-networking"/>
+<a name="configuration-networking"></a>
 ## Networking
 
 The networking module coordinates connections between ampm, the application its monitoring, the web console, and other ampm instances.
@@ -246,40 +245,37 @@ The networking module coordinates connections between ampm, the application its 
 }
 ```
 
-<a name="configuration-plugin"/>
+<a name="configuration-plugin"></a>
 ## Custom Plugins
 
 You can have ampm run custom code by including the path to a module in the plugin attribute:
 
 ```JavaScript
-    "plugin": "../plugin.js"
+    "plugin": "plugin.js"
 ```
 
-This should be a [backbone model](https://github.com/stimulant/ampm-samples/blob/master/web/server/server.js) called Plugin. It will be instantiated and it's `boot()` method called at startup.
+This should be a [backbone model](https://github.com/stimulant/ampm/blob/master/samples/web/server/server.js) called Plugin. It will be instantiated and it's `boot()` method called at startup.
 
-<a name="integration"/>
+This is a handy place to implement a web server for your app, or to listen to custom web socket messages from your app, or to implement a sync layer between multiple applications.
+
+<a name="integration"></a>
 # Integration with Applications
 
-Your application can talk to ampm in a number of different ways. For specific implementation details and examples, see the [ampm-samples](https://github.com/stimulant/ampm-samples/) repo.
+ampm implementes a web socket server with [socket.io](http://socket.io) on port 3001 by default, and an OSC server on port 3002/3003. Heartbeats should be sent via one of those means for application monitoring, but other messages can be sent that way too, and handled in a plugin, as described above. For specific implementation details and examples, see the [samples](https://github.com/stimulant/ampm/blob/master/samples/).
 
-<a name="integration-including"/>
-## Including ampm
-
-ampm should be included as a submodule at the root of your application. Then you shouldn't mess with it -- only update it if ampm gets new features or fixes that you care about. You should then look at the configuration and startup script examples in [the samples directory](https://github.com/stimulant/ampm/tree/master/samples). These should probably live in the root of your repository.
-
-<a name="integration-configuration"/>
+<a name="application-configuration"></a>
 ## Configuration Parsing
 
-The contents of the ampm configuration can be passed to the application by emitting at `configRequest` command over the web socket. ampm will respond with a `configRequest` event containing the config data. For specific implementation details and examples, see the [ampm-samples](https://github.com/stimulant/ampm-samples/) repo.
+The contents of the ampm configuration can be passed to the application by emitting at `configRequest` command over the web socket. ampm will respond with a `configRequest` event containing the config data. For specific implementation details and examples, see the [samples](https://github.com/stimulant/ampm/blob/master/samples/).
 
-<a name="integration-monitoring"/>
+<a name="integration-monitoring"></a>
 ## Heartbeat Monitoring
 
-The persistence layer works by listening for a heartbeat message from the app on an interval. If it doesn't get one, it will restart the app (or the machine, if you want). To send a heartbeat message, send an OSC message over UDP to localhost on the port specified in `network.oscFromAppPort` (default is 3003) that's simply the string `heart`. You should probably do this when every frame is rendered.
+The persistence layer works by listening for a heartbeat message from the app on an interval. If it doesn't get one, it will restart the app (or the machine, if you want). To send a heartbeat message, send an OSC message over UDP to localhost on the port specified in `network.oscFromAppPort` (default is 3002) that's simply the string `heart`. You should probably do this when every frame is rendered.
 
-For web applications, use a TCP message to `network.socketToAppPort` (default is 3002) via a web socket that is also just `heart`.
+For web applications, use a TCP message to `network.socketToAppPort` (default is 3001) via a web socket that is also just `heart`.
 
-<a name="integration-logging"/>
+<a name="integration-logging"></a>
 ## Logging
 
 You can log any message to ampm and it will go through its logging mechanism, including emailing errors out, etc. To send a log message, send a TCP message over a web socket on `network.socketToAppPort` (default is 3002). The event name should be `log` and the payload should be an object like this:
@@ -291,11 +287,9 @@ You can log any message to ampm and it will go through its logging mechanism, in
 }
 ```
 
-The `level` can be `error`, `warning`, or `info`. `error` is the most severe, and is emailed out by default. This can be configured with `logging.mail.level`.
+The `level` can be `error`, `warn`, or `info`. `error` is the most severe, and is emailed out by default. This can be configured with `logging.mail.level`.
 
-It is probably a good idea to log very severe things like crashes to the local machine on your own if possible, in case the app is in such a bad state that it can't even send messages to ampm. (However in a basic test, a .NET app can get crash call stack to ampm before it goes down.)
-
-<a name="integration-events"/>
+<a name="integration-events"></a>
 ## Event Tracking
 
 ampm can track events indicating normal usage, such as button clicks or accesses to various content. These are sent to Google Analytics and configured via `logging.google`. To track an event, send a TCP message over a web socket on `network.socketToAppPort` (default is 3002). The event name should be `event` and the payload should be an object like this: 
@@ -305,8 +299,8 @@ ampm can track events indicating normal usage, such as button clicks or accesses
     "Category": "a name that you supply as a way to group objects that you want to track",
     "Action": "name the type of event or interaction you want to track",
     "Label": "provide additional information for events that you want to track, such as title of content",
-    "Value": "you could use it to provide the time in seconds for an player to load",
+    "Value": "some relevant numeric value",
 }
 ```
 
-More information about the types of data to include in the event tracking message can be found on the [Google Analytics](https://developers.google.com/analytics/devguides/collection/gajs/eventTrackerGuide#Anatomy) site.
+More information about the types of data to include in the event tracking message can be found on the [Google Analytics](https://support.google.com/analytics/answer/1033068) site.

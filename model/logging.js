@@ -56,11 +56,11 @@ exports.Logging = BaseModel.extend({
 
         // Settings for loggly.com.
         loggly: {
-            enabled: true, // false to turn off
-            subdomain: "stimulant", // The account name. https://stimulant.loggly.com/dashboards
-            inputToken: "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The API token.
+            enabled: false, // false to turn off
+            subdomain: "", // The account name. https://stimulant.loggly.com/dashboards
+            inputToken: "", // The API token.
             json: true, // Whether to log as JSON -- this should be true.
-            token: "b8eeee6e-12f4-4f2f-b6b4-62f087ad795e", // The um, other token.
+            token: "", // The um, other token.
             tags: "ampm" // A tag to differentiate app logs from one another in loggly.
         },
 
