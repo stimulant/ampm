@@ -23,7 +23,7 @@ At its most basic you can use it to launch your app, monitor the process, and re
  * [Application Configuration](#application-configuration)
  * [Heartbeat Monitoring](#integration-monitoring)
  * [Logging](#integration-logging)
- * [Event Tracking](#integration-state)
+ * [Event Tracking](#integration-events)
 
 <a name="installation"></a>
 # Installation
@@ -266,7 +266,7 @@ ampm implementes a web socket server with [socket.io](http://socket.io) on port 
 <a name="application-configuration"></a>
 ## Configuration Parsing
 
-The contents of the ampm configuration can be passed to the application by emitting at `configRequest` command over the web socket. ampm will respond with a `configRequest` event containing the config data. For specific implementation details and examples, see the [samples](https://github.com/stimulant/ampm/blob/master/samples/).
+In addition to the ampm configuration described above, you can include arbitrary JSON in the configuration file that pertains to your specific application. The contents of the ampm configuration can be passed to the application by emitting at `configRequest` command over the web socket. ampm will respond with a `configRequest` event containing the config data. For specific implementation details and examples, see the [samples](https://github.com/stimulant/ampm/blob/master/samples/).
 
 <a name="integration-monitoring"></a>
 ## Heartbeat Monitoring
