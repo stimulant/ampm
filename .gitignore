@@ -2,8 +2,6 @@ node_modules
 state.json
 content/
 content.tmp/
-app/
-app.tmp/
 packages/
 logs/
 *.log
