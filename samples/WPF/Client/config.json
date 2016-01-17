@@ -1,55 +1,55 @@
 {
-  "default": {
-    "persistence": {
-      "launchCommand": "samples/WPF/Client/bin/Debug/Client.exe",
-      "maxMemory": 0,
-      "startupTimeout": 10,
-      "heartbeatTimeout": 5
+    "default": {
+        "persistence": {
+            "launchCommand": "Client.exe",
+            "maxMemory": 0,
+            "startupTimeout": 10,
+            "heartbeatTimeout": 5
+        },
+        "permissions": {
+            "username": {
+                "password": "password",
+                "app": true,
+                "computer": true
+            }
+        },
+        "logging": {
+            "file": {
+                "filename": "logs/server"
+            },
+            "eventFile": {
+                "filename": "logs/event-{date}.tsv"
+            },
+            "screenshots": {
+                "filename": "logs/capture-{date}.jpg"
+            },
+            "loggly": {
+                "tags": "ampm-samples"
+            },
+            "mail": {
+                "enabled": false
+            }
+        }
     },
-    "permissions": {
-      "username": {
-        "password": "password",
-        "app": true,
-        "computer": true
-      }
-    },
-    "logging": {
-      "file": {
-        "filename": "samples/WPF/Client/bin/Debug/logs/server"
-      },
-      "eventFile": {
-        "filename": "samples/WPF/Client/bin/Debug/logs/event-{date}.tsv"
-      },
-      "screenshots": {
-        "filename": "samples/WPF/Client/bin/Debug/logs/capture-{date}.jpg"
-      },
-      "loggly": {
-        "tags": "ampm-samples"
-      },
-      "mail": {
-        "enabled": false
-      }
+    "dev": {
+        "persistence": {
+            "maxMemory": 0,
+            "startupTimeout": 0,
+            "heartbeatTimeout": 0
+        },
+        "logging": {
+            "file": {
+                "enabled": false
+            },
+            "eventFile": {
+                "enabled": false
+            },
+            "screenshots": {
+                "enabled": false
+            },
+            "loggly": {
+                "enabled": false
+            }
+        }
     }
-  },
-  "dev": {
-    "persistence": {
-      "maxMemory": 0,
-      "startupTimeout": 0,
-      "heartbeatTimeout": 0
-    },
-    "logging": {
-      "file": {
-        "enabled": false
-      },
-      "eventFile": {
-        "enabled": false
-      },
-      "screenshots": {
-        "enabled": false
-      },
-      "loggly": {
-        "enabled": false
-      }
-    }
-  }
 }

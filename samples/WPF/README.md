@@ -1,5 +1,5 @@
 ## ampm sample
-From this directory, run:
+From build output directory, run:
 
 `ampm` - to load the default config.json file and run in the default (live) mode.
 
