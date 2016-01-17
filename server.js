@@ -5,6 +5,7 @@ var fs = require('node-fs'); // Recursive directory creation. https://github.com
 var os = require('os'); // http://nodejs.org/api/os.html
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
+var json = require('comment-json'); // https://www.npmjs.com/package/comment-json
 
 var ConsoleState = require('./model/consoleState.js').ConsoleState;
 var BaseModel = require('./model/baseModel.js').BaseModel;
@@ -15,7 +16,7 @@ var Logging = require('./model/logging.js').Logging;
 
 global.$$config = {};
 
-// args will be ['node', 'server.js', 'config.json', 'dev.i14']
+// args will be ['node', 'server.js', 'ampm.json', 'dev.i14']
 var configPath = '';
 var configPaths = process.argv[2] ? process.argv[2].split(',') : [];
 var configScheme = process.argv[3] ? process.argv[3] : '';

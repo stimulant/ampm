@@ -5,7 +5,7 @@
 var nodemon = require('nodemon');
 var path = require('path');
 
-var configFile = process.argv[2] || 'config.json';
+var configFile = process.argv[2] || 'ampm.json';
 var mode = process.argv[3] || '';
 var appPath = path.resolve(path.dirname(configFile));
 

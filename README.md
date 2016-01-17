@@ -37,11 +37,11 @@ The simplest way to start ampm is to just run something like `node server.js`. H
 
 You can pass a configuration file path as an argument when starting ampm, like this:
 
-`node server.js ..\..\config.json`
+`node server.js ..\..\ampm.json`
 
 If you have multiple apps on the same machine, you can also pass paths to multiple configuration files, like this: 
 
-`node server.js ..\..\app1\config.json,..\..\app2\config.json,..\..\app3\config.json`
+`node server.js ..\..\app1\ampm.json,..\..\app2\ampm.json,..\..\app3\ampm.json`
 
 These will show up on the console page and allow you to switch between multiple apps. All paths are relative to the location of server.js.
 
@@ -69,9 +69,9 @@ You can include multiple configuration schemes in the same json file. For exampl
 
 You can specify which configurations to use as an argument to node:
 
-* use the default: `supervisor server.js ..\..\config.json`
-* use the dev configuration: `supervisor server.js ..\..\config.json dev`
-* use the dev.foo configuration: `supervisor server.js ..\..\config.json dev.foo`
+* use the default: `supervisor server.js ..\..\ampm.json`
+* use the dev configuration: `supervisor server.js ..\..\ampm.json dev`
+* use the dev.foo configuration: `supervisor server.js ..\..\ampm.json dev.foo`
 
 You don't have to explicitly specify the usage of machine-specific configurations, that will happen automatically if the current machine name matches a configuration. 
 
