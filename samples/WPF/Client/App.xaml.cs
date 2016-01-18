@@ -34,21 +34,9 @@ namespace Client
         }
 
         // Parse the configuration argument.
-        void App_Startup(object sender, StartupEventArgs e)
+        async void App_Startup(object sender, StartupEventArgs e)
         {
-            if (e.Args.Length > 0)
-            {
-                try
-                {
-                    AppState.Instance.Config = JObject.Parse(e.Args[0]);
-                }
-                catch
-                {
-#if DEBUG
-                    throw;
-#endif
-                }
-            }
+            AppState.Instance.Config = await Ampm.GetConfig();
         }
     }
 }

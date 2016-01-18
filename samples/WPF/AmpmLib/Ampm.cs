@@ -1,12 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Windows.Threading;
-using Bespoke.Common.Osc;
+﻿using Bespoke.Common.Osc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Quobject.SocketIoClientDotNet.Client;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using System.Windows.Threading;
 
 namespace AmpmLib
 {
@@ -18,7 +20,6 @@ namespace AmpmLib
         // The socket to log to the server.
         private static Socket _SocketToServer;
         private static bool _Connected = false;
-        private static JObject _Config = null;
 
         // The destination for OSC messages to the local node.js server.
         private static readonly IPEndPoint _OscSendLocal = new IPEndPoint(IPAddress.Loopback, 3002);
@@ -43,22 +44,27 @@ namespace AmpmLib
             _SocketToServer.On(Socket.EVENT_CONNECT_ERROR, Socket_Closed);
             _SocketToServer.On(Socket.EVENT_DISCONNECT, Socket_Closed);
 
-            // Request the configuration and dispatch it as an event.
-            _SocketToServer.On("configRequest", (data) =>
-            {
-                _Config = JObject.FromObject(data);
-                if (ConfigLoaded != null)
-                {
-                    Dispatcher.BeginInvoke(new Action(() =>
-                    {
-                        ConfigLoaded(null, _Config);
-                    }));
-                }
-            });
-
             // Handle incoming OSC messages.
             _OscReceive.MessageReceived += Server_MessageReceived;
             _OscReceive.Start();
+        }
+
+        // Get the configuration from ampm.
+        public static async Task<JObject> GetConfig()
+        {
+            try
+            {
+                WebRequest req = WebRequest.Create("http://localhost:8888/config");
+                WebResponse res = await req.GetResponseAsync();
+                Stream dataStream = res.GetResponseStream();
+                StreamReader reader = new StreamReader(dataStream);
+                string responseFromServer = reader.ReadToEnd();
+                return JObject.Parse(responseFromServer);
+            }
+            catch
+            {
+                return JObject.Parse("{}");
+            }
         }
 
         /// <summary>
@@ -67,20 +73,12 @@ namespace AmpmLib
         static void Socket_Opened()
         {
             _Connected = true;
-
-            if (_Config == null)
-            {
-                _SocketToServer.Emit("configRequest");
-            }
-
             while (_MessageQueue.Count > 0)
             {
                 Tuple<string, object> msg = _MessageQueue.Dequeue();
                 TcpEvent(msg.Item1, msg.Item2);
             }
         }
-
-        public static event EventHandler<JObject> ConfigLoaded;
 
         static void Socket_Closed()
         {

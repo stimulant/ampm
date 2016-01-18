@@ -22,11 +22,6 @@ namespace Client
             }
         }
 
-        private AppState()
-        {
-            Ampm.ConfigLoaded += (sender, config) => { Config = config; };
-        }
-
         private JToken _Config;
 
         public JToken Config

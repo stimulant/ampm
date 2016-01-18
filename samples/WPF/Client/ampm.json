@@ -29,6 +29,9 @@
             "mail": {
                 "enabled": false
             }
+        },
+        "customConfig:": {
+            "foo:": "bar"
         }
     },
     "dev": {
@@ -50,6 +53,9 @@
             "loggly": {
                 "enabled": false
             }
+        },
+        "customConfig:": {
+            "foo:": "baz"
         }
     }
 }
