@@ -50,11 +50,11 @@ namespace AmpmLib
         }
 
         // Get the configuration from ampm.
-        public static async Task<JObject> GetConfig()
+        public static async Task<JObject> GetConfig(string url = "http://localhost:8888/config")
         {
             try
             {
-                WebRequest req = WebRequest.Create("http://localhost:8888/config");
+                WebRequest req = WebRequest.Create(url);
                 WebResponse res = await req.GetResponseAsync();
                 Stream dataStream = res.GetResponseStream();
                 StreamReader reader = new StreamReader(dataStream);
