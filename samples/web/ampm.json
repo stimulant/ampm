@@ -30,14 +30,17 @@
                 "enabled": false
             }
         },
-        "plugin": "server/server.js"
+        "plugin": "server/server.js",
+        "customConfig:": {
+            "foo:": "bar"
+        }
     },
     "dev": {
         "persistence": {
             "launchCommand": "'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe' --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8000/",
             "maxMemory": 0,
-            "startupTimeout": 10,
-            "heartbeatTimeout": 5
+            "startupTimeout": 0,
+            "heartbeatTimeout": 0
         },
         "logging": {
             "file": {
@@ -52,6 +55,9 @@
             "loggly": {
                 "enabled": false
             }
+        },
+        "customConfig:": {
+            "foo:": "baz"
         }
     },
     "Obelus.local": {

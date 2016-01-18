@@ -264,9 +264,13 @@ This is a handy place to implement a web server for your app, or to listen to cu
 ampm implementes a web socket server with [socket.io](http://socket.io) on port 3001 by default, and an OSC server on port 3002/3003. Heartbeats should be sent via one of those means for application monitoring, but other messages can be sent that way too, and handled in a plugin, as described above. For specific implementation details and examples, see the [samples](https://github.com/stimulant/ampm/blob/master/samples/).
 
 <a name="application-configuration"></a>
-## Configuration Parsing
+## Application Configuration
 
-In addition to the ampm configuration described above, you can include arbitrary JSON in the configuration file that pertains to your specific application. The contents of the ampm configuration can be passed to the application by emitting at `configRequest` command over the web socket. ampm will respond with a `configRequest` event containing the config data. For specific implementation details and examples, see the [samples](https://github.com/stimulant/ampm/blob/master/samples/).
+In addition to the ampm configuration described above, you can include arbitrary JSON in the configuration file that pertains to your specific application. This is especially handy if you have the same application running on multiple machines, and each machine needs different settings for some reason.
+
+ampm will serve up that part of the configuration with a request to `/config`, by default at `http://localhost:8888/config`.
+
+Another way to get the configuration is to emit `configRequest` over the web socket. ampm will respond with a `configRequest` event containing the config data. For specific implementation details and examples, see the [samples](https://github.com/stimulant/ampm/blob/master/samples/).
 
 <a name="integration-monitoring"></a>
 ## Heartbeat Monitoring

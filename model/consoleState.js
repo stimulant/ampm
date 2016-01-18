@@ -54,16 +54,25 @@ exports.ConsoleState = BaseModel.extend({
         $$network.transports.socketToConsole.sockets.on('connection', _.bind(this._onConnection, this));
     },
 
-    // Build an object representing the whole configuration of the server. Sent to the console on
-    // initial connection, also useful to spew for documentation.
+    // Build an object representing the whole configuration of the server. Useful to spew for documentation.
     fullConfig: function(user) {
         var permissions = $$config.permissions ? $$config.permissions[user] : null;
-        return {
+        return _.extend($$config, {
             network: $$network.attributes,
             persistence: $$persistence.attributes,
             logging: $$logging.attributes,
             permissions: permissions
-        };
+        });
+    },
+
+    // Build the full configuration, minus things the client doesn't need to know about.
+    cleanConfig: function() {
+        var c = this.fullConfig();
+        delete c.persistence;
+        delete c.permissions;
+        delete c.logging;
+        delete c.plugin;
+        return c;
     },
 
     // On initial socket connection with the console, listen for commands and send out the config.

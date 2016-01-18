@@ -6,10 +6,9 @@ APP = _.extend({
     Models: {},
 
     initialize: function() {
-        ampm.socket().on('configRequest', function(config) {
-            console.log('Configuration loaded');
-
+        this.getConfig(function(config) {
             APP.config = config;
+
             this.model = new APP.Model();
             this.view = new APP.View({
                 el: document.body,
@@ -23,9 +22,19 @@ APP = _.extend({
                 requestAnimationFrame(heart);
             }
             requestAnimationFrame(heart);
-
         });
-        ampm.socket().emit('configRequest');
-        console.log('Configuration requested');
+    },
+
+    // Load configuration data from ampm.
+    getConfig: function(callback) {
+        console.log('Requesting configuration');
+        $.getJSON('http://localhost:8888/config')
+            .done(function(config) {
+                console.log('Configuration loaded');
+                callback(config);
+            }).fail(function(jqxhr, textStatus, error) {
+                console.error('Config load failed');
+                throw error;
+            });
     }
 });

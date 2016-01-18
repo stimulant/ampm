@@ -111,6 +111,14 @@ exports.Network = BaseModel.extend({
             });
         }
 
+        // Send the config on a request to /config from anywhere.
+        app.get('/config', function(req, res) {
+            res.header('Access-Control-Allow-Origin', '*');
+            res.header('Access-Control-Allow-Methods', 'GET');
+            res.header('Access-Control-Allow-Headers', 'Content-Type');
+            res.json($$consoleState.cleanConfig());
+        });
+
         ///// Set up socket connection to console.
         this.transports.socketToConsole = ioServer.listen(this.transports.webServer);
 
