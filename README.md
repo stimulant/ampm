@@ -305,7 +305,7 @@ ampm can track events indicating normal usage, such as button clicks or accesses
     "Category": "a name that you supply as a way to group objects that you want to track",
     "Action": "name the type of event or interaction you want to track",
     "Label": "provide additional information for events that you want to track, such as title of content",
-    "Value": "some relevant numeric value",
+    "Value": "some relevant numeric value"
 }
 ```
 
