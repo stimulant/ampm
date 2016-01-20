@@ -56,18 +56,17 @@ exports.ConsoleState = BaseModel.extend({
 
     // Build an object representing the whole configuration of the server. Useful to spew for documentation.
     fullConfig: function(user) {
-        var permissions = $$config.permissions ? $$config.permissions[user] : null;
         return _.extend($$config, {
             network: $$network.attributes,
             persistence: $$persistence.attributes,
             logging: $$logging.attributes,
-            permissions: permissions
+            permissions: user ? $$config.permissions[user] : $$config.permissions
         });
     },
 
     // Build the full configuration, minus things the client doesn't need to know about.
     cleanConfig: function() {
-        var c = this.fullConfig();
+        var c = _.cloneDeep(this.fullConfig());
         delete c.persistence;
         delete c.permissions;
         delete c.logging;
