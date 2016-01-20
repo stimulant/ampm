@@ -18,7 +18,7 @@ global.$$config = {};
 
 // args will be ['node', 'server.js', 'ampm.json', 'dev.i14']
 var configPath = '';
-var configPaths = process.argv[2] ? process.argv[2].split(',') : [];
+var configPaths = process.argv[2] ? process.argv[2].split(',') : ['ampm.json'];
 var configScheme = process.argv[3] ? process.argv[3] : '';
 
 // A persistent state object, saved to state.json.
@@ -27,7 +27,7 @@ global.$$serverState = new ServerState();
 // load from server state if config is stored
 if (global.$$serverState.get('config')) {
     configPath = $$serverState.get('config');
-} else if (process.argv.length > 2) {
+} else {
     configPath = configPaths[0];
 }
 
