@@ -247,7 +247,7 @@ exports.Persistence = BaseModel.extend({
             var filename = $$logging.get('screenshots').filename.replace('{date}', moment().format('YYYYMMDDhhmmss'));
             logger.info('Saving screenshot to ' + filename);
 
-            var winCmd = path.join(process.cwd(), 'tools', 'nircmd.exe');
+            var winCmd = path.join(__dirname, '../tools', 'nircmd.exe');
             var winArgs = ['savescreenshotfull', filename];
 
             var macCmd = '/usr/sbin/screencapture';
