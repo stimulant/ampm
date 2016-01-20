@@ -3,16 +3,11 @@ var fs = require('fs'); // https://nodejs.org/dist/latest-v4.x/docs/api/fs.html
 var os = require('os'); // https://nodejs.org/dist/latest-v4.x/docs/api/os.html
 var http = require('http'); // https://nodejs.org/dist/latest-v4.x/docs/api/http.html
 
-var _ = require('lodash'); // Utilities. http://underscorejs.org/
+var _ = require('lodash'); // Utilities. http://lodash.com/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var express = require('express'); // Web app framework. http://expressjs.com/
 
 exports.Plugin = Backbone.Model.extend({
-	defaults: {
-		x: 0,
-		y: 0
-	},
-
 	boot: function() {
 
 		// Set up a web server to serve the application.
@@ -24,17 +19,11 @@ exports.Plugin = Backbone.Model.extend({
 		});
 		webapp.use(express.static(path.join(__dirname, '../')));
 
-		// Listen for TCP events from the app.
+		// Listen to TCP data from the app. This could then be sent to other instances of the app, logged, etc.
 		$$network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
 			socket.on('mouse', _.bind(function(data) {
-				this.set('x', data.x);
-				this.set('y', data.y);
+				console.log(data);
 			}, this));
-		}, this));
-
-		// Listen for UDP events from the app.
-		$$network.transports.oscFromApp.on('heart', _.bind(function(data) {
-			// console.log(data);
 		}, this));
 	}
 });

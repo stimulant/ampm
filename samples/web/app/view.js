@@ -19,6 +19,14 @@ APP.View = Backbone.View.extend({
         });
 
         $('#config', this.$el).html(JSON.stringify(APP.config, null, '\t'));
+
+        // Send the mouse position back to the server.
+        this.$el.mousemove(function(e) {
+            ampm.socket().emit('mouse', {
+                x: e.pageX,
+                y: e.pageY
+            });
+        });
     },
 
     _onCrashClicked: function() {
