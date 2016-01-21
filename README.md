@@ -183,7 +183,7 @@ The logging module sends logs from ampm and the application being monitored to a
     // Settings for Google Analytics.
     "google": {
         "enabled": true, // false to turn off
-        "accountId": "UA-46432303-2", // The property ID -- this should be unique per project.
+        "accountId": "", // The property ID -- this should be unique per project.
     },
 
     // Settings for the event log file.
