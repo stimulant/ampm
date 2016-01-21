@@ -103,6 +103,15 @@ void AMPMClient::log( LogEventLevel level, std::string msg, char const* line, in
 	mSender.send( message );
 }
 
+// send custom osc message
+void AMPMClient::sendCustomMessage( std::string address, ci::JsonTree msg )
+{
+	osc::Message message;
+	message.setAddress( address );
+	message.append( msg.serialize() );
+	mSender.send( message );
+}
+
 // strip out file for sending as part of log info
 char const* AMPMClient::getFileForLog( char const* file )
 {

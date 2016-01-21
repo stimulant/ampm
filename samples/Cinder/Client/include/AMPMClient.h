@@ -38,6 +38,7 @@ class AMPMClient
 		ci::JsonTree getConfig();
 		void update();
 		void sendEvent( std::string category = "", std::string action = "", std::string label = "", int value = 0 );
+		void sendCustomMessage( std::string address, ci::JsonTree msg );
 		void log( LogEventLevel level, std::string msg, char const* line, int lineNum );
 		static char const* getFileForLog( char const* file );
 

@@ -18,6 +18,7 @@ class ClientApp : public App
 	public:
 		void setup() override;
 		void mouseDown( MouseEvent event ) override;
+		void mouseMove( MouseEvent event ) override;
 		void update() override;
 		void draw() override;
 };
@@ -67,6 +68,16 @@ void ClientApp::mouseDown( MouseEvent event )
 	{
 		quit();
 	}
+}
+
+void ClientApp::mouseMove( MouseEvent event )
+{
+	// send mouse positions to server
+	JsonTree mousePositions;
+	mousePositions.pushBack( JsonTree( "x", event.getX() ) );
+	mousePositions.pushBack( JsonTree( "y", event.getY() ) );
+
+	mAMPM->sendCustomMessage( "/mouse", mousePositions );
 }
 
 void ClientApp::update()
