@@ -170,7 +170,10 @@ exports.Logging = BaseModel.extend({
 
         // Create the screenshots directory if needed.
         if (this.get('screenshots').enabled) {
-            fs.mkdirSync(path.dirname(this.get('screenshots').filename));
+            var shotsDir = path.dirname(this.get('screenshots').filename);
+            if (!fs.existsSync(shotsDir)) {
+                fs.mkdirSync(shotsDir);
+            }
         }
 
         // Set up the cache, which is just a history of log messages.
