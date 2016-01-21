@@ -30,6 +30,7 @@
                 "enabled": false
             }
         },
+        "plugin": "server/server.js",
         "customConfig:": {
             "foo:": "bar"
         }

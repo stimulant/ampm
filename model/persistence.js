@@ -103,7 +103,7 @@ exports.Persistence = BaseModel.extend({
             socket.on('heart', _.bind(this._onHeart, this));
             socket.emit('config', $$config);
             socket.on('configRequest', function() {
-                socket.emit('configRequest', $$consoleState.cleanConfig());
+                socket.emit('configRequest', $$consoleState.fullConfig());
             });
         }, this));
 

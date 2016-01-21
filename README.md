@@ -176,7 +176,8 @@ The logging module sends logs from ampm and the application being monitored to a
         "enabled": true, // false to turn off
         "colorize": true, // Colors are fun.
         "timestamp": true, // Include timestamps.
-        "level": "info" // The logging level to write: info, warn, error.
+        "level": "info", // The logging level to write: info, warn, error.
+        "preserve": false // If false, the ampm client should send console output to the server if possible.
     },
 
     // Settings for Google Analytics.
@@ -305,7 +306,7 @@ ampm can track events indicating normal usage, such as button clicks or accesses
     "Category": "a name that you supply as a way to group objects that you want to track",
     "Action": "name the type of event or interaction you want to track",
     "Label": "provide additional information for events that you want to track, such as title of content",
-    "Value": "some relevant numeric value",
+    "Value": "some relevant numeric value"
 }
 ```
 

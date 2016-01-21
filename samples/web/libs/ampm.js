@@ -57,6 +57,11 @@ var ampm = Backbone.Model.extend({}, {
                 on: function() {}
             };
         });
+        ampm._socket.on('config', function(config) {
+            if (!config.logging.console.preserve) {
+                ampm._wrapConsole();
+            }
+        });
 
         return ampm._socket;
     },
@@ -115,46 +120,50 @@ var ampm = Backbone.Model.extend({}, {
     // Send a log message at the info level.
     info: function(message) {
         ampm.logMessage('info', message);
+    },
+
+    _wrapConsole: function() {
+
+        // Catch all errors and stop sending heartbeats so we get restarted.
+        window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
+            if (ampm.ignoreErrors.indexOf(errorMsg) != -1) {
+                return false;
+            }
+
+            ampm.crashed = true;
+            ampm.error('Error: ' + errorMsg + '\nScript: ' + url + '\nLine: ' + lineNumber + '\nColumn: ' + column + '\nStack: ' + errorObj.stack);
+            return false;
+        };
+
+        console.log = function() {
+            ampm.info(Array.prototype.slice.call(arguments, 0).join(', '));
+            ampm._logMethods.log.apply(console, arguments);
+        };
+
+        console.info = function() {
+            ampm.info(Array.prototype.slice.call(arguments, 0).join(', '));
+            ampm._logMethods.info.apply(console, arguments);
+        };
+
+        console.debug = function() {
+            ampm.info(Array.prototype.slice.call(arguments, 0).join(', '));
+            ampm._logMethods.debug.apply(console, arguments);
+        };
+
+        console.trace = function() {
+            ampm.info(Array.prototype.slice.call(arguments, 0).join(', '));
+            ampm._logMethods.trace.apply(console, arguments);
+        };
+
+        console.warn = function() {
+            ampm.warning(Array.prototype.slice.call(arguments, 0).join(', '));
+            ampm._logMethods.warn.apply(console, arguments);
+        };
+
+        console.error = function() {
+            ampm.error(Array.prototype.slice.call(arguments, 0).join(', '));
+            ampm._logMethods.error.apply(console, arguments);
+        };
+
     }
 });
-
-// Catch all errors and stop sending heartbeats so we get restarted.
-window.onerror = function(errorMsg, url, lineNumber, column, errorObj) {
-    if (ampm.ignoreErrors.indexOf(errorMsg) != -1) {
-        return false;
-    }
-
-    ampm.crashed = true;
-    ampm.error('Error: ' + errorMsg + '\nScript: ' + url + '\nLine: ' + lineNumber + '\nColumn: ' + column + '\nStack: ' + errorObj.stack);
-    return false;
-};
-
-console.log = function() {
-    ampm.info(Array.prototype.slice.call(arguments, 0).join(', '));
-    ampm._logMethods.log.apply(console, arguments);
-};
-
-console.info = function() {
-    ampm.info(Array.prototype.slice.call(arguments, 0).join(', '));
-    ampm._logMethods.info.apply(console, arguments);
-};
-
-console.debug = function() {
-    ampm.info(Array.prototype.slice.call(arguments, 0).join(', '));
-    ampm._logMethods.debug.apply(console, arguments);
-};
-
-console.trace = function() {
-    ampm.info(Array.prototype.slice.call(arguments, 0).join(', '));
-    ampm._logMethods.trace.apply(console, arguments);
-};
-
-console.warn = function() {
-    ampm.warning(Array.prototype.slice.call(arguments, 0).join(', '));
-    ampm._logMethods.warn.apply(console, arguments);
-};
-
-console.error = function() {
-    ampm.error(Array.prototype.slice.call(arguments, 0).join(', '));
-    ampm._logMethods.error.apply(console, arguments);
-};

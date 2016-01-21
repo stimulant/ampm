@@ -33,7 +33,8 @@ exports.Logging = BaseModel.extend({
             enabled: true, // false to turn off
             colorize: true, // Colors are fun.
             timestamp: true, // Include timestamps.
-            level: "info" // The logging level to write: info, warn, error.
+            level: "info", // The logging level to write: info, warn, error.
+            preserve: false // If false, the ampm client should send console output to the server if possible.
         },
 
         // Settings for Google Analytics.
@@ -166,6 +167,14 @@ exports.Logging = BaseModel.extend({
             this._google = ua(this.get('google').accountId, os.hostname(), {
                 strictCidFormat: false
             });
+        }
+
+        // Create the screenshots directory if needed.
+        if (this.get('screenshots').enabled) {
+            var shotsDir = path.dirname(this.get('screenshots').filename);
+            if (!fs.existsSync(shotsDir)) {
+                fs.mkdirSync(shotsDir);
+            }
         }
 
         // Set up the cache, which is just a history of log messages.

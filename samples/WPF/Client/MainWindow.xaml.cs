@@ -77,5 +77,16 @@ namespace Client
         {
             Thread.Sleep(500);
         }
+
+        /// <summary>
+        /// Send mouse data to ampm over OSC.
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            Point p = e.GetPosition(this);
+            Ampm.UdpEvent("mouse", new { x = p.X, y = p.Y });
+            base.OnMouseMove(e);
+        }
     }
 }

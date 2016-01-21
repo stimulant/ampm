@@ -43,6 +43,9 @@
             "heartbeatTimeout": 0
         },
         "logging": {
+            "console": {
+                "preserve": true
+            },
             "file": {
                 "enabled": false
             },
