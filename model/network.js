@@ -116,7 +116,7 @@ exports.Network = BaseModel.extend({
             res.header('Access-Control-Allow-Origin', '*');
             res.header('Access-Control-Allow-Methods', 'GET');
             res.header('Access-Control-Allow-Headers', 'Content-Type');
-            res.json($$consoleState.cleanConfig());
+            res.json($$consoleState.fullConfig());
         });
 
         ///// Set up socket connection to console.

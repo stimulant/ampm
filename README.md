@@ -176,7 +176,8 @@ The logging module sends logs from ampm and the application being monitored to a
         "enabled": true, // false to turn off
         "colorize": true, // Colors are fun.
         "timestamp": true, // Include timestamps.
-        "level": "info" // The logging level to write: info, warn, error.
+        "level": "info", // The logging level to write: info, warn, error.
+        "preserve": false // If false, the ampm client should send console output to the server if possible.
     },
 
     // Settings for Google Analytics.
