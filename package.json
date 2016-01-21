@@ -13,7 +13,7 @@
     "ampm": "server.js"
   },
   "dependencies": {
-    "async": "^1.5.0",
+    "async": "^1.5.2",
     "backbone": "^1.2.3",
     "comment-json": "^1.1.3",
     "connect": "^3.4.0",
@@ -30,7 +30,6 @@
     "passport": "^0.3.2",
     "passport-http": "^0.3.0",
     "passport.socketio": "^3.6.1",
-    "recursive-readdir": "^1.3.0",
     "request": "^2.67.0",
     "request-progress": "^0.4.0",
     "socket.io": "^1.3.7",
