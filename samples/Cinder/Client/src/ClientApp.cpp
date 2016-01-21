@@ -27,6 +27,9 @@ void ClientApp::setup()
 	// ampm connection
 	mAMPM = AMPMClient::create( 3002, 3003 );
 
+	// get config
+	JsonTree config = mAMPM->getConfig();
+
 	// fake buttons
 	float width = 100.0f;
 	float height = 40.0f;

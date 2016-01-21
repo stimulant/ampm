@@ -1,6 +1,5 @@
 #include "cinder/app/App.h"
 #include "AMPMClient.h"
-#include "cinder/Json.h"
 
 #include <map>
 #include <boost/assign/list_of.hpp>
@@ -41,12 +40,23 @@ AMPMClient::AMPMClient( int sendPort, int recvPort )
 
 	mListener.bind();
 	mListener.listen();
+}
 
-	mListener.setListener( "/config", [&]( const osc::Message & msg )
+JsonTree AMPMClient::getConfig()
+{
+	JsonTree config;
+
+	try
 	{
-		// do something with config here
-		ci::app::console() << "hello" << std::endl;
-	} );
+		config = JsonTree( loadUrl( Url( "http://localhost:8888/config" ) ) );
+	}
+	catch( Exception ex )
+	{
+		LOG( ex.what() );
+		console() << ( ex.what() ) << std::endl;
+	}
+
+	return config;
 }
 
 void AMPMClient::update()

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Osc.h"
+#include "cinder/Json.h"
 
 #include <queue>
 #define USE_UDP 1
@@ -34,6 +35,7 @@ class AMPMClient
 		static AMPMClientRef create( int sendPort, int recvPort );
 		~AMPMClient();
 
+		ci::JsonTree getConfig();
 		void update();
 		void sendEvent( std::string category = "", std::string action = "", std::string label = "", int value = 0 );
 		void log( LogEventLevel level, std::string msg, char const* line, int lineNum );
