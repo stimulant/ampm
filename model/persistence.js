@@ -378,22 +378,18 @@ exports.Persistence = BaseModel.extend({
 
         var parts = this._parseCommand(this.get('launchCommand'));
 
-        if (!fs.existsSync(parts[0])) {
-            this._isStartingUp = false;
-            logger.error('Application not found.');
-            if (callback) {
-                callback(false);
-            }
-            return;
-        }
-
         // Start the app.
         logger.info('App starting up.');
         this._appProcess = child_process.spawn(parts[0], parts.slice(1), {
             cwd: path.dirname(parts[0])
-        }).on('exit', _.bind(function() {
-            this._appProcess = null;
-        }, this));
+        })
+            .on('exit', _.bind(function() {
+                this._appProcess = null;
+            }, this))
+            .on('error', _.bind(function(err) {
+                logger.error('Application could not be started. Is the launchCommand path correct?');
+                this._appProcess = null;
+            }, this));
         this._resetRestartTimeout(this.get('startupTimeout'));
 
         if (!this.get('sideCommand')) {
