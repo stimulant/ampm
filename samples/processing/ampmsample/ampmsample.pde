@@ -1,3 +1,5 @@
+import oscP5.*;
+
 JSONObject config;
 Ampm ampm;
 

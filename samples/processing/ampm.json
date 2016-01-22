@@ -1,0 +1,31 @@
+{
+    "default": {
+        "persistence": {
+            "launchCommand": "\"C:\\Program Files\\processing\\processing-java\" --sketch=%CD%/ampmsample --present",
+            "startupTimeout": 10,
+            "heartbeatTimeout": 5
+        },
+        "plugin": "server/server.js"
+    },
+    "dev": {
+        "persistence": {
+            "launchCommand": "\"C:\\Program Files\\processing\\processing-java\" --sketch=%CD%/ampmsample --run",
+            "startupTimeout": 0,
+            "heartbeatTimeout": 0
+        },
+        "logging": {
+            "file": {
+                "enabled": false
+            },
+            "eventFile": {
+                "enabled": false
+            },
+            "screenshots": {
+                "enabled": false
+            },
+            "loggly": {
+                "enabled": false
+            }
+        }
+    }
+}
