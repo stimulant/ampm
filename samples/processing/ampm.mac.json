@@ -1,0 +1,24 @@
+{
+    "default": {
+        "persistence": {
+            "launchCommand": "/usr/local/bin/processing-java --sketch=%CD%/ampmsample --run"
+        },
+        "logging": {
+            "console": {
+                "preserve": true
+            },
+            "file": {
+                "enabled": false
+            },
+            "eventFile": {
+                "enabled": false
+            },
+            "screenshots": {
+                "enabled": false
+            },
+            "loggly": {
+                "enabled": false
+            }
+        }
+    }
+}
