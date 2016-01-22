@@ -1,5 +1,7 @@
 ## ampm Processing sample
 
+* From the server directory, run `npm install`
+
 ### On Mac
 
 * From the Processing IDE, use the Tools > Install "processing-java" menu item to install the command-line launcher.

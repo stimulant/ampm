@@ -1,14 +1,29 @@
-import oscP5.*;
-import netP5.*;
-
-OscP5 oscServer;
-NetAddress ampmOsc; 
+JSONObject config;
+Ampm ampm;
 
 void setup() {
-  oscServer = new OscP5(this, 3003); // set up OSC server
-  ampmOsc = new NetAddress("127.0.0.1", 3002); // ampm OSC target
+  ampm = new Ampm(this);
+
+  // load the JSON config file from ampm
+  config = ampm.getConfig();
+
+  ampm.info("info");
+  ampm.warning("warn");
+  ampm.error("error");
+  ampm.logEvent("foo", "bar", "baz", 1);
 }
 
 void draw() {
-  oscServer.send(new OscMessage("/heart"), ampmOsc);
+  // send a heartbeat message every frame
+  ampm.heart();
+}
+
+// Send mouse coordinates to the server to do things with
+void mouseMoved() {
+  JSONObject json = new JSONObject();
+  json.setInt("x", mouseX);
+  json.setInt("y", mouseY);
+  OscMessage msg = new OscMessage("/mouse");
+  msg.add(json.toString());
+  ampm.sendOsc(msg);
 }

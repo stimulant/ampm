@@ -4,11 +4,14 @@
             "launchCommand": "/usr/local/bin/processing-java --sketch=%CD%/ampmsample --present",
             "startupTimeout": 10,
             "heartbeatTimeout": 5
-        }
+        },
+        "plugin": "server/server.js"
     },
     "dev": {
         "persistence": {
-            "launchCommand": "/usr/local/bin/processing-java --sketch=%CD%/ampmsample --run"
+            "launchCommand": "/usr/local/bin/processing-java --sketch=%CD%/ampmsample --run",
+            "startupTimeout": 0,
+            "heartbeatTimeout": 0
         },
         "logging": {
             "file": {
