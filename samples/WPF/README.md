@@ -1,4 +1,5 @@
-## ampm sample
+## ampm WPF sample
+
 To run this sample:
 
 * open the VS solution

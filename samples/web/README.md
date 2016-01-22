@@ -1,4 +1,4 @@
-## ampm sample
+## ampm web sample
 
 From the server directory, run:
 
