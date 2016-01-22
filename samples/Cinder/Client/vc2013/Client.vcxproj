@@ -199,12 +199,12 @@
   <ItemGroup>
     <ClCompile Include="..\src\AMPMClient.cpp" />
     <ClCompile Include="..\src\ClientApp.cpp" />
-    <ClCompile Include="..\..\Cinder\blocks\OSC\src\Osc.cpp" />
+    <ClCompile Include="%24%28CINDER_DIR%29\blocks\OSC\src\Osc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\AMPMClient.h" />
     <ClInclude Include="..\include\Resources.h" />
-    <ClInclude Include="..\..\Cinder\blocks\OSC\src\Osc.h" />
+    <ClInclude Include="%24%28CINDER_DIR%29\blocks\OSC\src\Osc.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
