@@ -1,12 +1,16 @@
 {
     "default": {
         "persistence": {
+            "launchCommand": "/usr/local/bin/processing-java --sketch=%CD%/ampmsample --present",
+            "startupTimeout": 10,
+            "heartbeatTimeout": 5
+        }
+    },
+    "dev": {
+        "persistence": {
             "launchCommand": "/usr/local/bin/processing-java --sketch=%CD%/ampmsample --run"
         },
         "logging": {
-            "console": {
-                "preserve": true
-            },
             "file": {
                 "enabled": false
             },
