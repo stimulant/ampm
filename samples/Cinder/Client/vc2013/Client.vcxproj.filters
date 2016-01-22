@@ -36,7 +36,7 @@
     <ClCompile Include="..\src\AMPMClient.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="%24%28CINDER_DIR%29\blocks\OSC\src\Osc.cpp">
+    <ClCompile Include="$(CINDER_DIR)\blocks\OSC\src\Osc.cpp">
       <Filter>Blocks\OSC\src</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,7 +47,7 @@
     <ClInclude Include="..\include\AMPMClient.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="%24%28CINDER_DIR%29\blocks\OSC\src\Osc.h">
+    <ClInclude Include="$(CINDER_DIR)\blocks\OSC\src\Osc.h">
       <Filter>Blocks\OSC\src</Filter>
     </ClInclude>
   </ItemGroup>
