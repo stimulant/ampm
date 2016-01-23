@@ -16,7 +16,7 @@ var Logging = require('./model/logging.js').Logging;
 
 global.$$config = {};
 
-// args will be ['node', 'server.js', 'ampm.json', 'dev.i14']
+// args will be ['node', 'server.js', 'ampm.json', 'dev.machinename']
 var configPath = '';
 var configPaths = process.argv[2] ? process.argv[2].split(',') : ['ampm.json'];
 var configScheme = process.argv[3] ? process.argv[3] : '';
@@ -42,6 +42,7 @@ if (configPath && fs.existsSync(configPath)) {
         // also escape slashes
         return (process.env[n] + '').replace(/[\\"']/g, '\\$&').replace(/[\\"']/g, '\\$&');
     });
+
     config = JSON.parse(config);
 
     if (!config['default']) {

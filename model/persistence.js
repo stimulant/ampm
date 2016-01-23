@@ -54,10 +54,7 @@ exports.Persistence = BaseModel.extend({
         restartCount: 0,
 
         // Restart the app if it uses more than this much memory.
-        maxMemory: Infinity,
-
-        // Whether to let ampm crash if an unhandled exception is encountered.
-        exitOnError: true,
+        maxMemory: Infinity
     },
 
     // The spawned application process.
@@ -493,7 +490,7 @@ exports.Persistence = BaseModel.extend({
     restartServer: function() {
         // This should cause node-supervisor to reboot us.
         logger.info('Triggering server restart.');
-        fs.writeFile('restart.json', new Date().getTime());
+        require('forever').restartAll();
     },
 
     checkMemory: function(memory) {
