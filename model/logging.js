@@ -95,10 +95,13 @@ exports.Logging = BaseModel.extend({
 
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
-        global.logger = new winston.Logger();
+        global.logger = new winston.Logger({
+            exitOnError: $$persistence.get('exitOnError')
+        });
 
         // Set up console logger.
         if (this.get('console').enabled) {
+            this.get('console').handleExceptions = !$$persistence.get('exitOnError');
             logger.add(winston.transports.Console, this.get('console'));
         }
 
@@ -114,6 +117,7 @@ exports.Logging = BaseModel.extend({
                 return moment().format('YYYY-MM-DD HH:mm:ss');
             };
 
+            this.get('file').handleExceptions = !$$persistence.get('exitOnError');
             logger.add(require('winston-daily-rotate-file'), this.get('file'));
         }
 
