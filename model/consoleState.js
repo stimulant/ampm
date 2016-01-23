@@ -71,7 +71,7 @@ exports.ConsoleState = BaseModel.extend({
 
         var permissions = user ? $$config.permissions[user] : null;
 
-        return _.merge($$config, {
+        return _.merge(_.cloneDeep($$config), {
             network: network,
             persistence: persistence,
             logging: logging,
