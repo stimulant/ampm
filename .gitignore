@@ -1,5 +1,5 @@
 node_modules
-state.json
+ampm-state.json
 content/
 content.tmp/
 packages/
@@ -24,4 +24,4 @@ logs/
 *.a
 
 .DS_Store
-restart.json
+ampm-restart.json

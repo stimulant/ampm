@@ -6,7 +6,7 @@ var BaseModel = require('./baseModel.js').BaseModel;
 // A state object which persists across server restarts.
 exports.ServerState = BaseModel.extend({
     _saveTimeout: 0,
-    _stateFile: 'state.json',
+    _stateFile: 'ampm-state.json',
     _callbacks: null,
 
     defaults: {

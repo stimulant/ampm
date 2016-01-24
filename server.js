@@ -21,7 +21,7 @@ var configPath = '';
 var configPaths = process.argv[2] ? process.argv[2].split(',') : ['ampm.json'];
 var configScheme = process.argv[3] ? process.argv[3] : '';
 
-// A persistent state object, saved to state.json.
+// A persistent state object, saved to ampm-state.json.
 global.$$serverState = new ServerState();
 
 // load from server state if config is stored

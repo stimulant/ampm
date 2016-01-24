@@ -493,7 +493,7 @@ exports.Persistence = BaseModel.extend({
     restartServer: function() {
         // This should cause nodemon to reboot us.
         logger.info('Triggering server restart.');
-        fs.writeFile('restart.json', new Date().getTime());
+        fs.writeFile('ampm-restart.json', new Date().getTime());
     },
 
     checkMemory: function(memory) {
