@@ -491,7 +491,7 @@ exports.Persistence = BaseModel.extend({
 
     // Restart the ampm server via node-administrator.
     restartServer: function() {
-        // This should cause node-supervisor to reboot us.
+        // This should cause nodemon to reboot us.
         logger.info('Triggering server restart.');
         fs.writeFile('restart.json', new Date().getTime());
     },

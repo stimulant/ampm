@@ -10,7 +10,10 @@
   },
   "preferGlobal": true,
   "bin": {
-    "ampm": "server.js"
+    "ampm": "start.js"
+  },
+  "scripts": {
+    "preinstall": "npm install -g nodemon"
   },
   "dependencies": {
     "async": "^1.5.2",
