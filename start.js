@@ -40,8 +40,6 @@ var args = [
     mode
 ];
 
-console.log(cmd);
-
 function start() {
     var ampm = child_process.spawn(cmd, args, {
         stdio: 'inherit'
