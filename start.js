@@ -10,7 +10,7 @@ var path = require('path');
 var child_process = require('child_process');
 
 var configFiles = process.argv[2];
-var configFile = path.resolve(configFiles.split(',')[0]);
+var configFile = configFiles ? path.resolve(configFiles.split(',')[0]) : '';
 var appPath = path.dirname(configFile);
 var restartFile = path.join(appPath, 'restart.json');
 var stateFile = path.join(appPath, 'state.json');
