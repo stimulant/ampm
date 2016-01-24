@@ -13,7 +13,7 @@
         "ampm": "start.js"
     },
     "scripts": {
-        "preinstall": "nodemon --help"
+        "install": "node installer.js"
     },
     "dependencies": {
         "async": "^1.5.2",
@@ -29,6 +29,7 @@
         "node-fs": "^0.1.7",
         "node-osc": "^1.1.0",
         "open": "0.0.5",
+        "package-script": "0.0.8",
         "passport": "^0.3.2",
         "passport-http": "^0.3.0",
         "passport.socketio": "^3.6.1",
