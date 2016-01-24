@@ -3,8 +3,8 @@
 		"file_exclude_patterns": [
 			"*.sublime-workspace",
 			"*.log",
-			"restart.json",
-			"state.json",
+			"ampm-restart.json",
+			"ampm-state.json",
 			"README.png"
 		],
 		"folder_exclude_patterns": [

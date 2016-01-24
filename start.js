@@ -1,6 +1,6 @@
 #! /usr/bin/env node
 
-// Run ampm under nodemon. It watches changes to restart.json so that ampm
+// Run ampm under nodemon. It watches changes to ampm-restart.json so that ampm
 // can restart itself. It also restarts on crash.
 
 // Really should be using nodemon as a module, but:
@@ -12,8 +12,8 @@ var child_process = require('child_process');
 var configFiles = process.argv[2];
 var configFile = configFiles ? path.resolve(configFiles.split(',')[0]) : '';
 var appPath = path.dirname(configFile);
-var restartFile = path.join(appPath, 'restart.json');
-var stateFile = path.join(appPath, 'state.json');
+var restartFile = path.join(appPath, 'ampm-restart.json');
+var stateFile = path.join(appPath, 'ampm-state.json');
 var mode = process.argv[3];
 var cmd = 'nodemon';
 var server = path.join(__dirname, 'server.js');
