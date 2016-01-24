@@ -9,7 +9,7 @@ At [Stimulant](http://stimulant.com) we consider it very important to know how o
   <img src="https://github.com/stimulant/ampm/blob/master/console.png?raw=true" width="500"/>
 </p>
 
-At its most basic you can use it to launch your app, monitor the process, and restart it if it crashes. You can also schedule intentional restarts, do all sorts of logging/analytics, and view current status such as frames/second and CPU usage via a basic web interface. There are [samples](https://github.com/stimulant/ampm/tree/master/samples) of how to use it with apps built using [web technologies](https://github.com/stimulant/ampm/tree/master/samples/web) and [WPF](https://github.com/stimulant/ampm/tree/master/WPF), [Cinder](https://github.com/stimulant/ampm/tree/master/samples/Cinder), and [Processing](https://github.com/stimulant/ampm/tree/master/samples/processing).
+At its most basic you can use it to launch your app, monitor the process, and restart it if it crashes. You can also schedule intentional restarts, do all sorts of logging/analytics, and view current status such as frames/second and CPU usage via a basic web interface. There are [samples](https://github.com/stimulant/ampm/tree/master/samples) of how to use it with apps built using [web technologies](https://github.com/stimulant/ampm/tree/master/samples/web) and [WPF](https://github.com/stimulant/ampm/tree/master/samples/WPF), [Cinder](https://github.com/stimulant/ampm/tree/master/samples/Cinder), and [Processing](https://github.com/stimulant/ampm/tree/master/samples/processing).
 
 * [Installation](#installation)
 * [Execution](#execution)
