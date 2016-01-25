@@ -17,10 +17,6 @@ namespace AmpmLib
     /// </summary>
     public static class Ampm
     {
-        // The socket to log to the server.
-        private static Socket _SocketToServer;
-        private static bool _Connected = false;
-
         // The destination for OSC messages to the local node.js server.
         private static readonly IPEndPoint _OscSendLocal = new IPEndPoint(IPAddress.Loopback, 3002);
 
@@ -37,13 +33,6 @@ namespace AmpmLib
 
         static Ampm()
         {
-            _SocketToServer = IO.Socket("http://localhost:3001");
-            _SocketToServer.On(Socket.EVENT_CONNECT, Socket_Opened);
-            _SocketToServer.On(Socket.EVENT_DISCONNECT, Socket_Closed);
-            _SocketToServer.On(Socket.EVENT_ERROR, Socket_Closed);
-            _SocketToServer.On(Socket.EVENT_CONNECT_ERROR, Socket_Closed);
-            _SocketToServer.On(Socket.EVENT_DISCONNECT, Socket_Closed);
-
             // Handle incoming OSC messages.
             _OscReceive.MessageReceived += Server_MessageReceived;
             _OscReceive.Start();
@@ -65,25 +54,6 @@ namespace AmpmLib
             {
                 return JObject.Parse("{}");
             }
-        }
-
-        /// <summary>
-        /// When the socket connection is opened, clear out any queue of events/logs.
-        /// </summary>
-        static void Socket_Opened()
-        {
-            _Connected = true;
-            while (_MessageQueue.Count > 0)
-            {
-                Tuple<string, object> msg = _MessageQueue.Dequeue();
-                TcpEvent(msg.Item1, msg.Item2);
-            }
-        }
-
-        static void Socket_Closed()
-        {
-            _Connected = false;
-            _SocketToServer.Connect();
         }
 
         /// <summary>
@@ -109,7 +79,7 @@ namespace AmpmLib
 
         private static void LogMessage(EventLevel eventLevel, string message)
         {
-            TcpEvent("log", new { level = eventLevel.ToString(), message = message });
+            UdpEvent("log", new { level = eventLevel.ToString(), message = message });
         }
 
         /// <summary>
@@ -141,19 +111,7 @@ namespace AmpmLib
 
         private static void SendEvent(TrackEvent e)
         {
-            TcpEvent("event", e);
-        }
-
-        public static void TcpEvent(string name, object data = null)
-        {
-            if (_Connected && _MessageQueue.Count == 0)
-            {
-                _SocketToServer.Emit(name, JObject.FromObject(data));
-            }
-            else
-            {
-                _MessageQueue.Enqueue(new Tuple<string, object>(name, data));
-            }
+            UdpEvent("event", e);
         }
 
         public static void UdpEvent(string name, object data = null)
