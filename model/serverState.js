@@ -16,7 +16,9 @@ exports.ServerState = BaseModel.extend({
 
     // Decode the state file.
     initialize: function() {
-        this.set(fs.existsSync(this._stateFile) ? JSON.parse(fs.readFileSync(this._stateFile)) : {});
+        try {
+            this.set(fs.existsSync(this._stateFile) ? JSON.parse(fs.readFileSync(this._stateFile)) : {});
+        } catch (e) {}
     },
 
     // Write to the state file.

@@ -8,6 +8,7 @@
 
 var path = require('path');
 var child_process = require('child_process');
+var fs = require('fs');
 
 var configFiles = process.argv[2] || 'ampm.json';
 var configFile = path.resolve(configFiles.split(',')[0]);
@@ -24,6 +25,13 @@ if (process.platform === 'win32') {
     cmd = child_process.execSync('where nodemon').toString().split('\n')[1].replace('Program Files', 'PROGRA~1').trim();
     server = child_process.execSync('where ampm').toString().split('\n')[1].replace('Program Files', 'PROGRA~1').trim();
     server = path.join(path.dirname(server), 'node_modules', 'ampm', 'server.js');
+}
+
+if (!fs.existsSync(restartFile)) {
+    fs.writeFileSync(restartFile, '');
+}
+if (!fs.existsSync(stateFile)) {
+    fs.writeFileSync(stateFile, '{}');
 }
 
 var args = [
