@@ -21,10 +21,9 @@ var server = path.join(__dirname, 'server.js');
 if (process.platform === 'win32') {
     // Gotta go to great lengths to avoid spaces in the path.
     // https://github.com/nodejs/node-v0.x-archive/issues/25895
-    cmd = process.env.SYSTEMDRIVE + '\\PROGRA~1\\nodejs\\nodemon.cmd';
-    if (__dirname.indexOf('Program Files') !== -1) {
-        server = process.env.SYSTEMDRIVE + '\\PROGRA~1\\nodejs\\node_modules\\ampm\\server.js';
-    }
+    cmd = child_process.execSync('where nodemon').toString().split('\n')[1].replace('Program Files', 'PROGRA~1').trim();
+    server = child_process.execSync('where ampm').toString().split('\n')[1].replace('Program Files', 'PROGRA~1').trim();
+    server = path.join(path.dirname(server), 'node_modules', 'ampm', 'server.js');
 }
 
 var args = [
