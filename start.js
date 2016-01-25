@@ -9,12 +9,12 @@
 var path = require('path');
 var child_process = require('child_process');
 
-var configFiles = process.argv[2];
-var configFile = configFiles ? path.resolve(configFiles.split(',')[0]) : '';
+var configFiles = process.argv[2] || 'ampm.json';
+var configFile = path.resolve(configFiles.split(',')[0]);
 var appPath = path.dirname(configFile);
 var restartFile = path.join(appPath, 'ampm-restart.json');
 var stateFile = path.join(appPath, 'ampm-state.json');
-var mode = process.argv[3];
+var mode = process.argv[3] || 'default';
 var cmd = 'nodemon';
 var server = path.join(__dirname, 'server.js');
 
