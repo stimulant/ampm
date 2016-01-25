@@ -31,7 +31,6 @@ var args = [
     '--exitcrash',
     '--watch', configFile,
     '--watch', restartFile,
-    '--watch', '.',
     '--ignore', 'logs',
     '--ignore', stateFile,
     server,
