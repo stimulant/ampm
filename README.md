@@ -3,13 +3,19 @@
   <br/><strong>application<br/>management<br/>+<br/>performance<br/>monitoring</strong>
 </p>
 
-At [Stimulant](http://stimulant.com) we consider it very important to know how our installations are doing out in the wild, whether they are permanent or temporary. To that end we’ve developed a utility referred to as “ampm”, which quickly adds monitoring and management functions to our applications without much work from the application developer. It’s now standard practice to integrate these tools into our deployments, and they’re out in the wild on projects at [tourist attractions](http://stimulant.com/portfolio-item/space-needle/), [trade shows](http://stimulant.com/portfolio-item/pipeline-explorer/), and more.
+ampm is [Stimulant's](http://stimulant.com) tool for monitoring public-facing software that needs to run 24/7. It does a bunch of things:
+
+* Launches an application and restarts it when it crashes, leaks, or whenever you want it to.
+* Provides application configuration, and applies different settings for different environments.
+* Makes it easy to log troubleshooting information to a file, and email out any errors or crashes.
+* Makes it easy to integrate Google Analytics with an application.
+* Provides hooks for custom server-side logic and ways for multiple instances of an app to communicate.
+* Provides a mobile-friendly web panel which displays app status and controls.
+* Supports any application type that can speak websockets or OSC. There are [samples](https://github.com/stimulant/ampm/tree/master/samples) for [web apps](https://github.com/stimulant/ampm/tree/master/samples/web) and [WPF](https://github.com/stimulant/ampm/tree/master/samples/WPF), [Cinder](https://github.com/stimulant/ampm/tree/master/samples/Cinder), and [Processing](https://github.com/stimulant/ampm/tree/master/samples/processing).
 
 <p align="center">
   <img src="https://github.com/stimulant/ampm/blob/master/console.png?raw=true" width="500"/>
 </p>
-
-At its most basic you can use it to launch your app, monitor the process, and restart it if it crashes. You can also schedule intentional restarts, do all sorts of logging/analytics, and view current status such as frames/second and CPU usage via a basic web interface. There are [samples](https://github.com/stimulant/ampm/tree/master/samples) of how to use it with apps built using [web technologies](https://github.com/stimulant/ampm/tree/master/samples/web) and [WPF](https://github.com/stimulant/ampm/tree/master/samples/WPF), [Cinder](https://github.com/stimulant/ampm/tree/master/samples/Cinder), and [Processing](https://github.com/stimulant/ampm/tree/master/samples/processing).
 
 * [Installation](#installation)
 * [Execution](#execution)
