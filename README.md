@@ -27,7 +27,9 @@ At its most basic you can use it to launch your app, monitor the process, and re
 
 <a name="installation"></a>
 # Installation
-To install ampm from [npm](https://www.npmjs.com/package/ampm), just do `npm install -g ampm` from an administrator-level command prompt.
+ampm relies on the [nodemon](http://nodemon.io) utility, which must be installed first. Just run `npm install -g nodemon` from an administrator command prompt to install it.
+
+Then to install ampm from [npm](https://www.npmjs.com/package/ampm), just do `npm install -g ampm`.
 
 To install from source, clone the repo, and do `npm link` from the root of the repo. This is the best way to do development on ampm itself.
 
