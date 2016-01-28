@@ -59,5 +59,15 @@
         "customConfig:": {
             "foo:": "baz"
         }
+    },
+    "mac": {
+      "persistence": {
+          "launchCommand": "Client/xcode/build/Release/Client.app/Contents/MacOS/Client"
+      }
+    },		
+    "dev.mac": {
+      "persistence": {
+          "launchCommand": "Client/xcode/build/Debug/Client.app/Contents/MacOS/Client"
+      }
     }
 }
