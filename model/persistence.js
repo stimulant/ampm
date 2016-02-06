@@ -101,7 +101,7 @@ exports.Persistence = BaseModel.extend({
         // Web apps will send them over the app socket.
         $$network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
             socket.on('heart', _.bind(this._onHeart, this));
-            socket.emit('config', $$config);
+            socket.emit('config', $$consoleState.fullConfig());
             socket.on('configRequest', function() {
                 socket.emit('configRequest', $$consoleState.fullConfig());
             });
