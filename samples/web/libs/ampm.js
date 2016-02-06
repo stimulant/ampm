@@ -20,7 +20,7 @@ for (var i = 0; i < m.length; i++) {
 }
 
 // Interface for sending things to ampm.
-var ampm = Backbone.Model.extend({}, {
+var ampm = {
 
     // Any error messages in this array will not crash the app.
     ignoreErrors: [],
@@ -166,4 +166,4 @@ var ampm = Backbone.Model.extend({}, {
         };
 
     }
-});
+};
