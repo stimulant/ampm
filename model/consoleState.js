@@ -4,7 +4,7 @@ var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var moment = require('moment'); // Date processing. http://momentjs.com/
 var child_process = require('child_process'); // http://nodejs.org/api/child_process.html
-var XRegExp = require('xregexp').XRegExp; // Fancy regular expressions. http://xregexp.com/
+var XRegExp = require('xregexp'); // Fancy regular expressions. http://xregexp.com/
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
