@@ -1,0 +1,63 @@
+{
+    "default": {
+        "persistence": {
+            "launchCommand": "Client/xcode/build/Release/Client.app/Contents/MacOS/Client",
+            "maxMemory": 0,
+            "startupTimeout": 10,
+            "heartbeatTimeout": 5
+        },
+        "permissions": {
+            "username": {
+                "password": "password",
+                "app": true,
+                "computer": true
+            }
+        },
+        "logging": {
+            "file": {
+                "filename": "logs/server"
+            },
+            "eventFile": {
+                "filename": "logs/event-{date}.tsv"
+            },
+            "screenshots": {
+                "filename": "logs/capture-{date}.jpg"
+            },
+            "loggly": {
+                "tags": "ampm-samples"
+            },
+            "mail": {
+                "enabled": false
+            }
+        },
+        "plugin": "server/server.js",
+        "customConfig:": {
+            "foo:": "bar"
+        }
+    },
+    "dev": {
+        "persistence": {
+            "launchCommand": "Client/xcode/build/Debug/Client.app/Contents/MacOS/Client",
+            "maxMemory": 0,
+            "startupTimeout": 10,
+            "heartbeatTimeout": 0
+        },
+        "logging": {
+            "file": {
+                "enabled": true
+            },
+            "eventFile": {
+                "enabled": true
+            },
+            "screenshots": {
+                "enabled": false
+            },
+            "loggly": {
+                "enabled": false
+            }
+        },
+        "customConfig:": {
+            "foo:": "baz"
+        }
+    }
+}
