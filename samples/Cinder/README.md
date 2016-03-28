@@ -12,7 +12,7 @@ To run this sample:
 
 To run this sample on a Mac:
 
-Follow the steps above, but to start your app call `ampm ampm.json mac` to run in the default mode, or call `ampm ampm.json dev.mac` to run in dev mode.
+Follow the steps above, but to start your app call `ampm ampm.mac.json` to run in the default mode, or call `ampm ampm.mac.json dev` to run in dev mode.
 
 Node that due to [App Transport Security](https://developer.apple.com/library/prerelease/ios/documentation/General/Reference/InfoPlistKeyReference/Articles/CocoaKeys.html#//apple_ref/doc/uid/TP40016240) introduced in Mac OS X 10.11 El Capitan, you'll need to add a vew lines to your project's Info.plist file warning about insecure access to localhost.
 

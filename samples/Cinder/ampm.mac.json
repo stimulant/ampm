@@ -1,7 +1,7 @@
 {
     "default": {
         "persistence": {
-            "launchCommand": "Client/vc2013/Release/Client.exe",
+            "launchCommand": "Client/xcode/build/Release/Client.app/Contents/MacOS/Client",
             "maxMemory": 0,
             "startupTimeout": 10,
             "heartbeatTimeout": 5
@@ -37,7 +37,7 @@
     },
     "dev": {
         "persistence": {
-            "launchCommand": "Client/vc2013/Debug/Client.exe",
+            "launchCommand": "Client/xcode/build/Debug/Client.app/Contents/MacOS/Client",
             "maxMemory": 0,
             "startupTimeout": 10,
             "heartbeatTimeout": 0
