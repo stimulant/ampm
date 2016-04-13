@@ -51,6 +51,9 @@ exports.Persistence = BaseModel.extend({
         // Restart the app on this schedule -- see cronmaker.com for the format. 
         restartSchedule: null,
 
+        // Restart the PC on this schedule -- see cronmaker.com for the format.
+        restartPcSchedule: null,        
+
         // How many times the app has been restarted.
         restartCount: 0,
 
@@ -92,6 +95,9 @@ exports.Persistence = BaseModel.extend({
     // The timeout which restarts the app on the appointed schedule.
     _restartSchedule: null,
     _restartInterval: null,
+    // The timeout which restarts the PC on the appointed schedule.
+    _restartPcSchedule: null,
+    _restartPcInterval: null,    
 
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
@@ -132,7 +138,7 @@ exports.Persistence = BaseModel.extend({
             }
 
             this._shutdownInterval = later.setInterval(_.bind(function() {
-                logger.info('Shutdown time has arrived. ' + new Date());
+                logger.info('App shutdown time has arrived. ' + new Date());
                 this.set('restartCount', 0);
                 this.shutdownApp();
             }, this), this._shutdownSchedule);
@@ -146,7 +152,7 @@ exports.Persistence = BaseModel.extend({
             }
 
             this._shutdownPcInterval = later.setInterval(_.bind(function() {
-                logger.info('Shutdown time has arrived. ' + new Date());
+                logger.info('Machine shutdown time has arrived. ' + new Date());
                 this.set('restartCount', 0);
                 this.shutdownMachine();
             }, this), this._shutdownPcSchedule);
@@ -160,7 +166,7 @@ exports.Persistence = BaseModel.extend({
             }
 
             this._startupInterval = later.setInterval(_.bind(function() {
-                logger.info('Startup time has arrived. ' + new Date());
+                logger.info('App startup time has arrived. ' + new Date());
                 if (!$$serverState.get('runApp')) {
                     logger.info('Startup disabled by console.');
                     return;
@@ -183,7 +189,7 @@ exports.Persistence = BaseModel.extend({
                     return;
                 }
 
-                logger.info('Restart time has arrived. ' + new Date());
+                logger.info('App restart time has arrived. ' + new Date());
                 if (!$$serverState.get('runApp')) {
                     logger.info('Startup disabled by console.');
                     return;
@@ -193,6 +199,22 @@ exports.Persistence = BaseModel.extend({
                 this.restartApp();
             }, this), this._restartSchedule);
         }
+
+        // Restart machine on schedule.
+        if (this.get('restartPcSchedule')) {
+            this._restartPcSchedule = later.parse.cron(this.get('restartPcSchedule'));
+            if (this._restartPcInterval) {
+                this._restartPcInterval.clear();
+            }
+
+            this._restartPcInterval = later.setInterval(_.bind(function() {
+                logger.info('Machine restart time has arrived. ' + new Date());
+
+                this.restartMachine();
+
+            }, this), this._restartPcSchedule);
+        }
+
     },
 
     // Determine whether the app should be running, based on the cron schedules.
@@ -480,6 +502,9 @@ exports.Persistence = BaseModel.extend({
             return;
         }
         this._isShuttingDown = true;
+
+
+        
 
         // Restart but wait a bit to log things.
         // -R - restart
