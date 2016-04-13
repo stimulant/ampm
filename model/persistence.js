@@ -502,10 +502,7 @@ exports.Persistence = BaseModel.extend({
             return;
         }
         this._isShuttingDown = true;
-
-
         
-
         // Restart but wait a bit to log things.
         // -R - restart
         // -C - shutdown message
