@@ -52,6 +52,10 @@ You can also specify multiple configuration files. The first one will be the one
 
 `ampm app1.json,app2.json,app3.json live`
 
+Note that machine restart functionality requires executing ampm with administrative privileges.
+
+`sudo ampm ampm.json`
+
 <a name="configuration"></a>
 # Configuration
 
@@ -133,6 +137,9 @@ The persistence manager is in chage of starting a process, monitoring it, restar
 
     // Restart the app on this schedule -- see cronmaker.com for the format. 
     "restartSchedule": null,
+    
+    // Restart the PC on this schedule -- see cronmaker.com for the format.
+    "restartPcSchedule": null,        
 
     // Restart the app if it uses more than this much memory.
     "maxMemory": Infinity
