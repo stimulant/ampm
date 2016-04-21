@@ -24,7 +24,7 @@
     "lodash": "^3.10.1",
     "moment": "^2.10.6",
     "node-fs": "^0.1.7",
-    "node-osc": "^1.1.0",
+    "node-osc": "^2.0.3",
     "open": "0.0.5",
     "passport": "^0.3.2",
     "passport-http": "^0.3.0",

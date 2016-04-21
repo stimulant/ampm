@@ -145,6 +145,7 @@ exports.Network = BaseModel.extend({
 
         // handle straight messages
         this.transports.oscFromApp.on('message', _.bind(function(message, info) {
+            console.log(message);
             // handle bundles
             if (message[0] == '#bundle')
                 this._handleOsc(this.transports.oscFromApp, message[2], info);
@@ -163,7 +164,18 @@ exports.Network = BaseModel.extend({
     _handleOsc: function(transport, message, info) {
         //if (String(message) != 'heart') console.log("osc message: " + String(message));
         var e = message[0].replace('/', '');
-        var data = message[1] ? JSON.parse(message[1]) : null;
-        transport.emit(e, data);
+
+        var data = null;
+        if (message[1]) {
+            try {
+                data = JSON.parse(message[1]);
+            } catch (e) {
+                logger.warn('OSC messages should be JSON');
+            }
+        }
+
+        if (data) {
+            transport.emit(e, data);
+        }
     }
 });
