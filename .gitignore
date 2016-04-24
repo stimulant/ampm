@@ -25,3 +25,4 @@ logs/
 
 .DS_Store
 ampm-restart.json
+/samples/Unity3D/Source/Library
