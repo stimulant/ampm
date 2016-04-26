@@ -156,7 +156,7 @@ exports.Logging = BaseModel.extend({
 
         // Set up loggly.
         if (this.get('loggly').enabled) {
-            var opts = this.get('loggly');
+            var opts = _.clone(this.get('loggly'));
             opts.tags = opts.tags ? [opts.tags] : [];
             opts.tags.push(os.hostname());
             logger.add(require('winston-loggly').Loggly, opts);
