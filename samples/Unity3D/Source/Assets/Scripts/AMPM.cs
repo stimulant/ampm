@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using UnityOSC;
-using SocketIOClient;
 using SimpleJSON;
 using System.IO;
 
@@ -20,8 +19,6 @@ namespace AmpmLib
 	{
 		public delegate void ConfigLoadHandler();
 		public static event ConfigLoadHandler OnConfigLoaded;
-		// The socket to log to the server.
-		private static Client _socket;
 
         private static bool _Connected = false;
 		private static JSONNode _Config = null;
@@ -48,11 +45,6 @@ namespace AmpmLib
 
             ipAddress = GetLocalIPAddress();
             OSCHandler.Instance.CreateClient ("AMPM", ipAddress, 3002); // Creating a client to send messages on
-
-			_socket = new Client("http://localhost:3001");
-            _socket.On(SocketIOClient.SocketIOMessageTypes.Connect.ToString(), Socket_Opened);
-            _socket.On(SocketIOClient.SocketIOMessageTypes.Disconnect.ToString(), Socket_Closed);
-            _socket.On(SocketIOClient.SocketIOMessageTypes.Error.ToString(), Socket_Closed);
 		}
 
         public static IPAddress GetLocalIPAddress()
@@ -86,32 +78,6 @@ namespace AmpmLib
 		}
 
 		/// <summary>
-		/// When the socket connection is opened, clear out any queue of events/logs.
-		/// </summary>
-		static void Socket_Opened(SocketIOClient.Messages.IMessage e)
-		{
-			_Connected = true;
-
-			if (_Config == null)
-			{
-				_socket.Emit("configRequest", null);
-			}
-
-			while (_MessageQueue.Count > 0)
-			{
-				Tuple<string, object> msg = _MessageQueue.Dequeue();
-				TcpEvent(msg.First, msg.Second);
-			}
-		}
-
-
-		static void Socket_Closed(SocketIOClient.Messages.IMessage e)
-		{
-			_Connected = false;
-			_socket.Connect();
-		}
-
-		/// <summary>
 		/// Send a heartbeat message.
 		/// </summary>
 		public static void Heart()
@@ -134,7 +100,7 @@ namespace AmpmLib
 
 		private static void LogMessage(EventLevel eventLevel, string message)
 		{
-			TcpEvent("log", new { level = eventLevel.ToString(), message = message });
+			UdpEvent("log", new { level = eventLevel.ToString(), message = message });
 		}
 
 		/// <summary>
@@ -166,19 +132,7 @@ namespace AmpmLib
 
 		private static void SendEvent(TrackEvent e)
 		{
-			TcpEvent("event", e);
-		}
-
-		public static void TcpEvent(string name, object data = null)
-		{
-			if (_Connected && _MessageQueue.Count == 0)
-			{
-				_socket.Emit(name, JsonUtility.FromJson<string>(data.ToString()));
-			}
-			else
-			{
-				_MessageQueue.Enqueue(new Tuple<string, object>(name, data));
-			}
+			UdpEvent("event", e);
 		}
 
 		public static void UdpEvent(string name, object data = null)
@@ -190,8 +144,8 @@ namespace AmpmLib
 			}
 			else
 			{
-				data = JsonUtility.ToJson(data);
-				OSCHandler.Instance.SendMessageToClient("AMPM",name, data);
+				string d = JsonUtility.ToJson(data);
+				OSCHandler.Instance.SendMessageToClient("AMPM",name, d);
 			}
 		}
 
@@ -213,13 +167,13 @@ namespace AmpmLib
 					OnAmpmMessage(null, new Tuple<string, JSONNode>(name, data));
 		}
 
-
+		[Serializable]
 		private class TrackEvent
 		{
-			public string Category { get; set; }
-			public string Action { get; set; }
-			public string Label { get; set; }
-			public int Value { get; set; }
+			public string Category;
+			public string Action;
+			public string Label;
+			public int Value;
 		}
 			
 	}

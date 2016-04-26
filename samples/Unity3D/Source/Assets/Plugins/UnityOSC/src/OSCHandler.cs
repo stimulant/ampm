@@ -161,18 +161,6 @@ public class OSCHandler : MonoBehaviour
 		clientitem.messages = new List<OSCMessage>();
 		
 		_clients.Add(clientId, clientitem);
-		
-		// Send test message
-		string testaddress = "/test/alive/";
-		OSCMessage message = new OSCMessage(testaddress, destination.ToString());
-		message.Append(port); message.Append("OK");
-		
-		_clients[clientId].log.Add(String.Concat(DateTime.UtcNow.ToString(),".",
-		                                         FormatMilliseconds(DateTime.Now.Millisecond), " : ",
-		                                         testaddress," ", DataToString(message.Data)));
-		_clients[clientId].messages.Add(message);
-		
-		_clients[clientId].client.Send(message);
 	}
 	
 	/// <summary>
