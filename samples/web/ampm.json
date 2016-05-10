@@ -63,12 +63,12 @@
             "foo:": "baz"
         }
     },
-    "Obelus.local": {
+    "mac": {
         "persistence": {
             "launchCommand": "/Applications/Chromium.app/Contents/MacOS/Chromium --kiosk --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8000"
         }
     },
-    "Obelus.local.dev": {
+    "mac.dev": {
         "persistence": {
             "launchCommand": "/Applications/Chromium.app/Contents/MacOS/Chromium --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8000"
         }
