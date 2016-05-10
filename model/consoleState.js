@@ -183,6 +183,17 @@ exports.ConsoleState = BaseModel.extend({
             while (fpsHistory.length > this._statHistory) {
                 fpsHistory.shift();
             }
+
+            var avg = 0;
+            fpsHistory.filter(function(f) {
+                return f !== null;
+            }).forEach(function(f) {
+                avg += f;
+            });
+            avg /= fpsHistory.length;
+            this.set({
+                avgFps: avg
+            });
         }
 
         if ($$persistence.processId()) {
@@ -323,6 +334,17 @@ exports.ConsoleState = BaseModel.extend({
             while (cpuHistory.length > this._statHistory) {
                 cpuHistory.shift();
             }
+
+            var avg = 0;
+            cpuHistory.filter(function(f) {
+                return f !== null;
+            }).forEach(function(f) {
+                avg += f;
+            });
+            avg /= cpuHistory.length;
+            this.set({
+                avgCpu: avg
+            });
         }
     },
 
@@ -341,6 +363,17 @@ exports.ConsoleState = BaseModel.extend({
         while (memoryHistory.length > this._statHistory) {
             memoryHistory.shift();
         }
+
+        var avg = 0;
+        memoryHistory.filter(function(f) {
+            return f !== null;
+        }).forEach(function(f) {
+            avg += f;
+        });
+        avg /= memoryHistory.length;
+        this.set({
+            avgMemory: avg
+        });
     },
 
     // Compute FPS in a fast way. http://stackoverflow.com/a/87732/468472
