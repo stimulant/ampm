@@ -52,7 +52,7 @@ exports.Persistence = BaseModel.extend({
         restartSchedule: null,
 
         // Restart the PC on this schedule -- see cronmaker.com for the format.
-        restartPcSchedule: null,        
+        restartPcSchedule: null,
 
         // How many times the app has been restarted.
         restartCount: 0,
@@ -97,17 +97,19 @@ exports.Persistence = BaseModel.extend({
     _restartInterval: null,
     // The timeout which restarts the PC on the appointed schedule.
     _restartPcSchedule: null,
-    _restartPcInterval: null,    
+    _restartPcInterval: null,
 
     initialize: function() {
         BaseModel.prototype.initialize.apply(this);
 
         // Desktop apps will send hearts over OSC.
         $$network.transports.oscFromApp.on('heart', _.bind(this._onHeart, this));
+        $$network.transports.oscFromApp.on('restart', _.bind(this.restartApp, this));
 
         // Web apps will send them over the app socket.
         $$network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
             socket.on('heart', _.bind(this._onHeart, this));
+            socket.on('restart', _.bind(this.restartApp, this));
             socket.emit('config', $$consoleState.fullConfig());
             socket.on('configRequest', function() {
                 socket.emit('configRequest', $$consoleState.fullConfig());

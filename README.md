@@ -30,6 +30,7 @@ ampm is [Stimulant's](http://stimulant.com) tool for monitoring public-facing so
  * [Heartbeat Monitoring](#integration-monitoring)
  * [Logging](#integration-logging)
  * [Event Tracking](#integration-events)
+ * [Restarting](#integration-restarting)
 
 <a name="installation"></a>
 # Installation
@@ -326,3 +327,8 @@ ampm can track events indicating normal usage, such as button clicks or accesses
 ```
 
 More information about the types of data to include in the event tracking message can be found on the [Google Analytics](https://support.google.com/analytics/answer/1033068) site.
+
+<a name="integration-restarting"></a>
+## Application Restart
+
+Sending a `restart` message ovr the websocket or OSC connection will cause ampm to restart the application on demand.
