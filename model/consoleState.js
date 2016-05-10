@@ -174,13 +174,15 @@ exports.ConsoleState = BaseModel.extend({
         }
 
         // Update FPS.
-        var fps = 1000 / (this._tickSum / this._maxTicks);
-        fps *= 100;
-        fps = Math.round(fps);
-        fps /= 100;
-        fpsHistory.push(fps);
-        while (fpsHistory.length > this._statHistory) {
-            fpsHistory.shift();
+        if (this._tickSum) {
+            var fps = 1000 / (this._tickSum / this._maxTicks);
+            fps *= 100;
+            fps = Math.round(fps);
+            fps /= 100;
+            fpsHistory.push(fps);
+            while (fpsHistory.length > this._statHistory) {
+                fpsHistory.shift();
+            }
         }
 
         if ($$persistence.processId()) {
