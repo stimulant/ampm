@@ -46,6 +46,11 @@ var args = [
     mode
 ];
 
+// If there are arguments beyond the config file and mode, pass them to nodemon.
+process.argv.slice(4).forEach(function(a, i) {
+    args.splice(args.length - 3, 0, a);
+});
+
 function start() {
     var ampm = child_process.spawn(cmd, args, {
         stdio: 'inherit'
@@ -54,5 +59,3 @@ function start() {
 }
 
 start();
-
-

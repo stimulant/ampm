@@ -52,6 +52,8 @@ You can also specify multiple configuration files. The first one will be the one
 
 `ampm app1.json,app2.json,app3.json live`
 
+If you pass arguments other than the config file and the mode, those will be passed as arguments to [nodemon](http://nodemon.io).
+
 Note that machine restart functionality requires executing ampm with administrative privileges.
 
 `sudo ampm ampm.json`
