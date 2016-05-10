@@ -1,12 +1,11 @@
 {
-  "name": "server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "server.js",
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "backbone": "^1.2.3",
-    "lodash": "^3.10.1"
-  }
+    "name": "server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "server.js",
+    "author": "",
+    "license": "MIT",
+    "dependencies": {
+        "lodash": "^3.10.1"
+    }
 }
