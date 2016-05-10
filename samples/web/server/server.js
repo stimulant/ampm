@@ -4,7 +4,6 @@ var os = require('os'); // https://nodejs.org/dist/latest-v4.x/docs/api/os.html
 var http = require('http'); // https://nodejs.org/dist/latest-v4.x/docs/api/http.html
 
 var _ = require('lodash'); // Utilities. http://lodash.com/
-var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var express = require('express'); // Web app framework. http://expressjs.com/
 
 exports.Plugin = function() {};
@@ -25,5 +24,4 @@ exports.Plugin.prototype.boot = function() {
             console.log(data);
         }, this));
     }, this));
-
 };
