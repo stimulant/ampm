@@ -7,23 +7,23 @@ var _ = require('lodash'); // Utilities. http://lodash.com/
 var Backbone = require('backbone'); // Data model utilities. http://backbonejs.org/
 var express = require('express'); // Web app framework. http://expressjs.com/
 
-exports.Plugin = Backbone.Model.extend({
-	boot: function() {
+exports.Plugin = function() {};
 
-		// Set up a web server to serve the application.
-		var webapp = express();
-		var webserver = http.createServer(webapp);
-		webserver.listen(8000);
-		webapp.get('/', function(req, res) {
-			res.sendFile(path.join(__dirname, '../index.html'));
-		});
-		webapp.use(express.static(path.join(__dirname, '../')));
+exports.Plugin.prototype.boot = function() {
+    // Set up a web server to serve the application.
+    var webapp = express();
+    var webserver = http.createServer(webapp);
+    webserver.listen(8000);
+    webapp.get('/', function(req, res) {
+        res.sendFile(path.join(__dirname, '../index.html'));
+    });
+    webapp.use(express.static(path.join(__dirname, '../')));
 
-		// Listen to TCP data from the app. This could then be sent to other instances of the app, logged, etc.
-		$$network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
-			socket.on('mouse', _.bind(function(data) {
-				console.log(data);
-			}, this));
-		}, this));
-	}
-});
+    // Listen to TCP data from the app. This could then be sent to other instances of the app, logged, etc.
+    $$network.transports.socketToApp.sockets.on('connection', _.bind(function(socket) {
+        socket.on('mouse', _.bind(function(data) {
+            console.log(data);
+        }, this));
+    }, this));
+
+};
