@@ -192,7 +192,7 @@ exports.ConsoleState = BaseModel.extend({
             });
             avg /= fpsHistory.length;
             this.set({
-                avgFps: avg
+                avgFps: Math.round(avg)
             });
         }
 
@@ -343,7 +343,7 @@ exports.ConsoleState = BaseModel.extend({
             });
             avg /= cpuHistory.length;
             this.set({
-                avgCpu: avg
+                avgCpu: Math.round(avg)
             });
         }
     },
@@ -372,7 +372,7 @@ exports.ConsoleState = BaseModel.extend({
         });
         avg /= memoryHistory.length;
         this.set({
-            avgMemory: avg
+            avgMemory: Math.round(avg)
         });
     },
 
