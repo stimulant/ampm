@@ -104,8 +104,6 @@ The persistence manager is in chage of starting a process, monitoring it, restar
 ```JavaScript
 "persistence": {
     // The command to run to launch the client, relative to the config file.
-    // {config} will be replaced with the contents of the config file.
-    // example: "../Client.exe {config}"
     "launchCommand": "",
 
     // The command to run to launch a parallel process, relative to
