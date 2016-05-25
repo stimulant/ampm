@@ -68,7 +68,7 @@
             "launchCommand": "/Applications/Chromium.app/Contents/MacOS/Chromium --kiosk --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8000"
         }
     },
-    "mac.dev": {
+    "dev.mac": {
         "persistence": {
             "launchCommand": "/Applications/Chromium.app/Contents/MacOS/Chromium --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8000"
         }
