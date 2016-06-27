@@ -121,4 +121,4 @@ if ($$plugin) {
 
 logger.info('Server started.');
 console.log('Console is at: http://' + os.hostname() + ':' + $$network.get('socketToConsolePort'));
-// console.log(JSON.stringify($$consoleState.fullConfig(), null, 2));
+console.log(JSON.stringify($$consoleState.fullConfig(), null, 2));
