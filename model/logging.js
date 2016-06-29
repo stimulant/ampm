@@ -219,6 +219,11 @@ exports.Logging = BaseModel.extend({
     },
 
     _logEvent: function(data) {
+        if (!data) {
+            logger.warn('_logEvent called without any data.');
+            return;
+        }
+
         var cache = this.get('eventCache');
         cache.push({
             time: moment().format('YYYY-MM-DD HH:mm:ss'),
