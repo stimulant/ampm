@@ -25,8 +25,8 @@ var configScheme = process.argv[3] ? process.argv[3] : '';
 global.$$serverState = new ServerState();
 
 // load from server state if config is stored
-if (global.$$serverState.get('config')) {
-    configPath = $$serverState.get('config');
+if (global.$$serverState.get('configFile')) {
+    configPath = $$serverState.get('configFile');
 } else {
     configPath = configPaths[0];
 }
@@ -82,6 +82,8 @@ if (configPath && fs.existsSync(configPath)) {
     // Set the current working directory to the location of the config file,
     // so that paths in the config file are relative to itself.
     process.chdir(path.dirname(configPath));
+
+    $$serverState.saveState('lastConfig', config);
 }
 
 console.log('Server starting up.');
@@ -120,5 +122,4 @@ if ($$plugin) {
 }
 
 logger.info('Server started.');
-console.log('Console is at: http://' + os.hostname() + ':' + $$network.get('socketToConsolePort'));
-// console.log(JSON.stringify($$consoleState.fullConfig(), null, 2));
+logger.info('Console is at: http://' + os.hostname() + ':' + $$network.get('socketToConsolePort'));

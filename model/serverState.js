@@ -1,5 +1,6 @@
 var _ = require('lodash'); // Utilities. http://underscorejs.org/
 var fs = require('node-fs'); // Recursive directory creation. https://github.com/bpedro/node-fs
+var path = require('path');
 
 var BaseModel = require('./baseModel.js').BaseModel;
 
@@ -31,6 +32,7 @@ exports.ServerState = BaseModel.extend({
         clearTimeout(this._saveTimeout);
         this._saveTimeout = setTimeout(_.bind(function() {
             fs.writeFile(this._stateFile, JSON.stringify(this.attributes, null, '\t'), _.bind(function() {
+                logger.info(key + ' saved to ' + path.join(process.cwd(), this._stateFile));
                 while (this._callbacks && this._callbacks.length) {
                     this._callbacks.shift()();
                 }

@@ -145,7 +145,7 @@ exports.ConsoleState = BaseModel.extend({
         }, this));
 
         socket.on('switchConfig', _.bind(function(config) {
-            $$serverState.saveState('config', config, $$persistence.restartServer);
+            $$serverState.saveState('configFile', config, $$persistence.restartServer);
         }, this));
 
         $$network.transports.socketToConsole.sockets.emit('config', this.fullConfig(username), this.get('configs'));
