@@ -1,0 +1,84 @@
+{
+    "default": {
+        "persistence": {
+            "launchCommand": "'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe' --kiosk --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8000/",
+            "maxMemory": 0,
+            "startupTimeout": 10,
+            "heartbeatTimeout": 5,
+            "commands": [{
+                "name": "Stop Explorer",
+                "command": "taskkill /f /im explorer.exe"
+            }, {
+                "name": "Start Explorer",
+                "command": "explorer.exe"
+            }]
+        },
+        "permissions": {
+            "username": {
+                "password": "password",
+                "app": true,
+                "computer": true,
+            "commands": true
+            }
+        },
+        "logging": {
+            "file": {
+                "filename": "logs/server"
+            },
+            "eventFile": {
+                "filename": "logs/event-{date}.tsv"
+            },
+            "screenshots": {
+                "filename": "logs/capture-{date}.jpg"
+            },
+            "loggly": {
+                "tags": "ampm-samples"
+            },
+            "mail": {
+                "enabled": false
+            }
+        },
+        "plugin": "server/server.js",
+        "customConfig:": {
+            "foo:": "bar"
+        }
+    },
+    "dev": {
+        "persistence": {
+            "launchCommand": "'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe' --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8000/",
+            "maxMemory": 0,
+            "startupTimeout": 0,
+            "heartbeatTimeout": 0
+        },
+        "logging": {
+            "console": {
+                "preserve": true
+            },
+            "file": {
+                "enabled": false
+            },
+            "eventFile": {
+                "enabled": false
+            },
+            "screenshots": {
+                "enabled": false
+            },
+            "loggly": {
+                "enabled": false
+            }
+        },
+        "customConfig:": {
+            "foo:": "baz"
+        }
+    },
+    "mac": {
+        "persistence": {
+            "launchCommand": "/Applications/Chromium.app/Contents/MacOS/Chromium --kiosk --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8000"
+        }
+    },
+    "dev.mac": {
+        "persistence": {
+            "launchCommand": "/Applications/Chromium.app/Contents/MacOS/Chromium --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8000"
+        }
+    }
+}

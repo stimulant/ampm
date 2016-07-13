@@ -91,6 +91,7 @@ var View = Backbone.View.extend({
         $('#controls-configs').toggle(message.permissions.app && configs.length > 1);
         $('#controls-computer').toggle(message.permissions.computer);
         $('#controls').toggle(message.permissions.app || message.permissions.computer);
+        this._addCommands(message);
     },
 
     _addConfigs: function(list, configs) {
@@ -114,6 +115,38 @@ var View = Backbone.View.extend({
             var button = $(_.template(template, data));
             //button.addClass(source);
             button.data(data);
+            button.click(click);
+            list.append(button);
+        }
+    },
+
+    _addCommands: function(config) {
+        var doCommands = config.persistence.commands && (!config.permissions || config.permissions.commands);
+        $('#controls-commands').toggle(doCommands);
+        if (!doCommands) {
+            return;
+        }
+
+        var commands = config.persistence.commands;
+
+        var template = _.unescape($('#command-button-template').html()).trim();
+
+        var click = _.bind(function(e) {
+            var data = $(e.target).data();
+            this._onCommandClicked(e, data.name);
+        }, this);
+
+        var list = $('#controls-commands #commands-list');
+        list.empty();
+        if (commands.length <= 1) {
+            return;
+        }
+
+        for (var index in commands) {
+            var command = commands[index];
+            var button = $(_.template(template, command));
+            //button.addClass(source);
+            button.data(command);
             button.click(click);
             list.append(button);
         }
@@ -150,6 +183,12 @@ var View = Backbone.View.extend({
     _onConfigClicked: function(event, config) {
         if (window.confirm('Are you sure you want to shut down the app and launch ' + config + ' ?')) {
             this._socket.emit('switchConfig', config);
+        }
+    },
+
+    _onCommandClicked: function(event, commandName) {
+        if (window.confirm('Are you sure you want to run the command "' + commandName + '"?')) {
+            this._socket.emit('runCommand', commandName);
         }
     }
 });
