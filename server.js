@@ -83,7 +83,7 @@ if (configPath && fs.existsSync(configPath)) {
     // so that paths in the config file are relative to itself.
     process.chdir(path.dirname(configPath));
 
-    $$serverState.saveState('lastConfig', config);
+    $$serverState.saveState('lastConfig', $$config);
 }
 
 console.log('Server starting up.');
