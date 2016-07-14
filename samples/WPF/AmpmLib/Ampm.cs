@@ -1,7 +1,6 @@
 ﻿using Bespoke.Common.Osc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Quobject.SocketIoClientDotNet.Client;
 using System;
 using System.Collections.Generic;
 using System.IO;
