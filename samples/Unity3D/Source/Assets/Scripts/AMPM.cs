@@ -49,7 +49,15 @@ namespace AmpmLib
 
         public static IPAddress GetLocalIPAddress()
         {
-            var host = Dns.GetHostEntry(Dns.GetHostName());
+            IPHostEntry host;
+            try
+            {
+                 host = Dns.GetHostEntry(hostName);
+            }
+            catch(System.Net.Sockets.SocketException ex)
+            {
+                return new IPAddress(new byte[]{ 127,0,0,1 });
+            }
             foreach (var ip in host.AddressList)
             {
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
