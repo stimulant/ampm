@@ -36,12 +36,16 @@
         }
     },
     "dev": {
+        // this is a comment
         "persistence": {
             "launchCommand": "'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe' --incognito --disable-pinch --overscroll-history-navigation=0 http://localhost:8000/",
             "maxMemory": 0,
             "startupTimeout": 0,
-            "heartbeatTimeout": 0
+            "heartbeatTimeout": 0 // this is a comment
         },
+        /*
+        this is a comment
+        */
         "logging": {
             "console": {
                 "preserve": true

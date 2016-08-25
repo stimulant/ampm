@@ -42,7 +42,7 @@ if (configPath && fs.existsSync(configPath)) {
         // also escape slashes
         return (process.env[n] + '').replace(/[\\"']/g, '\\$&').replace(/[\\"']/g, '\\$&');
     });
-    config = JSON.parse(config);
+    config = json.parse(config);
 
     if (!config['default']) {
         // There are no schemes in the config, just ingest it whole.
