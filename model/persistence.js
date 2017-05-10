@@ -435,7 +435,9 @@ exports.Persistence = BaseModel.extend({
     // Given a command line, parse into an array where the first item is the executable and the rest are the arguments.
     // cmd = "'my command' arg1 arg2 'long arg' {config}"
     _parseCommand: function(cmd) {
+        cmd = cmd.replace(/\\ /g, '___save___');
         var split = cmd.split(' ');
+        split.forEach((p, i) => split[i] = p.replace(/___save___/g, '\ '));
         var parts = [];
         var i = 0;
         while (i < split.length) {
