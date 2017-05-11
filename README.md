@@ -271,7 +271,7 @@ You can have ampm run custom code by including the path to a module in the plugi
     "plugin": "plugin.js"
 ```
 
-This should be a [backbone model](https://github.com/stimulant/ampm/blob/master/samples/web/server/server.js) called Plugin. It will be instantiated and it's `boot()` method called at startup.
+This should be a [class](https://github.com/stimulant/ampm/blob/master/samples/web/server/server.js) called Plugin. It will be instantiated and it's `boot()` method called at startup.
 
 This is a handy place to implement a web server for your app, or to listen to custom web socket messages from your app, or to implement a sync layer between multiple applications.
 
