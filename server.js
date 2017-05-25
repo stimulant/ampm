@@ -118,7 +118,7 @@ global.$$consoleState = new ConsoleState({
 // Start up components which depend on other components.
 $$persistence.boot();
 if ($$plugin) {
-    $$plugin.boot();
+    $$plugin.boot($$config);
 }
 
 logger.info('Server started.');
