@@ -237,7 +237,6 @@ exports.Logging = BaseModel.extend({
             // Log to Google Analytics.
 
             this._google.eventCount = this._google.eventCount || 0;
-            this._google.eventCount++;
 
             var params = {};
             // Restart a session every 500 events, see issue #40
@@ -250,6 +249,7 @@ exports.Logging = BaseModel.extend({
             var queue = _.clone(this._google._queue);
             this._google.send(_.bind(function(error) {
                 if (!error) {
+                    this._google.eventCount++;
                     return;
                 }
 
