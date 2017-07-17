@@ -235,10 +235,21 @@ exports.Logging = BaseModel.extend({
 
         if (this._google) {
             // Log to Google Analytics.
-            this._google.event(data.Category, data.Action, data.Label, data.Value);
+
+            this._google.eventCount = this._google.eventCount || 0;
+
+            var params = {};
+            // Restart a session every 500 events, see issue #40
+            if (this._google.eventCount >= 500) {
+                this._google.eventCount = 0;
+                params.sessionControl = 'start';
+            }
+
+            this._google.event(data.Category, data.Action, data.Label, data.Value, params);
             var queue = _.clone(this._google._queue);
             this._google.send(_.bind(function(error) {
                 if (!error) {
+                    this._google.eventCount++;
                     return;
                 }
 
