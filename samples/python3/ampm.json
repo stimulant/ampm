@@ -1,0 +1,45 @@
+{
+    "default": {
+        "persistence": {
+            "launchCommand": "/usr/bin/lxterminal -e python3 //home/pi/Desktop/app.py",
+            "maxMemory": 0,
+            "startupTimeout": 10,
+            "heartbeatTimeout": 5
+        },
+
+        "permissions": {
+            "username": {
+                "password": "password",
+                "app": true,
+                "computer": true
+            }
+        },
+
+        "logging": {
+            "file": {
+                "filename": "logs/server",
+                "enabled": true
+            },
+
+            "mail": {
+                "enabled": false
+            },
+
+            "screenshots": {
+                "enabled": false
+            },
+
+            "google": {
+                "enabled": false
+            },
+
+            "eventFile": {
+                "enabled": false
+            },
+
+            "loggly": {
+                "enabled": false
+            }
+        }
+    }
+}
