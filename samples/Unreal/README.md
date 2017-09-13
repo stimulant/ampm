@@ -31,5 +31,6 @@
 
 
 ## To start the app with AMPM
-* Copy the file ampm.json to the same directory as the unity build. Edit the ampm.json file so that the "launchCommand" property holds the name of your build file.
+* Copy the file ampm.json to the same directory as the unity build. Edit the ampm.json file so that the "launchCommand" property holds the name of your build file. 
+#### NOTE: For some reason opening the .exe from the root location of your build folder starts up two Unreal processes. This is not handled properly by amapm. In order to ensure that only a single process is launched, please set the "launchCommand" to the .exe from  \MyProject\Binaries\Win64 folder instead.
 * From a command line window navigate to your build directory and run `ampm` to run in production mode, or `ampm ampm.json dev` to run in dev mode.
