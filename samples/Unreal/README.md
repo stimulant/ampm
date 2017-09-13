@@ -2,7 +2,7 @@
 
 ## To open the project
 * Make sure you have Unreal v4.16 or later
-* This Unreal AMPM client communicates with the AMPM server using [UE4-OSC](https://github.com/monsieurgustav/UE4-OSC). Please refer to the [github page](https://github.com/monsieurgustav/UE4-OSC) for more details, a tutorial video as well as a link to a forum for discussion on the plugin.
+* This Unreal AMPM client communicates with the AMPM server using [UE4-OSC](https://github.com/monsieurgustav/UE4-OSC). Please refer to the [github page](https://github.com/monsieurgustav/UE4-OSC) for more details. There's a [tutorial video](https://www.youtube.com/watch?v=GGGs-n-CKtY) as well as a [link to a forum](https://forums.unrealengine.com/showthread.php?49627-Plugin-OSC-for-UE4) for discussion on the plugin.
 * Start Unreal. Browse and open the MyProject.uproject file (Unreal Project) from the "Source" folder
 
 ## To run the sample
