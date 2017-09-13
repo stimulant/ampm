@@ -26,3 +26,8 @@ logs/
 .DS_Store
 ampm-restart.json
 /samples/Unity3D/Source/Library
+Binaries
+Intermediate
+Saved
+MyProject.VC.db
+MyProject.VC.db
