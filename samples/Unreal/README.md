@@ -11,16 +11,16 @@
 * From a command line window navigate to the "Build" directory and run `ampm` to run in production mode, or `ampm ampm.json dev` to run in dev mode.
 
 ### Sending Heartbeat
-![Alt text](/Images/heart.PNG?raw=true "Sending Heartbeat Blueprint")
+![Alt text](https://github.com/stimulant/ampm/blob/master/samples/Unreal/Images/heart.PNG?raw=true "Sending Heartbeat Blueprint")
 
 ### Receiving Messages
-![Alt text](/Images/receiving.PNG?raw=true "Sending Heartbeat Blueprint")
+![Alt text](https://github.com/stimulant/ampm/blob/master/samples/Unreal/Images/receiving.PNG?raw=true "Sending Heartbeat Blueprint")
 
 ### Logging Analytics
-![Alt text](/Images/analytics.PNG?raw=true "Logging Analytics Blueprint")
+![Alt text](https://github.com/stimulant/ampm/blob/master/samples/Unreal/Images/analytics.PNG?raw=true "Logging Analytics Blueprint")
 
 ### Other Events
-![Alt text](/Images/otherevents.PNG?raw=true "Logging Other Events Blueprint")
+![Alt text](https://github.com/stimulant/ampm/blob/master/samples/Unreal/Images/otherevents.PNG?raw=true "Logging Other Events Blueprint")
 
 
 
