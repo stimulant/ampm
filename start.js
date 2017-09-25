@@ -24,7 +24,11 @@ if (process.platform === 'win32') {
     // https://github.com/nodejs/node-v0.x-archive/issues/25895
     cmd = child_process.execSync('where nodemon').toString().split('\n')[1].replace('Program Files', 'PROGRA~1').trim();
     server = child_process.execSync('where ampm').toString().split('\n')[1].replace('Program Files', 'PROGRA~1').trim();
-    server = path.join(path.dirname(server), 'node_modules', 'ampm', 'server.js');
+    server = path.dirname(server);
+    if(server.toLowerCase().indexOf('yarn') !== -1) {
+        server = path.join(server, '..', 'config', 'global');
+    }
+    server = path.join(server, 'node_modules', 'ampm', 'server.js');
 }
 
 if (!fs.existsSync(restartFile)) {
