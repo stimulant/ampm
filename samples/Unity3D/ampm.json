@@ -1,7 +1,7 @@
 {
     "default": {
         "persistence": {
-            "launchCommand": "AmpmUnitySample.exe",
+            "launchCommand": "UnitySample.exe",
             "maxMemory": 0,
             "startupTimeout": 10,
             "heartbeatTimeout": 5
