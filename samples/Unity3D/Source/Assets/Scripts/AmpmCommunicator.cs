@@ -7,8 +7,8 @@ using System.IO;
 
 public class AmpmCommunicator : MonoBehaviour
 {
-	//public int sendPort = 3002;
-	//public int recievePort = 3003;
+	public int sendPort = 3002;
+	public int recievePort = 3003;
 	public float heartbeatInterval = 1 / 60;
 	public string configFileName;
 
@@ -63,18 +63,18 @@ public class AmpmCommunicator : MonoBehaviour
 		while( true ) {
 			AMPM.Heart();
 			guiColor = Random.ColorHSV();
+			//Debug.Log( "sending App heartbeat" );
 			yield return new WaitForSeconds( heartbeatInterval );
 		}
 	}
 
 	void OnGUI()
 	{
-		/* uncomment to debug heartbeat
+		// uncomment to debug heartbeat
 		GUIStyle textStyle = new GUIStyle();
 		textStyle.fontSize = 15;
 		textStyle.normal.textColor = guiColor;
 		GUI.color = guiColor;
 		GUI.Label( new Rect( 10, 50, 100, 100 ), "PULSE", textStyle );
-		*/
 	}
 }
