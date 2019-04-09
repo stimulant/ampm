@@ -97,11 +97,11 @@ public static class AMPM
 		// parse it as json
 		_Config = JSON.Parse( reader.ReadToEnd() );
 
-		Debug.Log( "_Config " + _Config( " .ToString() );
+		//Debug.Log( "_Config " + _Config.ToString() );
 
-		                                 // fire OnConfigLoaded
+		// fire OnConfigLoaded
 		if( OnConfigLoaded != null ) {
-		OnConfigLoaded();
+			OnConfigLoaded();
 		}
 	}
 
