@@ -14,11 +14,12 @@ public class AmpmCommunicator : MonoBehaviour
 	private int recievePort = 3003;
 	public float heartbeatInterval = 1 / 60;
 	public string configFileName;
+	public bool isDebug = false;
 
-	// simple way to debug heartbeat
+	// debug heartbeat
 	private Color guiColor = new Color();
 
-	// commi=unicator instance
+	// communicator instance
 	static AmpmCommunicator instance = null;
 
 	// create a singleton ampm communicator
@@ -48,14 +49,9 @@ public class AmpmCommunicator : MonoBehaviour
 		AMPM.GetConfigFromFile( pathString );
 #endif
 	}
-
-	private void OnDestroy()
-	{
-	}
-
 	private void OnApplicationQuit()
 	{
-		Debug.Log( "closing AMPM!" );
+		Debug.Log( "closing AMPM" );
 		AMPM.Close();
 	}
 
@@ -84,8 +80,8 @@ public class AmpmCommunicator : MonoBehaviour
 
 	void OnGUI()
 	{
-		if( Common.GetInstance().isDebug ) {
-			// uncomment to debug heartbeat
+		if( isDebug ) {
+			// simple debug display
 			GUIStyle textStyle = new GUIStyle();
 			textStyle.fontSize = 30;
 			textStyle.normal.textColor = guiColor;
