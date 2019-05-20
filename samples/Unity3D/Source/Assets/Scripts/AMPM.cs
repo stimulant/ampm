@@ -28,6 +28,7 @@ public static class AMPM
 
 	// The OSC server to receive OSC messages.
 	private static readonly OSCServer _OscReceive;
+	private static readonly OSCHandler _OscHandler;
 
 	// The destination for OSC messages to the local node.js server.
 	private static IPAddress ipAddress;
@@ -39,6 +40,7 @@ public static class AMPM
 	{
 		// Create a OSC Reciever to receive UDP messages
 		_OscReceive = OSCHandler.Instance.CreateServer( "AMPM", 3003 );
+		_OscHandler = OSCHandler.Instance;
 
 		// Handle incoming OSC messages.
 		_OscReceive.PacketReceivedEvent += Server_MessageReceived;
@@ -46,6 +48,15 @@ public static class AMPM
 		ipAddress = GetLocalIPAddress();
 		OSCHandler.Instance.CreateClient( "AMPM", ipAddress, 3002 ); // Creating a client to send messages on
 	}
+
+	public static void Close()
+	{
+		if( _OscReceive != null ) {
+			_OscReceive.Close();
+
+		}
+	}
+
 
 	public static IPAddress GetLocalIPAddress()
 	{

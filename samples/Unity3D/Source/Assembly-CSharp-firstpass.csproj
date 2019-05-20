@@ -61,10 +61,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Plugins\SimpleJSON\SimpleJSON.cs" />
+    <Compile Include="Assets\Plugins\UnityOSC\src\OSC\OSC.cs" />
     <Compile Include="Assets\Plugins\UnityOSC\src\OSC\OSCBundle.cs" />
     <Compile Include="Assets\Plugins\UnityOSC\src\OSC\OSCClient.cs" />
     <Compile Include="Assets\Plugins\UnityOSC\src\OSC\OSCMessage.cs" />
     <Compile Include="Assets\Plugins\UnityOSC\src\OSC\OSCPacket.cs" />
+    <Compile Include="Assets\Plugins\UnityOSC\src\OSC\OSCReceiver.cs" />
     <Compile Include="Assets\Plugins\UnityOSC\src\OSC\OSCServer.cs" />
     <Compile Include="Assets\Plugins\UnityOSC\src\OSCHandler.cs" />
     <Compile Include="Assets\Plugins\UnityOSC\tests\oscControl.cs" />

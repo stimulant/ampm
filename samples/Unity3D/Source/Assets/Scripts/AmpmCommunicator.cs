@@ -1,4 +1,7 @@
-﻿using UnityEditor;
+﻿
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 //using UnityEditor.Callbacks;
 using UnityEngine;
 using System.Collections;
@@ -7,8 +10,8 @@ using System.IO;
 
 public class AmpmCommunicator : MonoBehaviour
 {
-	public int sendPort = 3002;
-	public int recievePort = 3003;
+	private int sendPort = 3002;
+	private int recievePort = 3003;
 	public float heartbeatInterval = 1 / 60;
 	public string configFileName;
 
@@ -24,6 +27,7 @@ public class AmpmCommunicator : MonoBehaviour
 		if( instance == null ) {
 			instance = this;
 			DontDestroyOnLoad( gameObject );
+
 		}
 		else {
 			if( this != instance ) {
@@ -36,13 +40,23 @@ public class AmpmCommunicator : MonoBehaviour
 	void OnEnable()
 	{
 		AMPM.OnConfigLoaded += ParseConfig;
-
 #if UNITY_STANDALONE && !UNITY_EDITOR
 		AMPM.GetConfigFromUrl();
 #else
+		Debug.Log( "AMPM is running in editor mode !!!" );
 		string pathString = Path.Combine( Application.streamingAssetsPath, configFileName );
 		AMPM.GetConfigFromFile( pathString );
 #endif
+	}
+
+	private void OnDestroy()
+	{
+	}
+
+	private void OnApplicationQuit()
+	{
+		Debug.Log( "closing AMPM!" );
+		AMPM.Close();
 	}
 
 	void ParseConfig()
@@ -53,7 +67,7 @@ public class AmpmCommunicator : MonoBehaviour
 
 	void StartHeartBeat()
 	{
-		StopAllCoroutines();
+		StopCoroutine( "HeartNow" );
 		Debug.Log( "Starting App heartbeat" );
 		StartCoroutine( "HeartNow" );
 	}
@@ -70,11 +84,13 @@ public class AmpmCommunicator : MonoBehaviour
 
 	void OnGUI()
 	{
-		// uncomment to debug heartbeat
-		GUIStyle textStyle = new GUIStyle();
-		textStyle.fontSize = 15;
-		textStyle.normal.textColor = guiColor;
-		GUI.color = guiColor;
-		GUI.Label( new Rect( 10, 50, 100, 100 ), "PULSE", textStyle );
+		if( Common.GetInstance().isDebug ) {
+			// uncomment to debug heartbeat
+			GUIStyle textStyle = new GUIStyle();
+			textStyle.fontSize = 30;
+			textStyle.normal.textColor = guiColor;
+			GUI.color = guiColor;
+			GUI.Label( new Rect( 20, 30 * 6 + 10, 100, 100 ), "PULSE", textStyle );
+		}
 	}
 }
