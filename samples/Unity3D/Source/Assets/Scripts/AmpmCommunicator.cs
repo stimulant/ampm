@@ -14,12 +14,11 @@ public class AmpmCommunicator : MonoBehaviour
 	private int recievePort = 3003;
 	public float heartbeatInterval = 1 / 60;
 	public string configFileName;
-	public bool isDebug = false;
 
-	// debug heartbeat
+	// simple way to debug heartbeat
 	private Color guiColor = new Color();
 
-	// communicator instance
+	// commi=unicator instance
 	static AmpmCommunicator instance = null;
 
 	// create a singleton ampm communicator
@@ -44,11 +43,16 @@ public class AmpmCommunicator : MonoBehaviour
 #if UNITY_STANDALONE && !UNITY_EDITOR
 		AMPM.GetConfigFromUrl();
 #else
-		Debug.Log( "AMPM is running in editor mode !!!" );
+		Debug.Log( "AMPM is running in editor mode" );
 		string pathString = Path.Combine( Application.streamingAssetsPath, configFileName );
 		AMPM.GetConfigFromFile( pathString );
 #endif
 	}
+
+	private void OnDestroy()
+	{
+	}
+
 	private void OnApplicationQuit()
 	{
 		Debug.Log( "closing AMPM" );
@@ -64,7 +68,6 @@ public class AmpmCommunicator : MonoBehaviour
 	void StartHeartBeat()
 	{
 		StopCoroutine( "HeartNow" );
-		Debug.Log( "Starting App heartbeat" );
 		StartCoroutine( "HeartNow" );
 	}
 
@@ -73,20 +76,21 @@ public class AmpmCommunicator : MonoBehaviour
 		while( true ) {
 			AMPM.Heart();
 			guiColor = Random.ColorHSV();
-			//Debug.Log( "sending App heartbeat" );
 			yield return new WaitForSeconds( heartbeatInterval );
 		}
 	}
 
 	void OnGUI()
 	{
-		if( isDebug ) {
-			// simple debug display
+		// uncomment to debug heartbeat
+		/*
+		if ( Common.GetInstance().isDebug ) {
 			GUIStyle textStyle = new GUIStyle();
 			textStyle.fontSize = 30;
 			textStyle.normal.textColor = guiColor;
 			GUI.color = guiColor;
 			GUI.Label( new Rect( 20, 30 * 6 + 10, 100, 100 ), "PULSE", textStyle );
 		}
+		*/
 	}
 }
