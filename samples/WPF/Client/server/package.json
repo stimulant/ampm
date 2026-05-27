@@ -7,6 +7,6 @@
   "license": "MIT",
   "dependencies": {
     "backbone": "^1.2.3",
-    "lodash": "^3.10.1"
+    "lodash": "^4.17.19"
   }
 }
