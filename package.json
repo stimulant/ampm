@@ -21,7 +21,7 @@
 		"express": "^4.13.3",
 		"express-session": "^1.12.1",
 		"later": "^1.2.0",
-		"lodash": "^3.10.1",
+		"lodash": "^4.17.19",
 		"moment": "^2.10.6",
 		"node-fs": "^0.1.7",
 		"node-osc": "^2.0.3",
