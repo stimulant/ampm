@@ -1,0 +1,62 @@
+{
+    "default": {
+        "persistence": {
+            "launchCommand": "UnitySample.exe",
+            "maxMemory": 0,
+            "startupTimeout": 10,
+            "heartbeatTimeout": 5
+        },
+        "permissions": {
+            "username": {
+                "password": "password",
+                "app": true,
+                "computer": true
+            }
+        },
+        "logging": {
+            "file": {
+                "filename": "logs/server"
+            },
+            "eventFile": {
+                "filename": "logs/event-{date}.tsv"
+            },
+            "screenshots": {
+                "filename": "logs/capture-{date}.jpg"
+            },
+            "loggly": {
+                "tags": "ampm-samples"
+            },
+            "mail": {
+                "enabled": false
+            }
+        },
+        "plugin": "server/server.js",
+        "customConfig:": {
+            "foo:": "bar"
+        }
+    },
+    "dev": {
+        "persistence": {
+            "maxMemory": 0,
+            "startupTimeout": 0,
+            "heartbeatTimeout": 0
+        },
+        "logging": {
+            "file": {
+                "enabled": false
+            },
+            "eventFile": {
+                "enabled": false
+            },
+            "screenshots": {
+                "enabled": false
+            },
+            "loggly": {
+                "enabled": false
+            }
+        },
+        "customConfig:": {
+            "foo:": "baz"
+        }
+    }
+}

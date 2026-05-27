@@ -98,6 +98,9 @@ csx
 # Windows Store app package directory
 AppPackages/
 
+# Unity temp files
+[Tt]emp
+
 # Others
 [Bb]in
 [Oo]bj

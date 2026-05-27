@@ -17,3 +17,6 @@
 ## To start the app with AMPM
 * Copy the file ampm.json to the same directory as the unity build. Edit the ampm.json file so that the "launchCommand" property holds the name of your build file.
 * From a command line window navigate to your build directory and run `ampm` to run in production mode, or `ampm ampm.json dev` to run in dev mode.
+
+## To test in the editor
+* Place ampm.json in your streaming assets folder
